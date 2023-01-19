@@ -16,10 +16,11 @@
 
 package uk.gov.hmrc.singlecustomeraccountwrapperdata.controllers
 
-import play.api.libs.json.Json
+import play.api.libs.json.{JsValue, Json}
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 import uk.gov.hmrc.singlecustomeraccountwrapperdata.config.AppConfig
+import uk.gov.hmrc.singlecustomeraccountwrapperdata.models.{WrapperDataRequest, WrapperDataResponse}
 
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.Future
@@ -27,7 +28,32 @@ import scala.concurrent.Future
 @Singleton()
 class ScaWrapperController @Inject()(cc: ControllerComponents, appConfig: AppConfig) extends BackendController(cc) {
 
-  def getData(): Action[AnyContent] = Action.async { implicit request =>
-    Future.successful(Ok(Json.toJson(appConfig.menuConfig)))
+  def wrapperData: Action[JsValue] = Action(parse.json) { implicit request =>
+    println("a")
+    val wrapperDataRequest = request.body.validate[WrapperDataRequest]
+    wrapperDataRequest.fold(
+      errors => {
+        println("error 3730")
+        NonAuthoritativeInformation(Json.toJson(WrapperDataResponse(
+          appConfig.feedbackFrontendUrl,
+          appConfig.contactUrl,
+          appConfig.businessTaxAccountUrl,
+          appConfig.pertaxUrl,
+          appConfig.accessibilityStatementUrl,
+          appConfig.menuConfig(appConfig.defaultPertaxSignout)
+        )))
+      },
+      wrapperData => {
+        println("b")
+        Ok(Json.toJson(WrapperDataResponse(
+          appConfig.feedbackFrontendUrl,
+          appConfig.contactUrl,
+          appConfig.businessTaxAccountUrl,
+          appConfig.pertaxUrl,
+          appConfig.accessibilityStatementUrl,
+          appConfig.menuConfig(wrapperData.signoutUrl)
+        )))
+      }
+    )
   }
 }
