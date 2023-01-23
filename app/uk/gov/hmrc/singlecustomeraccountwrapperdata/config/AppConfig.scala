@@ -43,7 +43,8 @@ class AppConfig @Inject()(configuration: Configuration) {
     MenuItemConfig("Check progress", s"${pertaxUrl}/track", leftAligned = false, position = 1, None, None),
     MenuItemConfig("Profile and settings", s"${pertaxUrl}/profile-and-settings", leftAligned = false, position = 2, None, None),
     MenuItemConfig("Business tax account", s"${businessTaxAccountUrl}/business-account", leftAligned = false, position = 3, None, None),
-    MenuItemConfig("Sign out", s"${signoutUrl}", leftAligned = false, position = 4, None, None)
+    MenuItemConfig("Sign out", s"${signoutUrl}", leftAligned = false, position = 5, None, None),
+    MenuItemConfig("YTAB", s"${signoutUrl}", leftAligned = false, position = 4, None, None)
   )
 
 }
