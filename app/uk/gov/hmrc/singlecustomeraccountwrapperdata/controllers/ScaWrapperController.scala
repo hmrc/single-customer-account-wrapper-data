@@ -16,8 +16,10 @@
 
 package uk.gov.hmrc.singlecustomeraccountwrapperdata.controllers
 
+import play.api.libs.json.Json
+import play.api.mvc.{Action, AnyContent, ControllerComponents, WrappedRequest}
 import play.api.libs.json.{JsValue, Json}
-import play.api.mvc.{Action, AnyContent, ControllerComponents}
+
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 import uk.gov.hmrc.singlecustomeraccountwrapperdata.config.AppConfig
 import uk.gov.hmrc.singlecustomeraccountwrapperdata.models.{WrapperDataRequest, WrapperDataResponse}
@@ -28,8 +30,8 @@ import scala.concurrent.Future
 @Singleton()
 class ScaWrapperController @Inject()(cc: ControllerComponents, appConfig: AppConfig) extends BackendController(cc) {
 
-  def wrapperData: Action[JsValue] = Action(parse.json) { implicit request =>
-    println("a")
+  def wrapperData(version: String): Action[JsValue] = Action(parse.json) { implicit request =>
+    val wrapperDataVersion : String = appConfig.versionNum.take(1)
     val wrapperDataRequest = request.body.validate[WrapperDataRequest]
     wrapperDataRequest.fold(
       errors => {
@@ -43,16 +45,27 @@ class ScaWrapperController @Inject()(cc: ControllerComponents, appConfig: AppCon
           appConfig.menuConfig(appConfig.defaultPertaxSignout)
         )))
       },
-      wrapperData => {
-        println("b")
-        Ok(Json.toJson(WrapperDataResponse(
-          appConfig.feedbackFrontendUrl,
-          appConfig.contactUrl,
-          appConfig.businessTaxAccountUrl,
-          appConfig.pertaxUrl,
-          appConfig.accessibilityStatementUrl,
-          appConfig.menuConfig(wrapperData.signoutUrl)
-        )))
+      version.take(1) ==  wrapperDataVersion match {
+        case true => wrapperData => {
+          Ok(Json.toJson(WrapperDataResponse(
+            appConfig.feedbackFrontendUrl,
+            appConfig.contactUrl,
+            appConfig.businessTaxAccountUrl,
+            appConfig.pertaxUrl,
+            appConfig.accessibilityStatementUrl,
+            appConfig.menuConfig(wrapperData.signoutUrl)
+          )))
+        }
+        case _ => wrapperData => {
+          Ok(Json.toJson(WrapperDataResponse(
+            appConfig.feedbackFrontendUrl,
+            appConfig.contactUrl,
+            appConfig.businessTaxAccountUrl,
+            appConfig.pertaxUrl,
+            appConfig.accessibilityStatementUrl,
+            appConfig.fallbackMenuConfig(wrapperData.signoutUrl)
+          )))
+        }
       }
     )
   }

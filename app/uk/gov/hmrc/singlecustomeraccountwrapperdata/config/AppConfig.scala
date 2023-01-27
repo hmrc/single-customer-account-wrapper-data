@@ -27,14 +27,14 @@ import scala.concurrent.duration.Duration
 @Singleton
 class AppConfig @Inject()(configuration: Configuration) {
 
-  val appName: String = configuration.get[String]("appName")
 
+  val appName: String = configuration.get[String]("appName")
+  val versionNum: String = "1.0.0"
   val pertaxUrl: String = s"${configuration.get[String]("sca-wrapper.internal.pertax-frontend.url")}/personal-account"
   val businessTaxAccountUrl: String = s"${configuration.get[String]("sca-wrapper.internal.business-tax-frontend.url")}/business-account"
   val feedbackFrontendUrl: String = s"${configuration.get[String]("sca-wrapper.internal.feedback-frontend.url")}/feedback"
   val contactUrl: String = s"${configuration.get[String]("sca-wrapper.internal.contact-frontend.url")}/contact/beta-feedback"
   val accessibilityStatementUrl: String = configuration.get[String]("sca-wrapper.internal.accessibility-statement-frontend.url")
-
   val defaultPertaxSignout = s"$pertaxUrl/signout/feedback/PERTAX"
 
   def menuConfig(signoutUrl: String): Seq[MenuItemConfig] = Seq(
@@ -47,4 +47,12 @@ class AppConfig @Inject()(configuration: Configuration) {
     MenuItemConfig("YTAB", s"${signoutUrl}", leftAligned = false, position = 4, None, None)
   )
 
+  def fallbackMenuConfig(signoutUrl: String): Seq[MenuItemConfig] = Seq(
+    MenuItemConfig("Account Home", s"${pertaxUrl}", leftAligned = true, position = 0, Some("hmrc-account-icon hmrc-account-icon--home"), None),
+    MenuItemConfig("Messages", s"${pertaxUrl}/messages", leftAligned = false, position = 0, None, None),
+    MenuItemConfig("Check progress", s"${pertaxUrl}/track", leftAligned = false, position = 1, None, None),
+   // MenuItemConfig("Profile and settings", s"${pertaxUrl}/profile-and-settings", leftAligned = false, position = 2, None, None),
+    MenuItemConfig("Business tax account", s"${businessTaxAccountUrl}/business-account", leftAligned = false, position = 3, None, None),
+    MenuItemConfig("Sign out", s"${signoutUrl}", leftAligned = false, position = 5, None, None)
+  )
 }
