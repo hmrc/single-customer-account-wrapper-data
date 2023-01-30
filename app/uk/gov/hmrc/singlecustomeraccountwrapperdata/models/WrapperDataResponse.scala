@@ -24,6 +24,7 @@ case class WrapperDataResponse(
                             businessTaxAccountFrontendUrl: String,
                             pertaxFrontendUrl: String,
                             accessibilityStatementUrl: String,
+                            signinUrl: String,
                             menuItemConfig: Seq[MenuItemConfig])
 
 object WrapperDataResponse {

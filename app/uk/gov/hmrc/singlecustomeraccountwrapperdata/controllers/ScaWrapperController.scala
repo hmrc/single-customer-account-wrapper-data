@@ -16,57 +16,49 @@
 
 package uk.gov.hmrc.singlecustomeraccountwrapperdata.controllers
 
-import play.api.libs.json.Json
-import play.api.mvc.{Action, AnyContent, ControllerComponents, WrappedRequest}
 import play.api.libs.json.{JsValue, Json}
-
+import play.api.mvc.{Action, AnyContent, ControllerComponents}
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 import uk.gov.hmrc.singlecustomeraccountwrapperdata.config.AppConfig
-import uk.gov.hmrc.singlecustomeraccountwrapperdata.models.{WrapperDataRequest, WrapperDataResponse}
+import uk.gov.hmrc.singlecustomeraccountwrapperdata.models.WrapperDataResponse
 
 import javax.inject.{Inject, Singleton}
-import scala.concurrent.Future
 
 @Singleton()
 class ScaWrapperController @Inject()(cc: ControllerComponents, appConfig: AppConfig) extends BackendController(cc) {
 
-  def wrapperData(version: String): Action[JsValue] = Action(parse.json) { implicit request =>
+  def wrapperData(wrapperLibraryVersion: String): Action[AnyContent] = Action { implicit request =>
     val wrapperDataVersion : String = appConfig.versionNum.take(1)
-    val wrapperDataRequest = request.body.validate[WrapperDataRequest]
-    wrapperDataRequest.fold(
-      errors => {
-        println("error 3730")
-        NonAuthoritativeInformation(Json.toJson(WrapperDataResponse(
-          appConfig.feedbackFrontendUrl,
-          appConfig.contactUrl,
-          appConfig.businessTaxAccountUrl,
-          appConfig.pertaxUrl,
-          appConfig.accessibilityStatementUrl,
-          appConfig.menuConfig(appConfig.defaultPertaxSignout)
-        )))
-      },
-      version.take(1) ==  wrapperDataVersion match {
-        case true => wrapperData => {
-          Ok(Json.toJson(WrapperDataResponse(
-            appConfig.feedbackFrontendUrl,
-            appConfig.contactUrl,
-            appConfig.businessTaxAccountUrl,
-            appConfig.pertaxUrl,
-            appConfig.accessibilityStatementUrl,
-            appConfig.menuConfig(wrapperData.signoutUrl)
-          )))
+    Ok(Json.toJson(
+      if(wrapperDataVersion == wrapperLibraryVersion){
+        Json.toJson(wrapperDataResponse)
+      } else {
+        Json.toJson(wrapperDataResponseFallback)
         }
-        case _ => wrapperData => {
-          Ok(Json.toJson(WrapperDataResponse(
-            appConfig.feedbackFrontendUrl,
-            appConfig.contactUrl,
-            appConfig.businessTaxAccountUrl,
-            appConfig.pertaxUrl,
-            appConfig.accessibilityStatementUrl,
-            appConfig.fallbackMenuConfig(wrapperData.signoutUrl)
-          )))
-        }
-      }
+    ))
+  }
+
+  private val wrapperDataResponse = {
+    WrapperDataResponse(
+      appConfig.feedbackFrontendUrl,
+      appConfig.contactUrl,
+      appConfig.businessTaxAccountUrl,
+      appConfig.pertaxUrl,
+      appConfig.accessibilityStatementUrl,
+      appConfig.ggSigninUrl,
+      appConfig.menuConfig
+    )
+  }
+
+  private val wrapperDataResponseFallback = {
+    WrapperDataResponse(
+      appConfig.feedbackFrontendUrl,
+      appConfig.contactUrl,
+      appConfig.businessTaxAccountUrl,
+      appConfig.pertaxUrl,
+      appConfig.accessibilityStatementUrl,
+      appConfig.ggSigninUrl,
+      appConfig.menuConfig
     )
   }
 }
