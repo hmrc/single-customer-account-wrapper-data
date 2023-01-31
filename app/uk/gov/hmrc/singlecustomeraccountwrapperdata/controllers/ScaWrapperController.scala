@@ -16,29 +16,32 @@
 
 package uk.gov.hmrc.singlecustomeraccountwrapperdata.controllers
 
-import play.api.libs.json.{JsValue, Json}
+import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 import uk.gov.hmrc.singlecustomeraccountwrapperdata.config.AppConfig
+import uk.gov.hmrc.singlecustomeraccountwrapperdata.controllers.actions.AuthAction
 import uk.gov.hmrc.singlecustomeraccountwrapperdata.models.WrapperDataResponse
+import uk.gov.hmrc.singlecustomeraccountwrapperdata.models.auth.AuthenticatedRequest
 
 import javax.inject.{Inject, Singleton}
+import scala.concurrent.ExecutionContext
 
 @Singleton()
-class ScaWrapperController @Inject()(cc: ControllerComponents, appConfig: AppConfig) extends BackendController(cc) {
+class ScaWrapperController @Inject()(cc: ControllerComponents, appConfig: AppConfig, authenticate: AuthAction)
+                                    (implicit ec: ExecutionContext) extends BackendController(cc) {
 
-  def wrapperData(wrapperLibraryVersion: String): Action[AnyContent] = Action { implicit request =>
-    val wrapperDataVersion : String = appConfig.versionNum.take(1)
-    Ok(Json.toJson(
-      if(wrapperDataVersion == wrapperLibraryVersion){
-        Json.toJson(wrapperDataResponse)
-      } else {
-        Json.toJson(wrapperDataResponseFallback)
-        }
-    ))
+  def wrapperData(wrapperLibraryVersion: String): Action[AnyContent] = authenticate { implicit request =>
+    val wrapperDataVersion: String = appConfig.versionNum.take(1)
+    val response = (if (wrapperDataVersion == wrapperLibraryVersion) {
+      wrapperDataResponse
+    } else {
+      wrapperDataResponseFallback
+    })
+    Ok(Json.toJson(response))
   }
 
-  private val wrapperDataResponse = {
+  private def wrapperDataResponse(implicit request: AuthenticatedRequest[AnyContent]) = {
     WrapperDataResponse(
       appConfig.feedbackFrontendUrl,
       appConfig.contactUrl,
@@ -50,7 +53,7 @@ class ScaWrapperController @Inject()(cc: ControllerComponents, appConfig: AppCon
     )
   }
 
-  private val wrapperDataResponseFallback = {
+  private def wrapperDataResponseFallback(implicit request: AuthenticatedRequest[AnyContent]) = {
     WrapperDataResponse(
       appConfig.feedbackFrontendUrl,
       appConfig.contactUrl,
@@ -61,4 +64,5 @@ class ScaWrapperController @Inject()(cc: ControllerComponents, appConfig: AppCon
       appConfig.menuConfig
     )
   }
+
 }

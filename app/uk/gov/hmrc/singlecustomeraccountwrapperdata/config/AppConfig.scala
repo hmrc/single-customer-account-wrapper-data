@@ -16,18 +16,16 @@
 
 package uk.gov.hmrc.singlecustomeraccountwrapperdata.config
 
-import javax.inject.{Inject, Singleton}
 import play.api.Configuration
-import play.api.mvc.RequestHeader
-import uk.gov.hmrc.play.bootstrap.binders.SafeRedirectUrl
+import play.api.mvc.AnyContent
+import uk.gov.hmrc.auth.core.Enrolment
 import uk.gov.hmrc.singlecustomeraccountwrapperdata.models.MenuItemConfig
-import uk.gov.hmrc.singlecustomeraccountwrapperdata.services.AuthService
+import uk.gov.hmrc.singlecustomeraccountwrapperdata.models.auth.AuthenticatedRequest
 
-import scala.concurrent.{ExecutionContext, Future}
-import scala.concurrent.duration.Duration
+import javax.inject.{Inject, Singleton}
 
 @Singleton
-class AppConfig @Inject()(configuration: Configuration, authService: AuthService) {
+class AppConfig @Inject()(configuration: Configuration) {
 
   final val appName: String = configuration.get[String]("appName")
 
@@ -42,7 +40,7 @@ class AppConfig @Inject()(configuration: Configuration, authService: AuthService
 
   final val defaultPertaxSignout = s"$pertaxUrl/signout/feedback/PERTAX"
 
-  def menuConfig(implicit ec: ExecutionContext): Future[Seq[MenuItemConfig]] = {
+  def menuConfig(implicit request: AuthenticatedRequest[AnyContent]): Seq[MenuItemConfig] = {
     btaConfig(
       Seq(
         MenuItemConfig("Account Home", s"${pertaxUrl}", leftAligned = true, position = 0, Some("hmrc-account-icon hmrc-account-icon--home"), None),
@@ -54,24 +52,27 @@ class AppConfig @Inject()(configuration: Configuration, authService: AuthService
     )
   }
 
-  def fallbackMenuConfig(implicit ec: ExecutionContext): Future[Seq[MenuItemConfig]] = {
+  def fallbackMenuConfig(implicit request: AuthenticatedRequest[AnyContent]): Seq[MenuItemConfig] = {
     btaConfig(
       Seq(
-      MenuItemConfig("Account Home", s"${pertaxUrl}", leftAligned = true, position = 0, Some("hmrc-account-icon hmrc-account-icon--home"), None),
-      MenuItemConfig("Messages", s"${pertaxUrl}/messages", leftAligned = false, position = 1, None, None),
-      MenuItemConfig("Check progress", s"${pertaxUrl}/track", leftAligned = false, position = 1, None, None),
-      MenuItemConfig("Profile and settings", s"${pertaxUrl}/profile-and-settings", leftAligned = false, position = 2, None, None),
-      MenuItemConfig("Sign out", s"$defaultPertaxSignout", leftAligned = false, position = 4, None, None, signout = true)
+        MenuItemConfig("Account Home", s"${pertaxUrl}", leftAligned = true, position = 0, Some("hmrc-account-icon hmrc-account-icon--home"), None),
+        MenuItemConfig("Messages", s"${pertaxUrl}/messages", leftAligned = false, position = 1, None, None),
+        MenuItemConfig("Check progress", s"${pertaxUrl}/track", leftAligned = false, position = 1, None, None),
+        MenuItemConfig("Profile and settings", s"${pertaxUrl}/profile-and-settings", leftAligned = false, position = 2, None, None),
+        MenuItemConfig("Sign out", s"$defaultPertaxSignout", leftAligned = false, position = 4, None, None, signout = true)
       )
     )
   }
-  private def btaConfig(config: Seq[MenuItemConfig])(implicit ec: ExecutionContext) = {
-    authService.showBtaLink.map { showBta =>
-      config.++(if(showBta) {
-        Seq(MenuItemConfig("Business tax account", s"${businessTaxAccountUrl}/business-account", leftAligned = false, position = 3, None, None))
-      } else {
-        Seq.empty
-      })
+  private def btaConfig(config: Seq[MenuItemConfig])(implicit request: AuthenticatedRequest[AnyContent]) = {
+    val showBta = request.enrolments.find(_.key == "IR-SA").collectFirst {
+      case Enrolment("IR-SA", Seq(identifier), "Activated", _) => identifier.value
+    }.isDefined
+
+    val btaConfig = Seq(MenuItemConfig("Business tax account", s"${businessTaxAccountUrl}/business-account", leftAligned = false, position = 3, None, None))
+    if(showBta) {
+      config ++ btaConfig
+    } else {
+      config
     }
   }
 }
