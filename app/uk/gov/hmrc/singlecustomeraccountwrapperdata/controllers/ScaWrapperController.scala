@@ -20,14 +20,49 @@ import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 import uk.gov.hmrc.singlecustomeraccountwrapperdata.config.AppConfig
+import uk.gov.hmrc.singlecustomeraccountwrapperdata.controllers.actions.AuthAction
+import uk.gov.hmrc.singlecustomeraccountwrapperdata.models.WrapperDataResponse
+import uk.gov.hmrc.singlecustomeraccountwrapperdata.models.auth.AuthenticatedRequest
 
 import javax.inject.{Inject, Singleton}
-import scala.concurrent.Future
+import scala.concurrent.ExecutionContext
 
 @Singleton()
-class ScaWrapperController @Inject()(cc: ControllerComponents, appConfig: AppConfig) extends BackendController(cc) {
+class ScaWrapperController @Inject()(cc: ControllerComponents, appConfig: AppConfig, authenticate: AuthAction)
+                                    (implicit ec: ExecutionContext) extends BackendController(cc) {
 
-  def getData(): Action[AnyContent] = Action.async { implicit request =>
-    Future.successful(Ok(Json.toJson(appConfig.menuConfig)))
+  def wrapperData(wrapperLibraryVersion: String): Action[AnyContent] = authenticate { implicit request =>
+    val wrapperDataVersion: String = appConfig.versionNum.take(1)
+    val response = (if (wrapperDataVersion == wrapperLibraryVersion) {
+      wrapperDataResponse
+    } else {
+      wrapperDataResponseFallback
+    })
+    Ok(Json.toJson(response))
   }
+
+  private def wrapperDataResponse(implicit request: AuthenticatedRequest[AnyContent]) = {
+    WrapperDataResponse(
+      appConfig.feedbackFrontendUrl,
+      appConfig.contactUrl,
+      appConfig.businessTaxAccountUrl,
+      appConfig.pertaxUrl,
+      appConfig.accessibilityStatementUrl,
+      appConfig.ggSigninUrl,
+      appConfig.menuConfig
+    )
+  }
+
+  private def wrapperDataResponseFallback(implicit request: AuthenticatedRequest[AnyContent]) = {
+    WrapperDataResponse(
+      appConfig.feedbackFrontendUrl,
+      appConfig.contactUrl,
+      appConfig.businessTaxAccountUrl,
+      appConfig.pertaxUrl,
+      appConfig.accessibilityStatementUrl,
+      appConfig.ggSigninUrl,
+      appConfig.menuConfig
+    )
+  }
+
 }

@@ -1,3 +1,3 @@
 # microservice specific routes
 
-GET        /get-wrapper-data        uk.gov.hmrc.singlecustomeraccountwrapperdata.controllers.ScaWrapperController.getData()
+GET        /wrapper-data/:version        uk.gov.hmrc.singlecustomeraccountwrapperdata.controllers.ScaWrapperController.wrapperData(version: String)

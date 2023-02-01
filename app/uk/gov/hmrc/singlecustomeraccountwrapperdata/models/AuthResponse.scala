@@ -16,11 +16,15 @@
 
 package uk.gov.hmrc.singlecustomeraccountwrapperdata.models
 
-import play.api.libs.json.{Json, OFormat}
+import uk.gov.hmrc.auth.core.retrieve.v2.TrustedHelper
+import uk.gov.hmrc.auth.core.retrieve.{Credentials, Name}
+import uk.gov.hmrc.auth.core.{ConfidenceLevel, Enrolment}
 
-case class MenuItemConfig(text: String, href: String, leftAligned: Boolean, position: Int,
-                          icon: Option[String], notificationBadge: Option[Int], signout: Boolean = false)
-
-object MenuItemConfig {
-  implicit val format: OFormat[MenuItemConfig] = Json.format[MenuItemConfig]
-}
+case class AuthResponse(
+                         nino: Option[String],
+                         enrolments: Set[Enrolment],
+                         confidenceLevel: ConfidenceLevel,
+                         name: Option[Name],
+                         trustedHelper: Option[TrustedHelper],
+                         credentials: Credentials,
+                         credentialStrength: String)

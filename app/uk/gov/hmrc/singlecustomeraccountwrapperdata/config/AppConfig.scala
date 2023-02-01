@@ -16,35 +16,63 @@
 
 package uk.gov.hmrc.singlecustomeraccountwrapperdata.config
 
-import javax.inject.{Inject, Singleton}
 import play.api.Configuration
+import play.api.mvc.AnyContent
+import uk.gov.hmrc.auth.core.Enrolment
 import uk.gov.hmrc.singlecustomeraccountwrapperdata.models.MenuItemConfig
+import uk.gov.hmrc.singlecustomeraccountwrapperdata.models.auth.AuthenticatedRequest
+
+import javax.inject.{Inject, Singleton}
 
 @Singleton
-class AppConfig @Inject()(config: Configuration) {
+class AppConfig @Inject()(configuration: Configuration) {
 
-  val appName: String = config.get[String]("appName")
+  final val appName: String = configuration.get[String]("appName")
 
-  val pertaxUrl: String = s"${config.get[String]("microservice.services.pertax-frontend.url")}/personal-account"
-  val businessTaxAccountUrl: String = s"${config.get[String]("microservice.services.business-tax-frontend.url")}/business-tax-account"
+  val versionNum: String = "1.0.0"
 
-  private def signoutParams(continueUrl: Option[String], origin: Option[String]) = {
-    val contUrl = s"${continueUrl.fold("") { url => s"continueUrl=$url" }}"
-    val originUrl = s"${origin.fold("") { url => s"origin=$url" }}"
-    (contUrl, originUrl) match {
-      case _ if contUrl.nonEmpty && origin.nonEmpty => s"?$contUrl&$originUrl"
-      case _ if contUrl.isEmpty && origin.isEmpty => ""
-      case x@_ => s"?${x._1}${x._2}"
-    }
+  final val pertaxUrl: String = s"${configuration.get[String]("sca-wrapper.pertax-frontend.url")}/personal-account"
+  final val businessTaxAccountUrl: String = s"${configuration.get[String]("sca-wrapper.business-tax-frontend.url")}/business-account"
+  final val feedbackFrontendUrl: String = s"${configuration.get[String]("sca-wrapper.feedback-frontend.url")}/feedback"
+  final val contactUrl: String = s"${configuration.get[String]("sca-wrapper.contact-frontend.url")}/contact/beta-feedback"
+  final val accessibilityStatementUrl: String = configuration.get[String]("sca-wrapper.accessibility-statement-frontend.url")
+  final val ggSigninUrl: String = configuration.get[String]("sca-wrapper.gg.signin.url")
+
+  final val defaultPertaxSignout = s"$pertaxUrl/signout/feedback/PERTAX"
+
+  def menuConfig(implicit request: AuthenticatedRequest[AnyContent]): Seq[MenuItemConfig] = {
+    btaConfig(
+      Seq(
+        MenuItemConfig("Account Home", s"${pertaxUrl}", leftAligned = true, position = 0, Some("hmrc-account-icon hmrc-account-icon--home"), None),
+        MenuItemConfig("Messages", s"${pertaxUrl}/messages", leftAligned = false, position = 1, None, None),
+        MenuItemConfig("Check progress", s"${pertaxUrl}/track", leftAligned = false, position = 1, None, None),
+        MenuItemConfig("Profile and settings", s"${pertaxUrl}/profile-and-settings", leftAligned = false, position = 2, None, None),
+        MenuItemConfig("Sign out", s"$defaultPertaxSignout", leftAligned = false, position = 4, None, None, signout = true)
+      )
+    )
   }
 
-  val menuConfig: Seq[MenuItemConfig] = Seq(
-    MenuItemConfig("Account Home", s"${pertaxUrl}", leftAligned = true, position = 0, Some("hmrc-account-icon hmrc-account-icon--home"), None),
-    MenuItemConfig("Messages", s"${pertaxUrl}/messages", leftAligned = false, position = 0, None, None),
-    MenuItemConfig("Check progress", s"${pertaxUrl}/track", leftAligned = false, position = 1, None, None),
-    MenuItemConfig("Profile and settings", s"${pertaxUrl}/profile-and-settings", leftAligned = false, position = 2, None, None),
-    MenuItemConfig("Business tax account", s"${businessTaxAccountUrl}/business-account", leftAligned = false, position = 3, None, None),
-    MenuItemConfig("Sign out", s"${pertaxUrl}/signout${signoutParams(Some("/feedback/PERTAX"), None)}", leftAligned = false, position = 4, None, None)
-  )
+  def fallbackMenuConfig(implicit request: AuthenticatedRequest[AnyContent]): Seq[MenuItemConfig] = {
+    btaConfig(
+      Seq(
+        MenuItemConfig("Account Home", s"${pertaxUrl}", leftAligned = true, position = 0, Some("hmrc-account-icon hmrc-account-icon--home"), None),
+        MenuItemConfig("Messages", s"${pertaxUrl}/messages", leftAligned = false, position = 1, None, None),
+        MenuItemConfig("Check progress", s"${pertaxUrl}/track", leftAligned = false, position = 1, None, None),
+        MenuItemConfig("Profile and settings", s"${pertaxUrl}/profile-and-settings", leftAligned = false, position = 2, None, None),
+        MenuItemConfig("Sign out", s"$defaultPertaxSignout", leftAligned = false, position = 4, None, None, signout = true)
+      )
+    )
+  }
+  private def btaConfig(config: Seq[MenuItemConfig])(implicit request: AuthenticatedRequest[AnyContent]) = {
+    val showBta = request.enrolments.find(_.key == "IR-SA").collectFirst {
+      case Enrolment("IR-SA", Seq(identifier), "Activated", _) => identifier.value
+    }.isDefined
 
+    val btaConfig = Seq(MenuItemConfig("Business tax account", s"${businessTaxAccountUrl}/business-account", leftAligned = false, position = 3, None, None))
+    if(showBta) {
+      config ++ btaConfig
+    } else {
+      config
+    }
+  }
 }
