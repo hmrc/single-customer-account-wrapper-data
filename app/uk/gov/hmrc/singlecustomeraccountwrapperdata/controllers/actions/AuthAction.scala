@@ -15,6 +15,7 @@
  */
 
 package uk.gov.hmrc.singlecustomeraccountwrapperdata.controllers.actions
+
 import com.google.inject.{ImplementedBy, Inject}
 import play.api.Logging
 import play.api.mvc._

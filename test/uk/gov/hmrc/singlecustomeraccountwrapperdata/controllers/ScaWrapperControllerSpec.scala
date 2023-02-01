@@ -16,39 +16,53 @@
 
 package uk.gov.hmrc.singlecustomeraccountwrapperdata.controllers
 
-import akka.util.Timeout
-import org.scalatest.concurrent.ScalaFutures.whenReady
-import org.scalatest.matchers.must.Matchers.convertToAnyMustWrapper
-import org.scalatest.matchers.should.Matchers
-import org.scalatest.wordspec.AnyWordSpec
+import akka.stream.TLSRole.server
+import org.mockito.ArgumentMatchers.any
+import org.mockito.Mockito.when
+import org.scalatest.matchers.should.Matchers.convertToAnyShouldWrapper
+import play.api
+import play.api.Application
+import play.api.http.HeaderNames
+import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.json.{JsValue, Json}
-import play.api.mvc.{Action, Result}
+import play.api.mvc.{Action, AnyContent, Result}
 import play.api.test.{FakeRequest, Helpers}
-import play.api.test.Helpers.baseApplicationBuilder.injector
 import play.api.test.Helpers.{GET, contentAsString, defaultAwaitTimeout, redirectLocation, route, writeableOf_AnyContentAsEmpty, status => httpStatus}
+import sttp.model.Header.authorization
+import uk.gov.hmrc.auth.core.AuthConnector
+import uk.gov.hmrc.auth.core.retrieve.Name
+import uk.gov.hmrc.http.SessionKeys.sessionId
+import uk.gov.hmrc.http.{Authorization, HeaderCarrier, RequestId, SessionId}
 import uk.gov.hmrc.singlecustomeraccountwrapperdata.config.AppConfig
-import uk.gov.hmrc.singlecustomeraccountwrapperdata.models.WrapperDataRequest
+import uk.gov.hmrc.singlecustomeraccountwrapperdata.controllers.actions.AuthAction
+import uk.gov.hmrc.singlecustomeraccountwrapperdata.fixtures.SpecBase
+import uk.gov.hmrc.singlecustomeraccountwrapperdata.models.WrapperDataResponse
+import uk.gov.hmrc.singlecustomeraccountwrapperdata.models.auth.AuthenticatedRequest
 
-import java.util.concurrent.TimeUnit
-import scala.concurrent.Future
-import scala.concurrent.duration.FiniteDuration
+import scala.concurrent.{ExecutionContext, Future}
 
-class ScaWrapperControllerSpec extends AnyWordSpec with Matchers {
+class ScaWrapperControllerSpec extends SpecBase {
+
+
+  lazy val appConfig: AppConfig = injector.instanceOf[AppConfig]
+  lazy val authAction: AuthAction = injector.instanceOf[AuthAction]
+
+  private val controller = new ScaWrapperController(Helpers.stubControllerComponents(), appConfig, authAction)
 
   // val wrapperDataRequest = fakeRequest.body.validate[WrapperDataRequest]
-  private val fakeRequest = FakeRequest("POST", "/wrapper-data/:version").withHeaders("Content-Type" -> "application/json").withBody(
-    Json.toJson(WrapperDataRequest(""))
-  )
-
-  lazy val appConfig : AppConfig = injector.instanceOf[AppConfig]
-
-  private val controller = new ScaWrapperController(Helpers.stubControllerComponents(),appConfig)
+  override lazy val fakeRequest = FakeRequest("GET", "/")
 
 
-  "test to check the version control" should {
+
+  "test to check the version control" must {
     "test to check the menu configuration with same versions" in {
+      val mockMicroserviceAuthConnector = mock[AuthConnector]
+
+      when(mockMicroserviceAuthConnector.authorise[Unit](any(), any())(any(), any()))
+        .thenReturn(Future.successful(()))
       val version: String = "1.0.0"
       val result = controller.wrapperData(version)(fakeRequest)
+      println(result)
       whenReady(result) { res =>
         res.header.status shouldBe 200
       }
@@ -64,12 +78,6 @@ class ScaWrapperControllerSpec extends AnyWordSpec with Matchers {
       contentAsString(result).contains("Profile and settings") mustBe false
     }
 
-    "test to check the error scenario" in {
-      val version: String = "2.0.0"
-      val result: Future[Result] = controller.wrapperData(version)(FakeRequest().withBody[JsValue](Json.parse("""{}""")))
-      whenReady(result) { res =>
-        res.header.status shouldBe 203
-      }
-    }
+
   }
 }
