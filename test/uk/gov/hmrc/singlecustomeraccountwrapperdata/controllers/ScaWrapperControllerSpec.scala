@@ -18,26 +18,16 @@ package uk.gov.hmrc.singlecustomeraccountwrapperdata.controllers
 
 import akka.stream.TLSRole.server
 import org.mockito.ArgumentMatchers.any
-import org.mockito.Mockito.when
 import org.scalatest.matchers.should.Matchers.convertToAnyShouldWrapper
-import play.api
-import play.api.Application
-import play.api.http.HeaderNames
-import play.api.inject.guice.GuiceApplicationBuilder
-import play.api.libs.json.{JsValue, Json}
+
 import play.api.mvc.{Action, AnyContent, Result}
 import play.api.test.{FakeRequest, Helpers}
 import play.api.test.Helpers.{GET, contentAsString, defaultAwaitTimeout, redirectLocation, route, writeableOf_AnyContentAsEmpty, status => httpStatus}
-import sttp.model.Header.authorization
 import uk.gov.hmrc.auth.core.AuthConnector
-import uk.gov.hmrc.auth.core.retrieve.Name
-import uk.gov.hmrc.http.SessionKeys.sessionId
-import uk.gov.hmrc.http.{Authorization, HeaderCarrier, RequestId, SessionId}
 import uk.gov.hmrc.singlecustomeraccountwrapperdata.config.AppConfig
 import uk.gov.hmrc.singlecustomeraccountwrapperdata.controllers.actions.AuthAction
 import uk.gov.hmrc.singlecustomeraccountwrapperdata.fixtures.SpecBase
-import uk.gov.hmrc.singlecustomeraccountwrapperdata.models.WrapperDataResponse
-import uk.gov.hmrc.singlecustomeraccountwrapperdata.models.auth.AuthenticatedRequest
+
 
 import scala.concurrent.{ExecutionContext, Future}
 

@@ -19,14 +19,12 @@ package uk.gov.hmrc.singlecustomeraccountwrapperdata.fixtures
 import akka.actor.ActorSystem
 import akka.stream.Materializer
 import org.mockito.MockitoSugar
-import org.mockito.MockitoSugar.mock
 import org.scalatest.concurrent.{IntegrationPatience, ScalaFutures}
 import org.scalatest.matchers.must.Matchers
 import org.scalatestplus.play.PlaySpec
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
 import play.api.{Application, inject}
 import play.api.i18n.{Messages, MessagesApi}
-import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.inject.{Injector, bind}
 import play.api.mvc.{AnyContentAsEmpty, BodyParsers, MessagesControllerComponents}
 import play.api.test.CSRFTokenHelper.CSRFFRequestHeader
@@ -36,7 +34,6 @@ import uk.gov.hmrc.auth.core.retrieve.{Credentials, Name, ~}
 import uk.gov.hmrc.auth.core._
 import uk.gov.hmrc.http.{HeaderCarrier, SessionKeys}
 import uk.gov.hmrc.singlecustomeraccountwrapperdata.config.AppConfig
-import uk.gov.hmrc.singlecustomeraccountwrapperdata.connectors.ScaWrapperMessageConnector
 import uk.gov.hmrc.singlecustomeraccountwrapperdata.controllers.actions.AuthAction
 
 import scala.concurrent.ExecutionContext
