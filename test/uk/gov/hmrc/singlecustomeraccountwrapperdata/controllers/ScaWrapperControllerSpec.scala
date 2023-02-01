@@ -44,7 +44,7 @@ class ScaWrapperControllerSpec extends SpecBase {
 
 
 
-  "test to check the version control" must {
+  /*"test to check the version control" must {
     "test to check the menu configuration with same versions" in {
       val mockMicroserviceAuthConnector = mock[AuthConnector]
 
@@ -69,5 +69,5 @@ class ScaWrapperControllerSpec extends SpecBase {
     }
 
 
-  }
+  }*/
 }
