@@ -19,6 +19,7 @@ package uk.gov.hmrc.singlecustomeraccountwrapperdata.fixtures
 import akka.actor.ActorSystem
 import akka.stream.Materializer
 import org.mockito.MockitoSugar
+import org.mockito.MockitoSugar.mock
 import org.scalatest.concurrent.{IntegrationPatience, ScalaFutures}
 import org.scalatest.matchers.must.Matchers
 import org.scalatestplus.play.PlaySpec
@@ -55,7 +56,7 @@ trait SpecBase
 
 
   implicit val defaultTimeout: FiniteDuration = 5.seconds
-  implicit val hc: HeaderCarrier = HeaderCarrier()
+ // implicit val hc: HeaderCarrier = HeaderCarrier()
   implicit val ec: ExecutionContext = injector.instanceOf[ExecutionContext]
   implicit val frontendAppConfigInstance: AppConfig = injector.instanceOf[AppConfig]
 
@@ -66,7 +67,6 @@ trait SpecBase
   lazy val messagesControllerComponents: MessagesControllerComponents = injector.instanceOf[MessagesControllerComponents]
   lazy val authActionInstance: AuthAction = injector.instanceOf[AuthAction]
   lazy val bodyParserInstance: BodyParsers.Default = injector.instanceOf[BodyParsers.Default]
-  lazy val FakeAuthAction : AuthAction = mock[AuthAction]
 
   type AuthRetrievals =
     Option[String] ~ AffinityGroup ~ Enrolments ~ Option[Credentials] ~ Option[String] ~
