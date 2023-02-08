@@ -2,6 +2,7 @@ import play.core.PlayVersion
 import play.sbt.PlayImport._
 import sbt.Keys.libraryDependencies
 import sbt._
+import play.core.PlayVersion.current
 
 object AppDependencies {
 
@@ -17,9 +18,13 @@ object AppDependencies {
   )
 
   val test = Seq(
-    "uk.gov.hmrc"             %% "bootstrap-test-play-28"     % bootstrapVersion            % "test, it",
-    "uk.gov.hmrc.mongo"       %% "hmrc-mongo-test-play-28"    % hmrcMongoVersion            % Test,
-    "org.mockito"             %% "mockito-scala"              % "1.17.7"                    % "test, it",
-    "com.github.tomakehurst"   % "wiremock-standalone"        % "2.27.2"                    % "test, it",
-  )
+    "org.scalatest"           %% "scalatest"           % "3.2.8",
+    "com.typesafe.play"       %% "play-test"           % current,
+    "org.scalatestplus.play"  %% "scalatestplus-play"  % "4.0.3",
+    "org.scalatestplus"       %% "mockito-3-4"         % "3.2.3.0",
+    "org.mockito"             % "mockito-core"         % "3.6.28",
+    "org.scalacheck"          %% "scalacheck"          % "1.15.1",
+    "com.github.tomakehurst"  % "wiremock-standalone"  % "2.27.2",
+    "com.vladsch.flexmark"    % "flexmark-all"         % "0.36.8"
+  ).map(_ % "test,it")
 }

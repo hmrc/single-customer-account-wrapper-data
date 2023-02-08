@@ -14,15 +14,10 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.singlecustomeraccountwrapperdata.config
+package uk.gov.hmrc.singlecustomeraccountwrapperdata.models.auth
 
-import com.google.inject.AbstractModule
+import uk.gov.hmrc.domain.SaUtr
 
-class Module extends AbstractModule {
+case class SelfAssessmentEnrolment(saUtr: SaUtr, status: EnrolmentStatus)
 
-  override def configure(): Unit = {
-
-//    bind(classOf[AuthAction]).to(classOf[AuthActionImpl]).asEagerSingleton()
-
-  }
-}
+object SelfAssessmentStatus

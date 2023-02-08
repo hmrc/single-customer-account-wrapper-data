@@ -14,15 +14,8 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.singlecustomeraccountwrapperdata.config
+package uk.gov.hmrc.singlecustomeraccountwrapperdata.models.auth
 
-import com.google.inject.AbstractModule
-
-class Module extends AbstractModule {
-
-  override def configure(): Unit = {
-
-//    bind(classOf[AuthAction]).to(classOf[AuthActionImpl]).asEagerSingleton()
-
-  }
-}
+sealed trait EnrolmentStatus
+case object Activated extends EnrolmentStatus
+case object NotYetActivated extends EnrolmentStatus

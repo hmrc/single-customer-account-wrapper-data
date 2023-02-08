@@ -14,15 +14,12 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.singlecustomeraccountwrapperdata.config
+package uk.gov.hmrc.singlecustomeraccountwrapperdata.fixtures
 
-import com.google.inject.AbstractModule
+import uk.gov.hmrc.auth.core.retrieve.~
 
-class Module extends AbstractModule {
-
-  override def configure(): Unit = {
-
-//    bind(classOf[AuthAction]).to(classOf[AuthActionImpl]).asEagerSingleton()
-
+object RetrievalOps {
+  implicit class Ops[A](a: A) {
+    def ~[B](b: B): A ~ B = new ~(a, b)
   }
 }
