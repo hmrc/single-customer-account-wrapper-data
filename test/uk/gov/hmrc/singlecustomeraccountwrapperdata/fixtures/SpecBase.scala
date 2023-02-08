@@ -57,6 +57,7 @@ trait SpecBase
 
   implicit val defaultTimeout: FiniteDuration = 5.seconds
  // implicit val hc: HeaderCarrier = HeaderCarrier()
+
   implicit val ec: ExecutionContext = injector.instanceOf[ExecutionContext]
   implicit val frontendAppConfigInstance: AppConfig = injector.instanceOf[AppConfig]
 

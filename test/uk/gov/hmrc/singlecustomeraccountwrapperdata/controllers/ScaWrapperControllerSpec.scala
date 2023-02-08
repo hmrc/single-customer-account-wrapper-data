@@ -16,13 +16,11 @@
 
 package uk.gov.hmrc.singlecustomeraccountwrapperdata.controllers
 
-
 import org.mockito.ArgumentMatchers.any
 import org.scalatest.matchers.should.Matchers.convertToAnyShouldWrapper
-
-import play.api.libs.ws.{WSClient}
-import play.api.mvc.{Result}
-import play.api.test.{Helpers}
+import play.api.libs.ws.WSClient
+import play.api.mvc.Result
+import play.api.test.Helpers
 import play.api.test.Helpers.{contentAsString, defaultAwaitTimeout}
 import uk.gov.hmrc.auth.core.AffinityGroup.Individual
 import uk.gov.hmrc.auth.core.{AuthConnector, ConfidenceLevel, CredentialStrength, Enrolments}
@@ -81,7 +79,6 @@ class ScaWrapperControllerSpec extends SpecBase {
       }
       //contentAsString(result).contains("Profile and settings") mustBe false
     }
-
-
   }
+
 }

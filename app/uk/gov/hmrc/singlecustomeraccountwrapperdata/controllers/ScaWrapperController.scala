@@ -33,7 +33,9 @@ class ScaWrapperController @Inject()(cc: ControllerComponents, appConfig: AppCon
 
   def wrapperData(wrapperLibraryVersion: String): Action[AnyContent] = authenticate { implicit request =>
     val wrapperDataVersion: String = appConfig.versionNum.take(1)
+
     val response = (if (wrapperDataVersion == wrapperLibraryVersion.take(1)) {
+
       wrapperDataResponse
     } else {
       wrapperDataResponseFallback
@@ -62,6 +64,7 @@ class ScaWrapperController @Inject()(cc: ControllerComponents, appConfig: AppCon
       appConfig.accessibilityStatementUrl,
       appConfig.ggSigninUrl,
       appConfig.fallbackMenuConfig
+
     )
   }
 
