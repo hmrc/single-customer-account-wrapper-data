@@ -31,7 +31,7 @@ import scala.concurrent.{ExecutionContext, Future}
 
 class AuthActionImpl @Inject()(
                                 override val authConnector: AuthConnector,
-                                val parser: BodyParsers.Default)
+                                cc: ControllerComponents)
                               (implicit val executionContext: ExecutionContext) extends AuthorisedFunctions with AuthAction with Logging {
 
   object GTOE200 {
@@ -114,8 +114,9 @@ class AuthActionImpl @Inject()(
 //        appConfig.loginUrl,
 //        Map("continue" -> Seq(appConfig.loginContinueUrl), "origin" -> Seq("single-customer-account-frontend")))
 //  }
+
+  override def parser: BodyParser[AnyContent] = cc.parsers.defaultBodyParser
 }
-//Set(Enrolment("IR-SA", Seq(EnrolmentIdentifier("UTR", "1632631936")), "Activated", None)),
 
 @ImplementedBy(classOf[AuthActionImpl])
 trait AuthAction

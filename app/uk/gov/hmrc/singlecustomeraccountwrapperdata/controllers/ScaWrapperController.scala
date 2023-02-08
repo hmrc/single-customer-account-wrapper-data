@@ -25,11 +25,9 @@ import uk.gov.hmrc.singlecustomeraccountwrapperdata.models.WrapperDataResponse
 import uk.gov.hmrc.singlecustomeraccountwrapperdata.models.auth.AuthenticatedRequest
 
 import javax.inject.{Inject, Singleton}
-import scala.concurrent.ExecutionContext
 
 @Singleton()
-class ScaWrapperController @Inject()(cc: ControllerComponents, appConfig: AppConfig, authenticate: AuthAction)
-                                    (implicit ec: ExecutionContext) extends BackendController(cc) {
+class ScaWrapperController @Inject()(cc: ControllerComponents, appConfig: AppConfig, authenticate: AuthAction) extends BackendController(cc) {
 
   def wrapperData(wrapperLibraryVersion: String): Action[AnyContent] = authenticate { implicit request =>
     val wrapperDataVersion: String = appConfig.versionNum.take(1)

@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 HM Revenue & Customs
+ * Copyright 2023 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,8 +38,9 @@ import uk.gov.hmrc.singlecustomeraccountwrapperdata.controllers.actions.AuthActi
 
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration.{FiniteDuration, _}
+import scala.reflect.ClassTag
 
-trait SpecBase
+trait BaseSpec
   extends PlaySpec
     with Matchers
     with ScalaFutures
@@ -52,6 +53,7 @@ trait SpecBase
   implicit val system: ActorSystem = ActorSystem("Test")
   implicit val materializer: Materializer = Materializer(system)
   lazy val injector: Injector = app.injector
+ def injected[T](implicit evidence: ClassTag[T]): T = app.injector.instanceOf[T]
 
 
   implicit val defaultTimeout: FiniteDuration = 5.seconds
@@ -74,7 +76,7 @@ trait SpecBase
 
   def fakeSaEnrolments(utr: String, enrolmentState: String) = Set(Enrolment("IR-SA", Seq(EnrolmentIdentifier("UTR", utr)), enrolmentState))
 
-
-
   def messages(app: Application): Messages = app.injector.instanceOf[MessagesApi].preferred(FakeRequest())
+
+
 }

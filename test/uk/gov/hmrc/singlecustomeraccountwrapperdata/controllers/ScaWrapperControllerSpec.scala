@@ -16,6 +16,7 @@
 
 package uk.gov.hmrc.singlecustomeraccountwrapperdata.controllers
 
+import akka.parboiled2.RuleTrace.NotPredicate.Base
 import org.mockito.ArgumentMatchers.any
 import org.scalatest.matchers.should.Matchers.convertToAnyShouldWrapper
 import play.api.libs.ws.WSClient
@@ -29,16 +30,17 @@ import uk.gov.hmrc.auth.core.retrieve.{Credentials, Name}
 import uk.gov.hmrc.http.{Authorization, HeaderCarrier}
 import uk.gov.hmrc.singlecustomeraccountwrapperdata.config.AppConfig
 import uk.gov.hmrc.singlecustomeraccountwrapperdata.controllers.actions.{AuthAction, AuthActionImpl}
+import uk.gov.hmrc.singlecustomeraccountwrapperdata.fixtures.BaseSpec
 import uk.gov.hmrc.singlecustomeraccountwrapperdata.fixtures.RetrievalOps.Ops
-import uk.gov.hmrc.singlecustomeraccountwrapperdata.fixtures.SpecBase
 
 import scala.concurrent.{ExecutionContext, Future}
 
-class ScaWrapperControllerSpec extends SpecBase {
+class ScaWrapperControllerSpec extends BaseSpec {
   lazy val appConfig: AppConfig = injector.instanceOf[AppConfig]
+
   implicit val hc = HeaderCarrier(authorization = Some(Authorization("Bearer 123")))
   val mockAuthConnector: AuthConnector = mock[AuthConnector]
-  lazy val authAction = new AuthActionImpl(mockAuthConnector, bodyParserInstance)
+  lazy val authAction = new AuthActionImpl(mockAuthConnector, messagesControllerComponents)
 
   private val controller = new ScaWrapperController(Helpers.stubControllerComponents(), appConfig, authAction)
   private val wsClient = app.injector.instanceOf[WSClient]
