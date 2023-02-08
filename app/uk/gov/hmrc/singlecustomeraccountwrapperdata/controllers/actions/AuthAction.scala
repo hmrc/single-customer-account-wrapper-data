@@ -21,7 +21,7 @@ import play.api.Logging
 import play.api.mvc._
 import uk.gov.hmrc.auth.core._
 import uk.gov.hmrc.auth.core.retrieve.v2.Retrievals
-import uk.gov.hmrc.auth.core.retrieve.{Name, ~}
+import uk.gov.hmrc.auth.core.retrieve.{Credentials, Name, ~}
 import uk.gov.hmrc.domain
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.http.HeaderCarrierConverter
@@ -30,7 +30,7 @@ import uk.gov.hmrc.singlecustomeraccountwrapperdata.models.auth.AuthenticatedReq
 import scala.concurrent.{ExecutionContext, Future}
 
 class AuthActionImpl @Inject()(
-                                override val authConnector: AuthConnector,
+                                val authConnector: AuthConnector,
                                 cc: ControllerComponents)
                               (implicit val executionContext: ExecutionContext) extends AuthorisedFunctions with AuthAction with Logging {
 
@@ -43,6 +43,16 @@ class AuthActionImpl @Inject()(
     def unapply(confLevel: ConfidenceLevel): Option[ConfidenceLevel] =
       if (confLevel.level < ConfidenceLevel.L200.level) Some(confLevel) else None
   }
+
+  private def trimmedRequest[A](request: Request[A]): Request[A] = request
+    .map {
+      case AnyContentAsFormUrlEncoded(data) =>
+        AnyContentAsFormUrlEncoded(data.map { case (key, vals) =>
+          (key, vals.map(_.trim))
+        })
+      case b => b
+    }
+    .asInstanceOf[Request[A]]
 
   def invokeBlock[A](request: Request[A], block: AuthenticatedRequest[A] => Future[Result]): Future[Result] = {
 
@@ -61,15 +71,6 @@ class AuthActionImpl @Inject()(
     ) {
       case nino ~ _ ~ Enrolments(enrolments) ~ Some(credentials) ~ Some(CredentialStrength.strong) ~
         GTOE200(confidenceLevel) ~ name ~ trustedHelper ~ profile =>
-        val trimmedRequest: Request[A] = request
-          .map {
-            case AnyContentAsFormUrlEncoded(data) =>
-              AnyContentAsFormUrlEncoded(data.map { case (key, vals) =>
-                (key, vals.map(_.trim))
-              })
-            case b => b
-          }
-          .asInstanceOf[Request[A]]
 
         val authenticatedRequest = AuthenticatedRequest[A](
           trustedHelper.fold(nino.map(domain.Nino))(helper => Some(domain.Nino(helper.principalNino))),
@@ -79,41 +80,39 @@ class AuthActionImpl @Inject()(
           trustedHelper,
           None,
           enrolments,
-          trimmedRequest
+          trimmedRequest(request)
         )
         block(authenticatedRequest)
-      case nino ~ _ ~ Enrolments(enrolments) ~ Some(credentials) ~ Some(credentialStrength) ~
-        LT200(confidenceLevel) ~ name ~ trustedHelper ~ profile =>
-        val trimmedRequest: Request[A] = request
-          .map {
-            case AnyContentAsFormUrlEncoded(data) =>
-              AnyContentAsFormUrlEncoded(data.map { case (key, vals) =>
-                (key, vals.map(_.trim))
-              })
-            case b => b
-          }
-          .asInstanceOf[Request[A]]
+      case nino ~ _ ~ enrolments ~ Some(credentials) ~ _ ~ LT200(confidenceLevel) ~ name ~ _ ~ _ =>
 
-        val unauthenticatedRequest = AuthenticatedRequest[A](
-          trustedHelper.fold(nino.map(domain.Nino))(helper => Some(domain.Nino(helper.principalNino))),
+        val authenticatedRequest = AuthenticatedRequest[A](
+          nino.map(domain.Nino),
           credentials,
           confidenceLevel,
-          Some(trustedHelper.fold(name.getOrElse(Name(None, None)))(helper => Name(Some(helper.principalName), None))),
-          trustedHelper,
+          name,
           None,
-          enrolments,
-          trimmedRequest
+          None,
+          Set.empty[Enrolment],
+          trimmedRequest(request)
         )
-        block(unauthenticatedRequest)
+        block(authenticatedRequest)
     }
   }
-//    .recover {
-//    case authException =>
-//      logger.error(authException.getMessage)
-//      Redirect(
-//        appConfig.loginUrl,
-//        Map("continue" -> Seq(appConfig.loginContinueUrl), "origin" -> Seq("single-customer-account-frontend")))
-//  }
+    .recoverWith {
+    case authException =>
+      logger.error(authException.getMessage)
+      val unauthenticatedRequest = AuthenticatedRequest[A](
+        None,
+        Credentials("invalid","invalid"),
+        ConfidenceLevel.L50,
+        None,
+        None,
+        None,
+        Set.empty,
+        trimmedRequest(request)
+      )
+      block(unauthenticatedRequest)
+  }
 
   override def parser: BodyParser[AnyContent] = cc.parsers.defaultBodyParser
 }

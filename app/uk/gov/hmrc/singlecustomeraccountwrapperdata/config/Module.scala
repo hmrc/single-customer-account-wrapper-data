@@ -17,13 +17,12 @@
 package uk.gov.hmrc.singlecustomeraccountwrapperdata.config
 
 import com.google.inject.AbstractModule
-import uk.gov.hmrc.singlecustomeraccountwrapperdata.controllers.actions.{AuthAction, AuthActionImpl}
 
 class Module extends AbstractModule {
 
   override def configure(): Unit = {
 
-    bind(classOf[AuthAction]).to(classOf[AuthActionImpl]).asEagerSingleton()
+//    bind(classOf[AuthAction]).to(classOf[AuthActionImpl]).asEagerSingleton()
 
   }
 }

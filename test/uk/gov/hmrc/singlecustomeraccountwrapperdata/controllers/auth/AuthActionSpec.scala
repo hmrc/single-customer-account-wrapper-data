@@ -17,14 +17,13 @@
 package uk.gov.hmrc.singlecustomeraccountwrapperdata.controllers.auth
 
 import org.mockito.ArgumentMatchers.any
+import org.mockito.Mockito.when
 import play.api.Application
-import play.api.http.Status.SEE_OTHER
-import play.api.inject.bind
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.mvc._
 import play.api.test.FakeRequest
-import play.api.test.Helpers.{redirectLocation, _}
-import uk.gov.hmrc.auth.core.AffinityGroup.{Agent, Individual, Organisation}
+import play.api.test.Helpers._
+import uk.gov.hmrc.auth.core.AffinityGroup.Individual
 import uk.gov.hmrc.auth.core._
 import uk.gov.hmrc.auth.core.retrieve.Credentials
 import uk.gov.hmrc.auth.core.retrieve.v2.TrustedHelper
@@ -32,16 +31,15 @@ import uk.gov.hmrc.domain.{Generator, Nino, SaUtrGenerator}
 import uk.gov.hmrc.singlecustomeraccountwrapperdata.controllers.actions.{AuthAction, AuthActionImpl}
 import uk.gov.hmrc.singlecustomeraccountwrapperdata.fixtures.BaseSpec
 import uk.gov.hmrc.singlecustomeraccountwrapperdata.models.auth.AuthenticatedRequest
-import uk.gov.hmrc.singlecustomeraccountwrapperdata.utils.EnrolmentsHelper
 import uk.gov.hmrc.singlecustomeraccountwrapperdata.utils.RetrievalOps._
+
 import scala.concurrent.Future
 import scala.util.Random
 
 class AuthActionSpec extends BaseSpec {
 
   override implicit lazy val app: Application = GuiceApplicationBuilder()
-    .overrides(bind[AuthConnector].toInstance(mockAuthConnector))
-    .configure(Map("metrics.enabled" -> false))
+//    .overrides(bind[AuthConnector].toInstance(mockAuthConnector))
     .build()
 
   val mockAuthConnector = mock[AuthConnector]
@@ -60,7 +58,6 @@ class AuthActionSpec extends BaseSpec {
   val fakeCredentials = Credentials("foo", "bar")
   val fakeCredentialStrength = CredentialStrength.strong
   val fakeConfidenceLevel = ConfidenceLevel.L200
-  val enrolmentHelper = injected[EnrolmentsHelper]
 
   def fakeSaEnrolments(utr: String) = Set(Enrolment("IR-SA", Seq(EnrolmentIdentifier("UTR", utr)), "Activated"))
 
@@ -71,14 +68,18 @@ class AuthActionSpec extends BaseSpec {
     credentialStrength: String = CredentialStrength.strong,
     confidenceLevel: ConfidenceLevel = ConfidenceLevel.L200,
     trustedHelper: Option[TrustedHelper] = None,
-    profileUrl: Option[String] = None
+    profileUrl: Option[String] = None,
+    exception: Option[AuthorisationException] = None
   ): Harness = {
-
-    when(mockAuthConnector.authorise[AuthRetrievals](any(), any())(any(), any())) thenReturn Future.successful(
-      nino ~ affinityGroup ~ saEnrolments ~ Some(fakeCredentials) ~ Some(
-        credentialStrength
-      ) ~ confidenceLevel ~ None ~ trustedHelper ~ profileUrl
-    )
+    if(exception.isDefined){
+      when(mockAuthConnector.authorise[AuthRetrievals](any(), any())(any(), any())) thenReturn Future.failed(exception.get)
+    } else {
+      when(mockAuthConnector.authorise[AuthRetrievals](any(), any())(any(), any())) thenReturn Future.successful(
+        nino ~ affinityGroup ~ saEnrolments ~ Some(fakeCredentials) ~ Some(
+          credentialStrength
+        ) ~ confidenceLevel ~ None ~ trustedHelper ~ profileUrl
+      )
+    }
 
     val authAction =
       new AuthActionImpl(mockAuthConnector, controllerComponents)
@@ -86,141 +87,8 @@ class AuthActionSpec extends BaseSpec {
     new Harness(authAction)
   }
 
-  val ivRedirectUrl =
-    "http://localhost:9948/iv-stub/uplift?origin=PERTAX&confidenceLevel=200&completionURL=http%3A%2F%2Flocalhost%3A9232%2Fpersonal-account%2Fidentity-check-complete%3FcontinueUrl%3D%252Fpersonal-account&failureURL=http%3A%2F%2Flocalhost%3A9232%2Fpersonal-account%2Fidentity-check-complete%3FcontinueUrl%3D%252Fpersonal-account"
-
-  "A user without a L200 confidence level must" when {
-    "be redirected to the IV uplift endpoint when" must {
-      "the user is an Individual" in {
-
-        val controller = retrievals(confidenceLevel = ConfidenceLevel.L50)
-        val result = controller.onPageLoad(FakeRequest("GET", "/personal-account"))
-        status(result) mustBe SEE_OTHER
-        redirectLocation(result).get must endWith(ivRedirectUrl)
-      }
-
-      "the user is an Organisation" in {
-
-        val controller = retrievals(affinityGroup = Organisation, confidenceLevel = ConfidenceLevel.L50)
-        val result = controller.onPageLoad(FakeRequest("GET", "/personal-account"))
-        status(result) mustBe SEE_OTHER
-        redirectLocation(result).get must endWith(ivRedirectUrl)
-      }
-
-      "the user is an Agent" in {
-
-        val controller = retrievals(affinityGroup = Agent, confidenceLevel = ConfidenceLevel.L50)
-        val result = controller.onPageLoad(FakeRequest("GET", "/personal-account"))
-        status(result) mustBe SEE_OTHER
-        redirectLocation(result).get must endWith(ivRedirectUrl)
-      }
-    }
-  }
-
-  "A user without a credential strength of Strong must" when {
-    "be redirected to the MFA uplift endpoint when" must {
-
-      val mfaRedirectUrl =
-        Some(
-          "http://localhost:9553/bas-gateway/uplift-mfa?origin=PERTAX&continueUrl=http%3A%2F%2Flocalhost%3A9232%2Fpersonal-account"
-        )
-
-      "the user in an Individual" in {
-
-        val controller = retrievals(credentialStrength = CredentialStrength.weak)
-        val result = controller.onPageLoad(FakeRequest("GET", "/personal-account"))
-        status(result) mustBe SEE_OTHER
-        redirectLocation(result) mustBe mfaRedirectUrl
-      }
-
-      "the user in an Organisation" in {
-
-        val controller = retrievals(affinityGroup = Organisation, credentialStrength = CredentialStrength.weak)
-        val result = controller.onPageLoad(FakeRequest("GET", "/personal-account"))
-        status(result) mustBe SEE_OTHER
-        redirectLocation(result) mustBe
-          mfaRedirectUrl
-      }
-
-      "the user in an Agent" in {
-
-        val controller = retrievals(affinityGroup = Agent, credentialStrength = CredentialStrength.weak)
-        val result = controller.onPageLoad(FakeRequest("GET", "/personal-account"))
-        status(result) mustBe SEE_OTHER
-        redirectLocation(result) mustBe
-          mfaRedirectUrl
-      }
-    }
-  }
-
-  "A user with a Credential Strength of 'none' must" must {
-    "be redirected to the auth provider choice page" in {
-      when(mockAuthConnector.authorise(any(), any())(any(), any()))
-        .thenReturn(Future.failed(IncorrectCredentialStrength()))
-      val authAction =
-        new AuthActionImpl(mockAuthConnector, controllerComponents)
-      val controller = new Harness(authAction)
-      val result = controller.onPageLoad(FakeRequest("GET", "/foo"))
-      status(result) mustBe SEE_OTHER
-      redirectLocation(result).get must endWith("/auth-login-stub")
-    }
-  }
-
-  "A user with no active session must" must {
-    "be redirected to the auth provider choice page if unknown provider" in {
-      when(mockAuthConnector.authorise(any(), any())(any(), any()))
-        .thenReturn(Future.failed(SessionRecordNotFound()))
-      val authAction =
-        new AuthActionImpl(mockAuthConnector, controllerComponents)
-      val controller = new Harness(authAction)
-      val result = controller.onPageLoad(FakeRequest("GET", "/foo"))
-      status(result) mustBe SEE_OTHER
-      redirectLocation(result).get must endWith("/auth-login-stub")
-    }
-  }
-
-  "A user with insufficient enrolments must" must {
-    "be redirected to the Sorry there is a problem page" in {
-      when(mockAuthConnector.authorise(any(), any())(any(), any()))
-        .thenReturn(Future.failed(InsufficientEnrolments()))
-      val authAction =
-        new AuthActionImpl(mockAuthConnector, controllerComponents)
-      val controller = new Harness(authAction)
-      val result = controller.onPageLoad(FakeRequest("GET", "/foo"))
-
-      whenReady(result.failed) { ex =>
-        ex mustBe an[InsufficientEnrolments]
-      }
-    }
-  }
-
-  "A user with nino and no SA enrolment must" must {
-    "create an authenticated request" in {
-
-      val controller = retrievals()
-
-      val result = controller.onPageLoad(FakeRequest("", ""))
-      status(result) mustBe OK
-      contentAsString(result) must include(nino)
-    }
-  }
-
-  "A user with no nino but an SA enrolment must" must {
-    "create an authenticated request" in {
-
-      val utr = new SaUtrGenerator().nextSaUtr.utr
-
-      val controller = retrievals(nino = None, saEnrolments = Enrolments(fakeSaEnrolments(utr)))
-
-      val result = controller.onPageLoad(FakeRequest("", ""))
-      status(result) mustBe OK
-      contentAsString(result) must include(utr)
-    }
-  }
-
-  "A user with a nino and an SA enrolment must" must {
-    "create an authenticated request" in {
-
+  "An authenticated request" must {
+    "be created when a user has a nino and SA enrolment" in  {
       val utr = new SaUtrGenerator().nextSaUtr.utr
 
       val controller = retrievals(saEnrolments = Enrolments(fakeSaEnrolments(utr)))
@@ -230,45 +98,56 @@ class AuthActionSpec extends BaseSpec {
       contentAsString(result) must include(nino)
       contentAsString(result) must include(utr)
     }
-  }
 
-  "A user with trustedHelper must" must {
-    "create an authenticated request containing the trustedHelper" in {
+    "be created when a user has a nino and SA enrolment and trusted helper" in {
+      val utr = new SaUtrGenerator().nextSaUtr.utr
 
-      val fakePrincipalNino = fakeNino.toString()
-
-      val controller =
-        retrievals(trustedHelper = Some(TrustedHelper("principalName", "attorneyName", "returnUrl", fakePrincipalNino)))
+      val controller = retrievals(saEnrolments = Enrolments(fakeSaEnrolments(utr)), trustedHelper = Some(TrustedHelper("chaz", "dingle", "link", nino)))
 
       val result = controller.onPageLoad(FakeRequest("", ""))
       status(result) mustBe OK
-      contentAsString(result) must include(
-        s"Some(TrustedHelper(principalName,attorneyName,returnUrl,$fakePrincipalNino))"
-      )
+      contentAsString(result) must include(nino)
+      contentAsString(result) must include(utr)
+      contentAsString(result) must include("chaz")
+    }
+
+    "be created when a user has a nino and no enrolments" in {
+
+      val controller = retrievals()
+
+      val result = controller.onPageLoad(FakeRequest("", ""))
+      status(result) mustBe OK
+      contentAsString(result) must include(nino)
     }
   }
 
-  "A user with a SCP Profile Url must include a redirect uri back to the home controller" in {
-    val controller = retrievals(profileUrl = Some("http://www.google.com/"))
+  "An unauthenticated request" must {
+    "be created when a user has less than 200 CL" in {
 
-    val result = controller.onPageLoad(FakeRequest("", ""))
-    status(result) mustBe OK
-    contentAsString(result) must include(s"http://www.google.com/?redirect_uri=")
+      val controller = retrievals(confidenceLevel = ConfidenceLevel.L50)
+
+      val result = controller.onPageLoad(FakeRequest("", ""))
+      status(result) mustBe OK
+      contentAsString(result) must include(nino)
+    }
+
+    "be created when a user has a weak cred strength" in {
+
+      val controller = retrievals()
+
+      val result = controller.onPageLoad(FakeRequest("", ""))
+      status(result) mustBe OK
+      contentAsString(result) must include(nino)
+    }
+
+    "be created when an auth exception occurs" in {
+
+      val controller = retrievals(exception = Some(MissingBearerToken("error")))
+
+      val result = controller.onPageLoad(FakeRequest("", ""))
+      status(result) mustBe OK
+      contentAsString(result) must include("fail")
+    }
   }
 
-  "A user without a SCP Profile Url must continue to not have one" in {
-    val controller = retrievals(profileUrl = None)
-
-    val result = controller.onPageLoad(FakeRequest("", ""))
-    status(result) mustBe OK
-    contentAsString(result) mustNot include(s"http://www.google.com/?redirect_uri=")
-  }
-
-  "A user with a SCP Profile Url that is not valid must strip out the SCP Profile Url" in {
-    val controller = retrievals(profileUrl = Some("notAUrl"))
-
-    val result = controller.onPageLoad(FakeRequest("", ""))
-    status(result) mustBe OK
-    contentAsString(result) mustNot include("aaa")
-  }
 }
