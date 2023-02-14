@@ -68,7 +68,7 @@ class AppConfig @Inject()(configuration: Configuration) {
       case Enrolment("IR-SA", Seq(identifier), "Activated", _) => identifier.value
     }.isDefined
 
-    val btaConfig = Seq(MenuItemConfig("Business tax account", s"${businessTaxAccountUrl}/business-account", leftAligned = false, position = 3, None, None))
+    val btaConfig = Seq(MenuItemConfig("Business tax account", s"${businessTaxAccountUrl}", leftAligned = false, position = 3, None, None))
     if(showBta) {
       config ++ btaConfig
     } else {
