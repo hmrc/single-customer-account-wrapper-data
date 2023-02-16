@@ -17,15 +17,18 @@
 package uk.gov.hmrc.singlecustomeraccountwrapperdata.config
 
 import play.api.Configuration
+import play.api.i18n.{I18nSupport, Lang, Messages, MessagesApi}
 import play.api.mvc.AnyContent
 import uk.gov.hmrc.auth.core.Enrolment
+import uk.gov.hmrc.singlecustomeraccountwrapperdata.connectors.MessageConnector
 import uk.gov.hmrc.singlecustomeraccountwrapperdata.models.MenuItemConfig
 import uk.gov.hmrc.singlecustomeraccountwrapperdata.models.auth.AuthenticatedRequest
 
 import javax.inject.{Inject, Singleton}
 
 @Singleton
-class AppConfig @Inject()(configuration: Configuration) {
+class AppConfig @Inject()(configuration: Configuration, messageConnector: MessageConnector)(implicit val messages: MessagesApi) {
+//TODO split app config up into separate files
 
   final val appName: String = configuration.get[String]("appName")
 
@@ -40,35 +43,38 @@ class AppConfig @Inject()(configuration: Configuration) {
 
   final val defaultPertaxSignout = s"$pertaxUrl/signout/feedback/PERTAX"
 
-  def menuConfig(implicit request: AuthenticatedRequest[AnyContent]): Seq[MenuItemConfig] = {
+//  final val messageFrontendUrl: String = configuration.get[String]("sca-wrapper.message-frontend.url")
+
+  def menuConfig(implicit request: AuthenticatedRequest[AnyContent], lang: Lang): Seq[MenuItemConfig] = {
+//    messageConnector.getUnreadMessageCount()
     btaConfig(
       Seq(
-        MenuItemConfig("Account Home", s"${pertaxUrl}", leftAligned = true, position = 0, Some("hmrc-account-icon hmrc-account-icon--home"), None),
-        MenuItemConfig("Messages", s"${pertaxUrl}/messages", leftAligned = false, position = 0, None, None),
-        MenuItemConfig("Check progress", s"${pertaxUrl}/track", leftAligned = false, position = 1, None, None),
-        MenuItemConfig("Profile and settings", s"${pertaxUrl}/profile-and-settings", leftAligned = false, position = 2, None, None),
-        MenuItemConfig("Sign out", s"$defaultPertaxSignout", leftAligned = false, position = 4, None, None, signout = true)
+        MenuItemConfig(messages("menu.home"), s"${pertaxUrl}", leftAligned = true, position = 0, Some("hmrc-account-icon hmrc-account-icon--home"), None),
+        MenuItemConfig(messages("menu.messages"), s"${pertaxUrl}/messages", leftAligned = false, position = 0, None, None),
+        MenuItemConfig(messages("menu.progress"), s"${pertaxUrl}/track", leftAligned = false, position = 1, None, None),
+        MenuItemConfig(messages("menu.profile"), s"${pertaxUrl}/profile-and-settings", leftAligned = false, position = 2, None, None),
+        MenuItemConfig(messages("menu.signout"), s"$defaultPertaxSignout", leftAligned = false, position = 4, None, None, signout = true)
       )
     )
   }
 
-  def fallbackMenuConfig(implicit request: AuthenticatedRequest[AnyContent]): Seq[MenuItemConfig] = {
+  def fallbackMenuConfig(implicit request: AuthenticatedRequest[AnyContent], lang: Lang): Seq[MenuItemConfig] = {
     btaConfig(
       Seq(
-        MenuItemConfig("Account Home", s"${pertaxUrl}", leftAligned = true, position = 0, Some("hmrc-account-icon hmrc-account-icon--home"), None),
-        MenuItemConfig("Messages", s"${pertaxUrl}/messages", leftAligned = false, position = 1, None, None),
-        MenuItemConfig("Check progress", s"${pertaxUrl}/track", leftAligned = false, position = 1, None, None),
-        MenuItemConfig("Profile and settings", s"${pertaxUrl}/profile-and-settings", leftAligned = false, position = 2, None, None),
-        MenuItemConfig("Sign out", s"$defaultPertaxSignout", leftAligned = false, position = 4, None, None, signout = true)
+        MenuItemConfig(messages("menu.home"), s"${pertaxUrl}", leftAligned = true, position = 0, Some("hmrc-account-icon hmrc-account-icon--home"), None),
+        MenuItemConfig(messages("menu.messages"), s"${pertaxUrl}/messages", leftAligned = false, position = 1, None, None),
+        MenuItemConfig(messages("menu.progress"), s"${pertaxUrl}/track", leftAligned = false, position = 1, None, None),
+        MenuItemConfig(messages("menu.profile"), s"${pertaxUrl}/profile-and-settings", leftAligned = false, position = 2, None, None),
+        MenuItemConfig(messages("menu.signout"), s"$defaultPertaxSignout", leftAligned = false, position = 4, None, None, signout = true)
       )
     )
   }
-  private def btaConfig(config: Seq[MenuItemConfig])(implicit request: AuthenticatedRequest[AnyContent]) = {
+  private def btaConfig(config: Seq[MenuItemConfig])(implicit request: AuthenticatedRequest[AnyContent], lang: Lang) = {
     val showBta = request.enrolments.find(_.key == "IR-SA").collectFirst {
       case Enrolment("IR-SA", Seq(identifier), "Activated", _) => identifier.value
     }.isDefined
 
-    val btaConfig = Seq(MenuItemConfig("Business tax account", s"${businessTaxAccountUrl}", leftAligned = false, position = 3, None, None))
+    val btaConfig = Seq(MenuItemConfig(messages("menu.bta"), s"${businessTaxAccountUrl}", leftAligned = false, position = 3, None, None))
     if(showBta) {
       config ++ btaConfig
     } else {

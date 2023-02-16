@@ -16,6 +16,7 @@
 
 package uk.gov.hmrc.singlecustomeraccountwrapperdata.controllers
 
+import play.api.i18n.{I18nSupport, Lang}
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
@@ -27,19 +28,20 @@ import uk.gov.hmrc.singlecustomeraccountwrapperdata.models.auth.AuthenticatedReq
 import javax.inject.{Inject, Singleton}
 
 @Singleton()
-class ScaWrapperController @Inject()(cc: ControllerComponents, appConfig: AppConfig, authenticate: AuthAction) extends BackendController(cc) {
+class ScaWrapperController @Inject()(cc: ControllerComponents, appConfig: AppConfig, authenticate: AuthAction) extends BackendController(cc) with I18nSupport {
 
-  def wrapperData(wrapperLibraryVersion: String): Action[AnyContent] = authenticate { implicit request =>
+  def wrapperData(wrapperLibraryVersion: String, lang: Option[String]): Action[AnyContent] = authenticate { implicit request =>
     val wrapperDataVersion: String = appConfig.versionNum.take(1)
+    implicit val playLang: Lang = Lang(lang.getOrElse("en"))
     val response = (if (wrapperDataVersion == wrapperLibraryVersion.take(1)) {
       wrapperDataResponse
     } else {
-      wrapperDataResponseFallback
+      wrapperDataResponseVersionFallback
     })
     Ok(Json.toJson(response))
   }
 
-  private def wrapperDataResponse(implicit request: AuthenticatedRequest[AnyContent]) = {
+  private def wrapperDataResponse(implicit request: AuthenticatedRequest[AnyContent], lang: Lang) = {
     WrapperDataResponse(
       appConfig.feedbackFrontendUrl,
       appConfig.contactUrl,
@@ -51,7 +53,7 @@ class ScaWrapperController @Inject()(cc: ControllerComponents, appConfig: AppCon
     )
   }
 
-  private def wrapperDataResponseFallback(implicit request: AuthenticatedRequest[AnyContent]) = {
+  private def wrapperDataResponseVersionFallback(implicit request: AuthenticatedRequest[AnyContent], lang: Lang) = {
     WrapperDataResponse(
       appConfig.feedbackFrontendUrl,
       appConfig.contactUrl,
