@@ -32,7 +32,7 @@ class AppConfig @Inject()(configuration: Configuration, messageConnector: Messag
 
   final val appName: String = configuration.get[String]("appName")
 
-  val versionNum: String = "1.0.0"
+  val versionNum: String = "1.0.1"
 
   final val pertaxUrl: String = s"${configuration.get[String]("sca-wrapper.pertax-frontend.url")}/personal-account"
   final val businessTaxAccountUrl: String = s"${configuration.get[String]("sca-wrapper.business-tax-frontend.url")}/business-account"
