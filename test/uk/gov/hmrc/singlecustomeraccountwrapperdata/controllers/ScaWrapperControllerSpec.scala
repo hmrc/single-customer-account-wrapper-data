@@ -20,6 +20,7 @@ import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.when
 import org.scalatest.matchers.should.Matchers.convertToAnyShouldWrapper
 import play.api.Configuration
+import play.api.i18n.{Lang, MessagesApi}
 import play.api.libs.ws.WSClient
 import play.api.mvc.{AnyContent, Result}
 import play.api.test.Helpers
@@ -30,6 +31,7 @@ import uk.gov.hmrc.auth.core.retrieve.{Credentials, Name}
 import uk.gov.hmrc.auth.core.{AuthConnector, ConfidenceLevel, CredentialStrength, Enrolments}
 import uk.gov.hmrc.http.{Authorization, HeaderCarrier}
 import uk.gov.hmrc.singlecustomeraccountwrapperdata.config.AppConfig
+import uk.gov.hmrc.singlecustomeraccountwrapperdata.connectors.MessageConnector
 import uk.gov.hmrc.singlecustomeraccountwrapperdata.controllers.actions.AuthActionImpl
 import uk.gov.hmrc.singlecustomeraccountwrapperdata.fixtures.BaseSpec
 import uk.gov.hmrc.singlecustomeraccountwrapperdata.fixtures.RetrievalOps.Ops
@@ -40,8 +42,11 @@ import scala.concurrent.Future
 
 class ScaWrapperControllerSpec extends BaseSpec {
 
-  lazy val appConfig = new AppConfig(app.configuration) {
-    override def fallbackMenuConfig(implicit request: AuthenticatedRequest[AnyContent]): Seq[MenuItemConfig] = {
+  lazy val messagesApi = injector.instanceOf[MessagesApi]
+  lazy val messageConnector = injector.instanceOf[MessageConnector]
+
+  lazy val appConfig = new AppConfig(app.configuration, messageConnector)(messagesApi) {
+    override def fallbackMenuConfig(implicit request: AuthenticatedRequest[AnyContent], lang: Lang): Seq[MenuItemConfig] = {
       Seq(
         MenuItemConfig("Fallback1", s"${pertaxUrl}", leftAligned = true, position = 0, Some("hmrc-account-icon hmrc-account-icon--home"), None),
         MenuItemConfig("Fallback2", s"${pertaxUrl}/messages", leftAligned = false, position = 0, None, None),
@@ -77,8 +82,9 @@ class ScaWrapperControllerSpec extends BaseSpec {
   "The Wrapper data API" must {
     "return the normal menu config when wrapper-data and sca-wrapper are the same versions" in {
 
+      val lang = Some("en")
       val version: String = "1.0.0"
-      val result = controller.wrapperData(version)(fakeRequest)
+      val result = controller.wrapperData(version, lang)(fakeRequest)
       whenReady(result) { res =>
         res.header.status shouldBe 200
       }
@@ -86,8 +92,10 @@ class ScaWrapperControllerSpec extends BaseSpec {
     }
 
     "return the fallback menu config when wrapper-data and sca-wrapper are not the same versions" in {
+
+      val lang = Some("en")
       val version: String = "2.0.0"
-      val result: Future[Result] = controller.wrapperData(version)(fakeRequest)
+      val result: Future[Result] = controller.wrapperData(version, lang)(fakeRequest)
       whenReady(result) { res =>
         res.header.status shouldBe 200
       }
