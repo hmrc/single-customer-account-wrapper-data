@@ -35,9 +35,9 @@ class AppConfig @Inject()(configuration: Configuration, messageConnector: Messag
 
   val versionNum: String = "1.0.2"
 
-  private final val pertaxUrl: String = s"${configuration.get[String]("services.pertax-frontend.url")}/personal-account"
-  private final val trackingUrl: String = s"${configuration.get[String]("services.tracking-frontend.url")}"
-  private final val businessTaxAccountUrl: String = s"${configuration.get[String]("services.business-tax-frontend.url")}/business-account"
+  final val pertaxUrl: String = s"${configuration.get[String]("services.pertax-frontend.url")}/personal-account"
+  final val trackingUrl: String = s"${configuration.get[String]("services.tracking-frontend.url")}"
+  final val businessTaxAccountUrl: String = s"${configuration.get[String]("services.business-tax-frontend.url")}/business-account"
 //  final val messageFrontendUrl: String = configuration.get[String]("services.message-frontend.url")
   final val defaultSignoutUrl: String = configuration.get[String]("services.gg-signout.url")
 
