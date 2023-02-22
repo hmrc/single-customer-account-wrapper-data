@@ -21,6 +21,7 @@ import org.mockito.Mockito.when
 import org.scalatest.matchers.should.Matchers.convertToAnyShouldWrapper
 import play.api.Configuration
 import play.api.i18n.{Lang, MessagesApi}
+import play.api.libs.json.{JsValue, Json}
 import play.api.libs.ws.WSClient
 import play.api.mvc.{AnyContent, Result}
 import play.api.test.Helpers
@@ -35,7 +36,7 @@ import uk.gov.hmrc.singlecustomeraccountwrapperdata.connectors.MessageConnector
 import uk.gov.hmrc.singlecustomeraccountwrapperdata.controllers.actions.AuthActionImpl
 import uk.gov.hmrc.singlecustomeraccountwrapperdata.fixtures.BaseSpec
 import uk.gov.hmrc.singlecustomeraccountwrapperdata.fixtures.RetrievalOps.Ops
-import uk.gov.hmrc.singlecustomeraccountwrapperdata.models.MenuItemConfig
+import uk.gov.hmrc.singlecustomeraccountwrapperdata.models.{MenuItemConfig, WrapperDataRequest}
 import uk.gov.hmrc.singlecustomeraccountwrapperdata.models.auth.AuthenticatedRequest
 
 import scala.concurrent.Future
@@ -46,13 +47,13 @@ class ScaWrapperControllerSpec extends BaseSpec {
   lazy val messageConnector = injector.instanceOf[MessageConnector]
 
   lazy val appConfig = new AppConfig(app.configuration, messageConnector)(messagesApi) {
-    override def fallbackMenuConfig(implicit request: AuthenticatedRequest[AnyContent], lang: Lang): Seq[MenuItemConfig] = {
+    override def fallbackMenuConfig(signoutUrl: String)(implicit request: AuthenticatedRequest[JsValue], lang: Lang): Seq[MenuItemConfig] = {
       Seq(
         MenuItemConfig("Fallback1", s"${pertaxUrl}", leftAligned = true, position = 0, Some("hmrc-account-icon hmrc-account-icon--home"), None),
         MenuItemConfig("Fallback2", s"${pertaxUrl}/messages", leftAligned = false, position = 0, None, None),
         MenuItemConfig("Fallback3", s"${pertaxUrl}/track", leftAligned = false, position = 1, None, None),
         MenuItemConfig("Fallback4", s"${pertaxUrl}/profile-and-settings", leftAligned = false, position = 2, None, None),
-        MenuItemConfig("Fallback5", s"$defaultPertaxSignout", leftAligned = false, position = 4, None, None, signout = true)
+        MenuItemConfig("Fallback5", s"$defaultSignoutUrl", leftAligned = false, position = 4, None, None, signout = true)
       )
     }
   }
@@ -82,9 +83,8 @@ class ScaWrapperControllerSpec extends BaseSpec {
   "The Wrapper data API" must {
     "return the normal menu config when wrapper-data and sca-wrapper are the same versions" in {
 
-      val lang = Some("en")
-      val version: String = "1.0.0"
-      val result = controller.wrapperData(version, lang)(fakeRequest)
+      val request = WrapperDataRequest(appConfig.versionNum, "en", "signout")
+      val result: Future[Result] = controller.wrapperData.apply(fakeRequest.withBody(Json.toJson(request)))
       whenReady(result) { res =>
         res.header.status shouldBe 200
       }
@@ -93,9 +93,9 @@ class ScaWrapperControllerSpec extends BaseSpec {
 
     "return the fallback menu config when wrapper-data and sca-wrapper are not the same versions" in {
 
-      val lang = Some("en")
       val version: String = "2.0.0"
-      val result: Future[Result] = controller.wrapperData(version, lang)(fakeRequest)
+      val request = WrapperDataRequest(version, "en", "signout")
+      val result: Future[Result] = controller.wrapperData.apply(fakeRequest.withBody(Json.toJson(request)))
       whenReady(result) { res =>
         res.header.status shouldBe 200
       }

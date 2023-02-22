@@ -17,51 +17,48 @@
 package uk.gov.hmrc.singlecustomeraccountwrapperdata.controllers
 
 import play.api.i18n.{I18nSupport, Lang}
-import play.api.libs.json.Json
+import play.api.libs.json.{JsValue, Json}
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 import uk.gov.hmrc.singlecustomeraccountwrapperdata.config.AppConfig
 import uk.gov.hmrc.singlecustomeraccountwrapperdata.controllers.actions.AuthAction
-import uk.gov.hmrc.singlecustomeraccountwrapperdata.models.WrapperDataResponse
+import uk.gov.hmrc.singlecustomeraccountwrapperdata.models.{WrapperDataRequest, WrapperDataResponse}
 import uk.gov.hmrc.singlecustomeraccountwrapperdata.models.auth.AuthenticatedRequest
-
 import javax.inject.{Inject, Singleton}
 
 @Singleton()
 class ScaWrapperController @Inject()(cc: ControllerComponents, appConfig: AppConfig, authenticate: AuthAction) extends BackendController(cc) with I18nSupport {
 
-  def wrapperData(wrapperLibraryVersion: String, lang: Option[String]): Action[AnyContent] = authenticate { implicit request =>
+  def wrapperData: Action[JsValue] = authenticate(parse.json) { implicit request =>
     val wrapperDataVersion: String = appConfig.versionNum.take(1)
-    implicit val playLang: Lang = Lang(lang.getOrElse("en"))
-    val response = (if (wrapperDataVersion == wrapperLibraryVersion.take(1)) {
-      wrapperDataResponse
-    } else {
-      wrapperDataResponseVersionFallback
-    })
+    val wrapperDataRequest = request.body.validate[WrapperDataRequest]
+    val response = wrapperDataRequest.fold(
+      errors => {
+        implicit val playLang: Lang = Lang("en")
+        //TODO logging
+        wrapperDataResponseVersionFallback(appConfig.defaultSignoutUrl)
+      },
+      req => {
+        implicit val playLang: Lang = Lang(req.lang)
+        if (wrapperDataVersion == req.wrapperLibraryVersion.take(1)) {
+          wrapperDataResponse(req.signoutUrl)
+        } else {
+          wrapperDataResponseVersionFallback(req.signoutUrl)
+        }
+      }
+    )
     Ok(Json.toJson(response))
   }
 
-  private def wrapperDataResponse(implicit request: AuthenticatedRequest[AnyContent], lang: Lang) = {
+  private def wrapperDataResponse(signoutUrl: String)(implicit request: AuthenticatedRequest[JsValue], lang: Lang) = {
     WrapperDataResponse(
-      appConfig.feedbackFrontendUrl,
-      appConfig.contactUrl,
-      appConfig.businessTaxAccountUrl,
-      appConfig.pertaxUrl,
-      appConfig.accessibilityStatementUrl,
-      appConfig.ggSigninUrl,
-      appConfig.menuConfig
+      appConfig.menuConfig(signoutUrl)
     )
   }
 
-  private def wrapperDataResponseVersionFallback(implicit request: AuthenticatedRequest[AnyContent], lang: Lang) = {
+  private def wrapperDataResponseVersionFallback(signoutUrl: String)(implicit request: AuthenticatedRequest[JsValue], lang: Lang) = {
     WrapperDataResponse(
-      appConfig.feedbackFrontendUrl,
-      appConfig.contactUrl,
-      appConfig.businessTaxAccountUrl,
-      appConfig.pertaxUrl,
-      appConfig.accessibilityStatementUrl,
-      appConfig.ggSigninUrl,
-      appConfig.fallbackMenuConfig
+      appConfig.fallbackMenuConfig(signoutUrl)
     )
   }
 
