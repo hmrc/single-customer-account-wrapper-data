@@ -95,7 +95,7 @@ class ScaWrapperControllerSpec extends BaseSpec {
 
       val lang = Some("en")
       val version: String = "2.0.0"
-      val result: Future[Result] = controller.wrapperData(version, lang)(fakeRequest)
+      val result: Future[Result] = controller.wrapperData
       whenReady(result) { res =>
         res.header.status shouldBe 200
       }
