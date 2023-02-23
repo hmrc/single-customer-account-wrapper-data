@@ -31,7 +31,7 @@ import uk.gov.hmrc.auth.core.retrieve.v2.TrustedHelper
 import uk.gov.hmrc.auth.core.retrieve.{Credentials, Name}
 import uk.gov.hmrc.auth.core.{AuthConnector, ConfidenceLevel, CredentialStrength, Enrolments}
 import uk.gov.hmrc.http.{Authorization, HeaderCarrier}
-import uk.gov.hmrc.singlecustomeraccountwrapperdata.config.AppConfig
+import uk.gov.hmrc.singlecustomeraccountwrapperdata.config.{AppConfig, WrapperConfig}
 import uk.gov.hmrc.singlecustomeraccountwrapperdata.connectors.MessageConnector
 import uk.gov.hmrc.singlecustomeraccountwrapperdata.controllers.actions.AuthActionImpl
 import uk.gov.hmrc.singlecustomeraccountwrapperdata.fixtures.BaseSpec
@@ -44,16 +44,18 @@ import scala.concurrent.Future
 class ScaWrapperControllerSpec extends BaseSpec {
 
   lazy val messagesApi = injector.instanceOf[MessagesApi]
-  lazy val messageConnector = injector.instanceOf[MessageConnector]
+  lazy val messageConnector = mock[MessageConnector]
 
-  lazy val appConfig = new AppConfig(app.configuration, messageConnector)(messagesApi) {
+  lazy val appConfig = injector.instanceOf[AppConfig]
+
+  lazy val wrapperConfig = new WrapperConfig(messageConnector, appConfig)(messagesApi, ec) {
     override def fallbackMenuConfig(signoutUrl: String)(implicit request: AuthenticatedRequest[JsValue], lang: Lang): Seq[MenuItemConfig] = {
       Seq(
-        MenuItemConfig("Fallback1", s"${pertaxUrl}", leftAligned = true, position = 0, Some("hmrc-account-icon hmrc-account-icon--home"), None),
-        MenuItemConfig("Fallback2", s"${pertaxUrl}/messages", leftAligned = false, position = 0, None, None),
-        MenuItemConfig("Fallback3", s"${pertaxUrl}/track", leftAligned = false, position = 1, None, None),
-        MenuItemConfig("Fallback4", s"${pertaxUrl}/profile-and-settings", leftAligned = false, position = 2, None, None),
-        MenuItemConfig("Fallback5", s"$defaultSignoutUrl", leftAligned = false, position = 4, None, None, signout = true)
+        MenuItemConfig("Fallback1", s"${appConfig.pertaxUrl}", leftAligned = true, position = 0, Some("hmrc-account-icon hmrc-account-icon--home"), None),
+        MenuItemConfig("Fallback2", s"${appConfig.pertaxUrl}/messages", leftAligned = false, position = 0, None, None),
+        MenuItemConfig("Fallback3", s"${appConfig.pertaxUrl}/track", leftAligned = false, position = 1, None, None),
+        MenuItemConfig("Fallback4", s"${appConfig.pertaxUrl}/profile-and-settings", leftAligned = false, position = 2, None, None),
+        MenuItemConfig("Fallback5", s"${appConfig.defaultSignoutUrl}", leftAligned = false, position = 4, None, None, signout = true)
       )
     }
   }
@@ -62,7 +64,7 @@ class ScaWrapperControllerSpec extends BaseSpec {
   val mockAuthConnector: AuthConnector = mock[AuthConnector]
   lazy val authAction = new AuthActionImpl(mockAuthConnector, messagesControllerComponents)
 
-  private val controller = new ScaWrapperController(Helpers.stubControllerComponents(), appConfig, authAction)
+  private val controller = new ScaWrapperController(Helpers.stubControllerComponents(), appConfig, wrapperConfig, authAction)
   private val wsClient = app.injector.instanceOf[WSClient]
   private val baseUrl = "http://localhost:8422/single-customer-account-wrapper-data/wrapper-data/:version"
   val nino = "AA999999A"
@@ -82,6 +84,7 @@ class ScaWrapperControllerSpec extends BaseSpec {
 
   "The Wrapper data API" must {
     "return the normal menu config when wrapper-data and sca-wrapper are the same versions" in {
+      when(messageConnector.getUnreadMessageCount(any(), any())).thenReturn(Future.successful(None))
 
       val request = WrapperDataRequest(appConfig.versionNum, "en", "signout")
       val result: Future[Result] = controller.wrapperData.apply(fakeRequest.withBody(Json.toJson(request)))
@@ -91,9 +94,20 @@ class ScaWrapperControllerSpec extends BaseSpec {
       contentAsString(result).contains("Profile and settings") mustBe true
     }
 
+    "return a message count" in {
+      when(messageConnector.getUnreadMessageCount(any(), any())).thenReturn(Future.successful(Some(33)))
+
+      val request = WrapperDataRequest(appConfig.versionNum, "en", "signout")
+      val result: Future[Result] = controller.wrapperData.apply(fakeRequest.withBody(Json.toJson(request)))
+      whenReady(result) { res =>
+        res.header.status shouldBe 200
+      }
+      contentAsString(result).contains("33") mustBe true
+    }
+
     "return the fallback menu config when wrapper-data and sca-wrapper are not the same versions" in {
 
-      val version: String = "2.0.0"
+      val version: String = "0.0.1"
       val request = WrapperDataRequest(version, "en", "signout")
       val result: Future[Result] = controller.wrapperData.apply(fakeRequest.withBody(Json.toJson(request)))
       whenReady(result) { res =>

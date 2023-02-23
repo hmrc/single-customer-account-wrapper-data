@@ -18,8 +18,8 @@ package uk.gov.hmrc.singlecustomeraccountwrapperdata.models
 
 import play.api.libs.json.{Json, OFormat}
 
-case class WrapperDataResponse(menuItemConfig: Seq[MenuItemConfig], ptaMinMenuConfig: PtaMinMenuConfig)
+case class MessageCount(total: Int, unread: Int)
 
-object WrapperDataResponse {
-  implicit val format: OFormat[WrapperDataResponse] = Json.format[WrapperDataResponse]
+object MessageCount {
+  implicit val reads: OFormat[MessageCount] = Json.format[MessageCount]
 }

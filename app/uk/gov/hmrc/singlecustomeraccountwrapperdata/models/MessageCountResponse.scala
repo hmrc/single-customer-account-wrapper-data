@@ -18,7 +18,7 @@ package uk.gov.hmrc.singlecustomeraccountwrapperdata.models
 
 import play.api.libs.json.{Json, OFormat}
 
-case class MessageCountResponse(count: Int)
+case class MessageCountResponse(count: MessageCount)
 
 object MessageCountResponse {
   implicit val reads: OFormat[MessageCountResponse] = Json.format[MessageCountResponse]

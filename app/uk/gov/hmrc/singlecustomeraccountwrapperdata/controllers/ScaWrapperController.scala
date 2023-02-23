@@ -20,19 +20,22 @@ import play.api.i18n.{I18nSupport, Lang}
 import play.api.libs.json.{JsValue, Json}
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
-import uk.gov.hmrc.singlecustomeraccountwrapperdata.config.AppConfig
+import uk.gov.hmrc.singlecustomeraccountwrapperdata.config.{AppConfig, WrapperConfig}
 import uk.gov.hmrc.singlecustomeraccountwrapperdata.controllers.actions.AuthAction
 import uk.gov.hmrc.singlecustomeraccountwrapperdata.models.{WrapperDataRequest, WrapperDataResponse}
 import uk.gov.hmrc.singlecustomeraccountwrapperdata.models.auth.AuthenticatedRequest
+
 import javax.inject.{Inject, Singleton}
+import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton()
-class ScaWrapperController @Inject()(cc: ControllerComponents, appConfig: AppConfig, authenticate: AuthAction) extends BackendController(cc) with I18nSupport {
+class ScaWrapperController @Inject()(cc: ControllerComponents, appConfig: AppConfig, wrapperConfig: WrapperConfig,
+                                     authenticate: AuthAction)(implicit ec: ExecutionContext) extends BackendController(cc) with I18nSupport {
 
-  def wrapperData: Action[JsValue] = authenticate(parse.json) { implicit request =>
+  def wrapperData: Action[JsValue] = authenticate(parse.json).async { implicit request =>
     val wrapperDataVersion: String = appConfig.versionNum.take(1)
     val wrapperDataRequest = request.body.validate[WrapperDataRequest]
-    val response = wrapperDataRequest.fold(
+    wrapperDataRequest.fold(
       errors => {
         implicit val playLang: Lang = Lang("en")
         //TODO logging
@@ -46,19 +49,22 @@ class ScaWrapperController @Inject()(cc: ControllerComponents, appConfig: AppCon
           wrapperDataResponseVersionFallback(req.signoutUrl)
         }
       }
-    )
-    Ok(Json.toJson(response))
+    ).map(response => Ok(Json.toJson(response)))
   }
 
   private def wrapperDataResponse(signoutUrl: String)(implicit request: AuthenticatedRequest[JsValue], lang: Lang) = {
-    WrapperDataResponse(
-      appConfig.menuConfig(signoutUrl)
-    )
+    wrapperConfig.menuConfig(signoutUrl).map { config =>
+      WrapperDataResponse(
+        config,
+        wrapperConfig.ptaMinMenuConfig
+      )
+    }
   }
 
-  private def wrapperDataResponseVersionFallback(signoutUrl: String)(implicit request: AuthenticatedRequest[JsValue], lang: Lang) = {
+  private def wrapperDataResponseVersionFallback(signoutUrl: String)(implicit request: AuthenticatedRequest[JsValue], lang: Lang) = Future.successful {
     WrapperDataResponse(
-      appConfig.fallbackMenuConfig(signoutUrl)
+      wrapperConfig.fallbackMenuConfig(signoutUrl),
+      wrapperConfig.ptaMinMenuConfig
     )
   }
 
