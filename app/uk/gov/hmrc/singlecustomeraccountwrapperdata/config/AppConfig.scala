@@ -25,7 +25,7 @@ class AppConfig @Inject()(configuration: Configuration) {
 
   final val appName: String = configuration.get[String]("appName")
 
-  val versionNum: String = "1.0.2"
+  val versionNum: String = "1.0.3"
 
   final val pertaxUrl: String = s"${configuration.get[String]("services.pertax-frontend.url")}/personal-account"
   final val trackingUrl: String = s"${configuration.get[String]("services.tracking-frontend.url")}"

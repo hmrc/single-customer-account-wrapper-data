@@ -92,7 +92,6 @@ class ScaWrapperControllerSpec extends BaseSpec {
         res.header.status shouldBe 200
       }
       contentAsString(result).contains("Profile and settings") mustBe true
-      contentAsString(result).contains("33") mustBe true
     }
 
     "return a message count" in {
