@@ -4,3 +4,5 @@ menu.progress = Check progress
 menu.profile = Profile and settings
 menu.signout = Sign out
 menu.bta = Business tax account
+menu.name = Account menu
+menu.back = Back

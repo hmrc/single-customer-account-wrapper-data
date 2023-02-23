@@ -22,18 +22,23 @@ import play.api.mvc.RequestHeader
 import uk.gov.hmrc.http.{HeaderCarrier, HttpClient, HttpException}
 import uk.gov.hmrc.play.partials.HtmlPartial._
 import uk.gov.hmrc.play.partials.{HeaderCarrierForPartialsConverter, HtmlPartial}
+import uk.gov.hmrc.singlecustomeraccountwrapperdata.config.AppConfig
 import uk.gov.hmrc.singlecustomeraccountwrapperdata.models.MessageCountResponse
 
 import scala.concurrent.{ExecutionContext, Future}
 
-class MessageConnector @Inject()(
-  http: HttpClient) extends Logging {
+class MessageConnector @Inject()(http: HttpClient, appConfig: AppConfig) extends Logging {
 
-  def getUnreadMessageCount(url: String)(implicit ec: ExecutionContext, hc: HeaderCarrier): Future[MessageCountResponse] = {
-    http.GET[MessageCountResponse](url).recoverWith {
+  def getUnreadMessageCount(implicit ec: ExecutionContext, hc: HeaderCarrier): Future[Option[Int]] = {
+    http.GET[MessageCountResponse](appConfig.messageUrl + "/messages?countOnly=true").map { count =>
+      count.count.unread match {
+        case num if num <= 0 => None
+        case unreadCount => Some(unreadCount)
+      }
+    }.recoverWith {
       case ex: Exception =>
         println("error message count")
-        Future.successful(MessageCountResponse(0))
+        Future.successful(None)
     }
   }
 }
