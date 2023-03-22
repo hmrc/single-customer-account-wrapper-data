@@ -6,7 +6,7 @@ import play.core.PlayVersion.current
 
 object AppDependencies {
 
-  private val bootstrapVersion = "7.14.0"
+  private val bootstrapVersion = "7.15.0"
   private val hmrcMongoVersion = "0.74.0"
 
   val compile = Seq(
@@ -20,9 +20,9 @@ object AppDependencies {
   val test = Seq(
     "org.scalatest"           %% "scalatest"           % "3.2.15",
     "com.typesafe.play"       %% "play-test"           % current,
-    "org.scalatestplus.play"  %% "scalatestplus-play"  % "4.0.3",
+    "org.scalatestplus.play"  %% "scalatestplus-play"  % "5.1.0",
     "org.scalatestplus"       %% "mockito-3-4"         % "3.2.10.0",
-    "org.mockito"             %% "mockito-scala"       % "1.17.12",
+    "org.mockito"             %% "mockito-scala"       % "1.17.14",
     "org.scalacheck"          %% "scalacheck"          % "1.17.0",
     "com.github.tomakehurst"  % "wiremock-standalone"  % "2.27.2",
     "com.vladsch.flexmark"    % "flexmark-all"         % "0.62.2"
