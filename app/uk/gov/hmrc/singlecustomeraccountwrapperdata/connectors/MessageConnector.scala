@@ -37,7 +37,6 @@ class MessageConnector @Inject()(http: HttpClient, appConfig: AppConfig) extends
       }
     }.recoverWith {
       case ex: Exception =>
-        println("error message count")
         Future.successful(None)
     }
   }
