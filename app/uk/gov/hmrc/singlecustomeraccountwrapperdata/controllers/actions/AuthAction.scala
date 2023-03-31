@@ -71,6 +71,7 @@ class AuthActionImpl @Inject()(
     ) {
       case nino ~ _ ~ Enrolments(enrolments) ~ Some(credentials) ~ Some(CredentialStrength.strong) ~
         GTOE200(confidenceLevel) ~ name ~ trustedHelper ~ profile =>
+        logger.info(s"[AuthActionImpl][invokeBlock] Successful confidence level 200+ request")
 
         val authenticatedRequest = AuthenticatedRequest[A](
           trustedHelper.fold(nino.map(domain.Nino))(helper => Some(domain.Nino(helper.principalNino))),
@@ -84,7 +85,7 @@ class AuthActionImpl @Inject()(
         )
         block(authenticatedRequest)
       case nino ~ _ ~ enrolments ~ Some(credentials) ~ _ ~ LT200(confidenceLevel) ~ name ~ _ ~ _ =>
-
+        logger.warn(s"[AuthActionImpl][invokeBlock] Confidence level 50 request")
         val authenticatedRequest = AuthenticatedRequest[A](
           nino.map(domain.Nino),
           credentials,
@@ -100,7 +101,7 @@ class AuthActionImpl @Inject()(
   }
     .recoverWith {
     case authException =>
-      logger.error(authException.getMessage)
+      logger.error(s"[AuthActionImpl][invokeBlock] exception: ${authException.getMessage}")
       val unauthenticatedRequest = AuthenticatedRequest[A](
         None,
         Credentials("invalid","invalid"),
