@@ -16,21 +16,22 @@
 
 package uk.gov.hmrc.singlecustomeraccountwrapperdata.controllers
 
+import play.api.Logging
 import play.api.i18n.{I18nSupport, Lang}
 import play.api.libs.json.{JsValue, Json}
-import play.api.mvc.{Action, AnyContent, ControllerComponents}
+import play.api.mvc.{Action, ControllerComponents}
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 import uk.gov.hmrc.singlecustomeraccountwrapperdata.config.{AppConfig, WrapperConfig}
 import uk.gov.hmrc.singlecustomeraccountwrapperdata.controllers.actions.AuthAction
-import uk.gov.hmrc.singlecustomeraccountwrapperdata.models.{WrapperDataRequest, WrapperDataResponse}
 import uk.gov.hmrc.singlecustomeraccountwrapperdata.models.auth.AuthenticatedRequest
+import uk.gov.hmrc.singlecustomeraccountwrapperdata.models.{WrapperDataRequest, WrapperDataResponse}
 
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton()
 class ScaWrapperController @Inject()(cc: ControllerComponents, appConfig: AppConfig, wrapperConfig: WrapperConfig,
-                                     authenticate: AuthAction)(implicit ec: ExecutionContext) extends BackendController(cc) with I18nSupport {
+                                     authenticate: AuthAction)(implicit ec: ExecutionContext) extends BackendController(cc) with I18nSupport with Logging {
 
   def wrapperData: Action[JsValue] = authenticate(parse.json).async { implicit request =>
     val wrapperDataVersion: String = appConfig.versionNum.take(1)
@@ -38,14 +39,17 @@ class ScaWrapperController @Inject()(cc: ControllerComponents, appConfig: AppCon
     wrapperDataRequest.fold(
       errors => {
         implicit val playLang: Lang = Lang("en")
-        //TODO logging
+        logger.error(s"[ScaWrapperController][wrapperData] Wrapper data request error- version:${wrapperDataVersion}, error: incorrect parameters supplied")
         wrapperDataResponseVersionFallback(appConfig.defaultSignoutUrl)
       },
       req => {
         implicit val playLang: Lang = Lang(req.lang)
-        if (wrapperDataVersion == req.wrapperLibraryVersion.take(1)) {
+        val libraryVersion = req.wrapperLibraryVersion.take(1)
+        if (wrapperDataVersion == libraryVersion) {
+          logger.info(s"[ScaWrapperController][wrapperData] Wrapper data successful request- version:${wrapperDataVersion}, lang: $playLang")
           wrapperDataResponse(req.signoutUrl)
         } else {
+          logger.warn(s"[ScaWrapperController][wrapperData] Wrapper data fallback request- version:${wrapperDataVersion}, library version: ${libraryVersion}, lang: $playLang")
           wrapperDataResponseVersionFallback(req.signoutUrl)
         }
       }
@@ -62,6 +66,7 @@ class ScaWrapperController @Inject()(cc: ControllerComponents, appConfig: AppCon
   }
 
   private def wrapperDataResponseVersionFallback(signoutUrl: String)(implicit request: AuthenticatedRequest[JsValue], lang: Lang) = Future.successful {
+    logger.warn(s"[ScaWrapperController][wrapperDataResponseVersionFallback] Using fallback menu config")
     WrapperDataResponse(
       wrapperConfig.fallbackMenuConfig(signoutUrl),
       wrapperConfig.ptaMinMenuConfig

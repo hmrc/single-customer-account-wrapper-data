@@ -18,10 +18,7 @@ package uk.gov.hmrc.singlecustomeraccountwrapperdata.connectors
 
 import com.google.inject.Inject
 import play.api.Logging
-import play.api.mvc.RequestHeader
-import uk.gov.hmrc.http.{HeaderCarrier, HttpClient, HttpException}
-import uk.gov.hmrc.play.partials.HtmlPartial._
-import uk.gov.hmrc.play.partials.{HeaderCarrierForPartialsConverter, HtmlPartial}
+import uk.gov.hmrc.http.{HeaderCarrier, HttpClient}
 import uk.gov.hmrc.singlecustomeraccountwrapperdata.config.AppConfig
 import uk.gov.hmrc.singlecustomeraccountwrapperdata.models.MessageCountResponse
 
@@ -31,12 +28,17 @@ class MessageConnector @Inject()(http: HttpClient, appConfig: AppConfig) extends
 
   def getUnreadMessageCount(implicit ec: ExecutionContext, hc: HeaderCarrier): Future[Option[Int]] = {
     http.GET[MessageCountResponse](appConfig.messageUrl + "/messages?countOnly=true").map { count =>
-      count.count.unread match {
-        case num if num <= 0 => None
-        case unreadCount => Some(unreadCount)
+      val unreadCount = count.count.unread
+      logger.info(s"[MessageConnector][getUnreadMessageCount] Unread message count requested, ${unreadCount} unread messages returned")
+      unreadCount match {
+        case num if num <= 0 =>
+          None
+        case unreadCount =>
+          Some(unreadCount)
       }
     }.recoverWith {
       case ex: Exception =>
+        logger.error(s"[MessageConnector][getUnreadMessageCount] Exception: ${ex.getMessage}")
         Future.successful(None)
     }
   }
