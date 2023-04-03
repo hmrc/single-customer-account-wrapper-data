@@ -46,10 +46,10 @@ class ScaWrapperController @Inject()(cc: ControllerComponents, appConfig: AppCon
         implicit val playLang: Lang = Lang(req.lang)
         val libraryVersion = req.wrapperLibraryVersion.take(1)
         if (wrapperDataVersion == libraryVersion) {
-          logger.info(s"[ScaWrapperController][wrapperData] Wrapper data successful request- version:${wrapperDataVersion}")
+          logger.info(s"[ScaWrapperController][wrapperData] Wrapper data successful request- version:${wrapperDataVersion}, lang: $playLang")
           wrapperDataResponse(req.signoutUrl)
         } else {
-          logger.warn(s"[ScaWrapperController][wrapperData] Wrapper data fallback request- version:${wrapperDataVersion}, library version: ${libraryVersion}")
+          logger.warn(s"[ScaWrapperController][wrapperData] Wrapper data fallback request- version:${wrapperDataVersion}, library version: ${libraryVersion}, lang: $playLang")
           wrapperDataResponseVersionFallback(req.signoutUrl)
         }
       }
