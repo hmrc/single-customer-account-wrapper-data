@@ -39,25 +39,25 @@ class ScaWrapperController @Inject()(cc: ControllerComponents, appConfig: AppCon
     wrapperDataRequest.fold(
       errors => {
         implicit val playLang: Lang = Lang("en")
-        logger.error(s"[ScaWrapperController][wrapperData] Wrapper data request error- version:${wrapperDataVersion}, error: incorrect parameters supplied")
-        wrapperDataResponseVersionFallback(appConfig.defaultSignoutUrl)
+        logger.error(s"[ScaWrapperController][wrapperData] Wrapper data request error- version:$wrapperDataVersion, error: incorrect parameters supplied")
+        wrapperDataResponseVersionFallback()
       },
       req => {
         implicit val playLang: Lang = Lang(req.lang)
         val libraryVersion = req.wrapperLibraryVersion.take(1)
         if (wrapperDataVersion == libraryVersion) {
-          logger.info(s"[ScaWrapperController][wrapperData] Wrapper data successful request- version:${wrapperDataVersion}, lang: $playLang")
-          wrapperDataResponse(req.signoutUrl)
+          logger.info(s"[ScaWrapperController][wrapperData] Wrapper data successful request- version:$wrapperDataVersion, lang: $playLang")
+          wrapperDataResponse()
         } else {
-          logger.warn(s"[ScaWrapperController][wrapperData] Wrapper data fallback request- version:${wrapperDataVersion}, library version: ${libraryVersion}, lang: $playLang")
-          wrapperDataResponseVersionFallback(req.signoutUrl)
+          logger.warn(s"[ScaWrapperController][wrapperData] Wrapper data fallback request- version:$wrapperDataVersion, library version: ${libraryVersion}, lang: $playLang")
+          wrapperDataResponseVersionFallback()
         }
       }
     ).map(response => Ok(Json.toJson(response)))
   }
 
-  private def wrapperDataResponse(signoutUrl: String)(implicit request: AuthenticatedRequest[JsValue], lang: Lang) = {
-    wrapperConfig.menuConfig(signoutUrl).map { config =>
+  private def wrapperDataResponse()(implicit request: AuthenticatedRequest[JsValue], lang: Lang) = {
+    wrapperConfig.menuConfig().map { config =>
       WrapperDataResponse(
         config,
         wrapperConfig.ptaMinMenuConfig
@@ -65,10 +65,10 @@ class ScaWrapperController @Inject()(cc: ControllerComponents, appConfig: AppCon
     }
   }
 
-  private def wrapperDataResponseVersionFallback(signoutUrl: String)(implicit request: AuthenticatedRequest[JsValue], lang: Lang) = Future.successful {
+  private def wrapperDataResponseVersionFallback()(implicit request: AuthenticatedRequest[JsValue], lang: Lang) = Future.successful {
     logger.warn(s"[ScaWrapperController][wrapperDataResponseVersionFallback] Using fallback menu config")
     WrapperDataResponse(
-      wrapperConfig.fallbackMenuConfig(signoutUrl),
+      wrapperConfig.fallbackMenuConfig(),
       wrapperConfig.ptaMinMenuConfig
     )
   }

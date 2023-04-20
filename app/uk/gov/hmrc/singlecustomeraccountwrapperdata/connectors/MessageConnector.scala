@@ -29,7 +29,7 @@ class MessageConnector @Inject()(http: HttpClient, appConfig: AppConfig) extends
   def getUnreadMessageCount(implicit ec: ExecutionContext, hc: HeaderCarrier): Future[Option[Int]] = {
     http.GET[MessageCountResponse](appConfig.messageUrl + "/messages?countOnly=true").map { count =>
       val unreadCount = count.count.unread
-      logger.info(s"[MessageConnector][getUnreadMessageCount] Unread message count requested, ${unreadCount} unread messages returned")
+      logger.info(s"[MessageConnector][getUnreadMessageCount] Unread message count requested, $unreadCount unread messages returned")
       unreadCount match {
         case num if num <= 0 =>
           None
