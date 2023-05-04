@@ -18,6 +18,7 @@ package uk.gov.hmrc.singlecustomeraccountwrapperdata.config
 
 import play.api.i18n.{Lang, MessagesApi}
 import play.api.libs.json.JsValue
+import play.api.mvc.AnyContent
 import uk.gov.hmrc.auth.core.Enrolment
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.singlecustomeraccountwrapperdata.connectors.MessageConnector
@@ -32,7 +33,7 @@ class WrapperConfig @Inject()(messageConnector: MessageConnector, appConfig: App
 
   def ptaMinMenuConfig(implicit lang: Lang): PtaMinMenuConfig = PtaMinMenuConfig(menuName = messages("menu.name"), backName = messages("menu.back"))
 
-  def menuConfig()(implicit request: AuthenticatedRequest[JsValue], lang: Lang, hc: HeaderCarrier): Future[Seq[MenuItemConfig]] = {
+  def menuConfig()(implicit request: AuthenticatedRequest[AnyContent], lang: Lang, hc: HeaderCarrier): Future[Seq[MenuItemConfig]] = {
     messageConnector.getUnreadMessageCount.map { count =>
       btaConfig(
         Seq(
@@ -46,7 +47,7 @@ class WrapperConfig @Inject()(messageConnector: MessageConnector, appConfig: App
     }
   }
 
-  def fallbackMenuConfig()(implicit request: AuthenticatedRequest[JsValue], lang: Lang): Seq[MenuItemConfig] = {
+  def fallbackMenuConfig()(implicit request: AuthenticatedRequest[AnyContent], lang: Lang): Seq[MenuItemConfig] = {
     btaConfig(
       Seq(
         MenuItemConfig(messages("menu.home"), s"${appConfig.pertaxUrl}", leftAligned = true, position = 0, Some("hmrc-account-icon hmrc-account-icon--home"), None),
@@ -58,7 +59,7 @@ class WrapperConfig @Inject()(messageConnector: MessageConnector, appConfig: App
     )
   }
 
-  private def btaConfig(config: Seq[MenuItemConfig])(implicit request: AuthenticatedRequest[JsValue], lang: Lang) = {
+  private def btaConfig(config: Seq[MenuItemConfig])(implicit request: AuthenticatedRequest[AnyContent], lang: Lang) = {
     val showBta = request.enrolments.find(_.key == "IR-SA").collectFirst {
       case Enrolment("IR-SA", Seq(identifier), "Activated", _) => identifier.value
     }.isDefined

@@ -1,3 +1,3 @@
 # microservice specific routes
 
-POST        /wrapper-data        uk.gov.hmrc.singlecustomeraccountwrapperdata.controllers.ScaWrapperController.wrapperData
+GET        /wrapper-data        uk.gov.hmrc.singlecustomeraccountwrapperdata.controllers.ScaWrapperController.wrapperData(lang: String, version: String)
