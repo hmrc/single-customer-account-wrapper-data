@@ -1,3 +1,4 @@
 # microservice specific routes
 
 GET        /wrapper-data        uk.gov.hmrc.singlecustomeraccountwrapperdata.controllers.ScaWrapperController.wrapperData(lang: String, version: String)
+GET        /message-data        uk.gov.hmrc.singlecustomeraccountwrapperdata.controllers.ScaMessageController.getUnreadMessageCount

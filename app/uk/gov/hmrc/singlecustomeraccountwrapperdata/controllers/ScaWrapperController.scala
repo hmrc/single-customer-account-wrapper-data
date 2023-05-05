@@ -27,35 +27,27 @@ import uk.gov.hmrc.singlecustomeraccountwrapperdata.models.WrapperDataResponse
 import uk.gov.hmrc.singlecustomeraccountwrapperdata.models.auth.AuthenticatedRequest
 
 import javax.inject.{Inject, Singleton}
-import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton()
 class ScaWrapperController @Inject()(cc: ControllerComponents, appConfig: AppConfig, wrapperConfig: WrapperConfig,
-                                     authenticate: AuthAction)(implicit ec: ExecutionContext) extends BackendController(cc) with I18nSupport with Logging {
+                                     authenticate: AuthAction) extends BackendController(cc) with I18nSupport with Logging {
 
-  def wrapperData(lang: String, version: String): Action[AnyContent] = authenticate.async { implicit request =>
-    val wrapperDataVersion: String = appConfig.versionNum.take(1)
+  def wrapperData(lang: String, version: String): Action[AnyContent] = authenticate { implicit request =>
     implicit val playLang: Lang = Lang(lang)
+
+    val wrapperDataVersion: String = appConfig.versionNum.take(1)
     val libraryVersion = version.take(1)
-    (if(wrapperDataVersion == libraryVersion) {
+    val response = if (wrapperDataVersion == libraryVersion) {
       logger.info(s"[ScaWrapperController][wrapperData] Wrapper data successful request- version:$wrapperDataVersion, lang: $playLang")
-      wrapperDataResponse()
+      WrapperDataResponse(wrapperConfig.menuConfig(), wrapperConfig.ptaMinMenuConfig)
     } else {
-      logger.warn(s"[ScaWrapperController][wrapperData] Wrapper data fallback request- version:$wrapperDataVersion, library version: ${libraryVersion}, lang: $playLang")
+      logger.warn(s"[ScaWrapperController][wrapperData] Wrapper data fallback request- version:$wrapperDataVersion, library version: $libraryVersion, lang: $playLang")
       wrapperDataResponseVersionFallback()
-    }).map(response => Ok(Json.toJson(response)))
-  }
-
-  private def wrapperDataResponse()(implicit request: AuthenticatedRequest[AnyContent], lang: Lang) = {
-    wrapperConfig.menuConfig().map { config =>
-      WrapperDataResponse(
-        config,
-        wrapperConfig.ptaMinMenuConfig
-      )
     }
+    Ok(Json.toJson(response))
   }
 
-  private def wrapperDataResponseVersionFallback()(implicit request: AuthenticatedRequest[AnyContent], lang: Lang) = Future.successful {
+  private def wrapperDataResponseVersionFallback()(implicit request: AuthenticatedRequest[AnyContent], lang: Lang) = {
     logger.warn(s"[ScaWrapperController][wrapperDataResponseVersionFallback] Using fallback menu config")
     WrapperDataResponse(
       wrapperConfig.fallbackMenuConfig(),

@@ -30,7 +30,6 @@ import uk.gov.hmrc.auth.core.retrieve.{Credentials, Name}
 import uk.gov.hmrc.auth.core.{AuthConnector, ConfidenceLevel, CredentialStrength, Enrolments}
 import uk.gov.hmrc.http.{Authorization, HeaderCarrier}
 import uk.gov.hmrc.singlecustomeraccountwrapperdata.config.{AppConfig, WrapperConfig}
-import uk.gov.hmrc.singlecustomeraccountwrapperdata.connectors.MessageConnector
 import uk.gov.hmrc.singlecustomeraccountwrapperdata.controllers.actions.AuthActionImpl
 import uk.gov.hmrc.singlecustomeraccountwrapperdata.fixtures.BaseSpec
 import uk.gov.hmrc.singlecustomeraccountwrapperdata.fixtures.RetrievalOps.Ops
@@ -41,12 +40,10 @@ import scala.concurrent.Future
 
 class ScaWrapperControllerSpec extends BaseSpec {
 
-  lazy val messagesApi = injector.instanceOf[MessagesApi]
-  lazy val messageConnector = mock[MessageConnector]
+  lazy val messagesApi: MessagesApi = injector.instanceOf[MessagesApi]
+  lazy val appConfig: AppConfig = injector.instanceOf[AppConfig]
 
-  lazy val appConfig = injector.instanceOf[AppConfig]
-
-  lazy val wrapperConfig = new WrapperConfig(messageConnector, appConfig)(messagesApi, ec) {
+  lazy val wrapperConfig: WrapperConfig = new WrapperConfig(appConfig)(messagesApi) {
     override def fallbackMenuConfig()(implicit request: AuthenticatedRequest[AnyContent], lang: Lang): Seq[MenuItemConfig] = {
       Seq(
         MenuItemConfig("Fallback1", s"${appConfig.pertaxUrl}", leftAligned = true, position = 0, Some("hmrc-account-icon hmrc-account-icon--home"), None),
@@ -58,7 +55,7 @@ class ScaWrapperControllerSpec extends BaseSpec {
     }
   }
 
-  override implicit val hc = HeaderCarrier(authorization = Some(Authorization("Bearer 123")))
+  override implicit val hc: HeaderCarrier = HeaderCarrier(authorization = Some(Authorization("Bearer 123")))
   val mockAuthConnector: AuthConnector = mock[AuthConnector]
   lazy val authAction = new AuthActionImpl(mockAuthConnector, messagesControllerComponents)
 
@@ -82,23 +79,11 @@ class ScaWrapperControllerSpec extends BaseSpec {
 
   "The Wrapper data API" must {
     "return the normal menu config when wrapper-data and sca-wrapper are the same versions" in {
-      when(messageConnector.getUnreadMessageCount(any(), any())).thenReturn(Future.successful(None))
-
       val version: String = appConfig.versionNum
       val lang: String = "en"
       val result = controller.wrapperData(lang, version)(fakeRequest)
       status(result) shouldBe 200
       contentAsString(result).contains("Profile and settings") mustBe true
-    }
-
-    "return a message count" in {
-      when(messageConnector.getUnreadMessageCount(any(), any())).thenReturn(Future.successful(Some(33)))
-
-      val version: String = appConfig.versionNum
-      val lang: String = "en"
-      val result = controller.wrapperData(lang, version)(fakeRequest)
-      status(result) shouldBe 200
-      contentAsString(result).contains("33") mustBe true
     }
 
     "return the fallback menu config when wrapper-data and sca-wrapper are not the same versions" in {
