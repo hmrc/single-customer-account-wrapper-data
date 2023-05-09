@@ -32,11 +32,11 @@ class WrapperConfig @Inject()(appConfig: AppConfig)(implicit val messages: Messa
   def menuConfig()(implicit request: AuthenticatedRequest[AnyContent], lang: Lang): Seq[MenuItemConfig] = {
     btaConfig(
       Seq(
-        MenuItemConfig(messages("menu.home"), s"${appConfig.pertaxUrl}", leftAligned = true, position = 0, Some("hmrc-account-icon hmrc-account-icon--home"), None),
-        MenuItemConfig(messages("menu.messages"), s"${appConfig.pertaxUrl}/messages", leftAligned = false, position = 0, None, None),
-        MenuItemConfig(messages("menu.progress"), s"${appConfig.trackingUrl}/track", leftAligned = false, position = 1, None, None),
-        MenuItemConfig(messages("menu.profile"), s"${appConfig.pertaxUrl}/your-profile", leftAligned = false, position = 2, None, None),
-        MenuItemConfig(messages("menu.signout"), s"${appConfig.defaultSignoutUrl}", leftAligned = false, position = 4, None, None, signout = true)
+        MenuItemConfig("home", messages("menu.home"), s"${appConfig.pertaxUrl}", leftAligned = true, position = 0, Some("hmrc-account-icon hmrc-account-icon--home"), None),
+        MenuItemConfig("messages", messages("menu.messages"), s"${appConfig.pertaxUrl}/messages", leftAligned = false, position = 0, None, None),
+        MenuItemConfig("progress", messages("menu.progress"), s"${appConfig.trackingUrl}/track", leftAligned = false, position = 1, None, None),
+        MenuItemConfig("profile", messages("menu.profile"), s"${appConfig.pertaxUrl}/your-profile", leftAligned = false, position = 2, None, None),
+        MenuItemConfig("signout", messages("menu.signout"), s"${appConfig.defaultSignoutUrl}", leftAligned = false, position = 4, None, None)
       )
     )
   }
@@ -44,11 +44,11 @@ class WrapperConfig @Inject()(appConfig: AppConfig)(implicit val messages: Messa
   def fallbackMenuConfig()(implicit request: AuthenticatedRequest[AnyContent], lang: Lang): Seq[MenuItemConfig] = {
     btaConfig(
       Seq(
-        MenuItemConfig(messages("menu.home"), s"${appConfig.pertaxUrl}", leftAligned = true, position = 0, Some("hmrc-account-icon hmrc-account-icon--home"), None),
-        MenuItemConfig(messages("menu.messages"), s"${appConfig.pertaxUrl}/messages", leftAligned = false, position = 0, None, None),
-        MenuItemConfig(messages("menu.progress"), s"${appConfig.trackingUrl}/track", leftAligned = false, position = 1, None, None),
-        MenuItemConfig(messages("menu.profile"), s"${appConfig.pertaxUrl}/your-profile", leftAligned = false, position = 2, None, None),
-        MenuItemConfig(messages("menu.signout"), s"${appConfig.defaultSignoutUrl}", leftAligned = false, position = 4, None, None, signout = true)
+        MenuItemConfig("home", messages("menu.home"), s"${appConfig.pertaxUrl}", leftAligned = true, position = 0, Some("hmrc-account-icon hmrc-account-icon--home"), None),
+        MenuItemConfig("messages", messages("menu.messages"), s"${appConfig.pertaxUrl}/messages", leftAligned = false, position = 0, None, None),
+        MenuItemConfig("progress", messages("menu.progress"), s"${appConfig.trackingUrl}/track", leftAligned = false, position = 1, None, None),
+        MenuItemConfig("profile", messages("menu.profile"), s"${appConfig.pertaxUrl}/your-profile", leftAligned = false, position = 2, None, None),
+        MenuItemConfig("signout", messages("menu.signout"), s"${appConfig.defaultSignoutUrl}", leftAligned = false, position = 4, None, None)
       )
     )
   }
@@ -58,7 +58,7 @@ class WrapperConfig @Inject()(appConfig: AppConfig)(implicit val messages: Messa
       case Enrolment("IR-SA", Seq(identifier), "Activated", _) => identifier.value
     }.isDefined
 
-    val btaConfig = Seq(MenuItemConfig(messages("menu.bta"), s"${appConfig.businessTaxAccountUrl}", leftAligned = false, position = 3, None, None))
+    val btaConfig = Seq(MenuItemConfig("bta", messages("menu.bta"), s"${appConfig.businessTaxAccountUrl}", leftAligned = false, position = 3, None, None))
     if (showBta) {
       config ++ btaConfig
     } else {

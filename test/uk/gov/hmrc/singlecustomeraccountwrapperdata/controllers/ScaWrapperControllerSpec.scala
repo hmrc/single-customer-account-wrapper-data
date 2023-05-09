@@ -46,11 +46,11 @@ class ScaWrapperControllerSpec extends BaseSpec {
   lazy val wrapperConfig: WrapperConfig = new WrapperConfig(appConfig)(messagesApi) {
     override def fallbackMenuConfig()(implicit request: AuthenticatedRequest[AnyContent], lang: Lang): Seq[MenuItemConfig] = {
       Seq(
-        MenuItemConfig("Fallback1", s"${appConfig.pertaxUrl}", leftAligned = true, position = 0, Some("hmrc-account-icon hmrc-account-icon--home"), None),
-        MenuItemConfig("Fallback2", s"${appConfig.pertaxUrl}/messages", leftAligned = false, position = 0, None, None),
-        MenuItemConfig("Fallback3", s"${appConfig.pertaxUrl}/track", leftAligned = false, position = 1, None, None),
-        MenuItemConfig("Fallback4", s"${appConfig.pertaxUrl}/profile-and-settings", leftAligned = false, position = 2, None, None),
-        MenuItemConfig("Fallback5", s"${appConfig.defaultSignoutUrl}", leftAligned = false, position = 4, None, None, signout = true)
+        MenuItemConfig("Fallback1", "Fallback1", s"${appConfig.pertaxUrl}", leftAligned = true, position = 0, Some("hmrc-account-icon hmrc-account-icon--home"), None),
+        MenuItemConfig("Fallback2", "Fallback2", s"${appConfig.pertaxUrl}/messages", leftAligned = false, position = 0, None, None),
+        MenuItemConfig("Fallback3", "Fallback3", s"${appConfig.pertaxUrl}/track", leftAligned = false, position = 1, None, None),
+        MenuItemConfig("Fallback4", "Fallback4", s"${appConfig.pertaxUrl}/profile-and-settings", leftAligned = false, position = 2, None, None),
+        MenuItemConfig("Fallback5", "Fallback5", s"${appConfig.defaultSignoutUrl}", leftAligned = false, position = 4, None, None)
       )
     }
   }
