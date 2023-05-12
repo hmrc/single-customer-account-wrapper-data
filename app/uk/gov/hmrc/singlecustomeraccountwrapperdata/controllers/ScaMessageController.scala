@@ -35,7 +35,7 @@ class ScaMessageController @Inject()(cc: ControllerComponents, messageConnector:
 
     messageConnector.getUnreadMessageCount.map {
       case Some(unreadMessageCount) => Ok(Json.toJson(unreadMessageCount))
-      case _ => NotFound
+      case _ => NoContent
     }
   }
 

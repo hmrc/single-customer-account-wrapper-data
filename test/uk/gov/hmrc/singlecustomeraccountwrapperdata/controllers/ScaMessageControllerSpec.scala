@@ -70,14 +70,14 @@ class ScaMessageControllerSpec extends AsyncWordSpec with Matchers with MockitoS
 
     }
 
-    "return Not Found When nino is not valid" in {
+    "return Not Found when user doesn't have any unread message" in {
 
       when(mockMessageConnector.getUnreadMessageCount(any(), any())).thenReturn(Future.successful(None))
 
       val result = controller.getUnreadMessageCount(fakeRequest)
 
       whenReady(result) { _ =>
-        status(result) mustBe NOT_FOUND
+        status(result) mustBe NO_CONTENT
       }
 
     }
