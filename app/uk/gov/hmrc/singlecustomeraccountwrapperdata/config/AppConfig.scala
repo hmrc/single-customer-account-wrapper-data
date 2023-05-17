@@ -26,12 +26,14 @@ class AppConfig @Inject()(servicesConfig: ServicesConfig, configuration: Configu
 
   val versionNum: String = "1.0.3"
 
+  // ms-url for backend call
   val messageFrontendServiceUrl: String = servicesConfig.baseUrl(serviceName = "message-frontend")
 
-  private lazy val pertaxHost: String = getExternalUrl(s"pertax-frontend.host").getOrElse("")
-  lazy val trackingHost: String = getExternalUrl(s"tracking-frontend.host").getOrElse("")
-  private lazy val businessTaxAccountHost: String = getExternalUrl(s"business-tax-frontend.host").getOrElse("")
-  private lazy val caHost: String = getExternalUrl(s"ca-frontend.host").getOrElse("")
+  // fe-host to redirect on browser
+  private lazy val pertaxHost: String = getExternalUrl("pertax-frontend.host").getOrElse("")
+  lazy val trackingHost: String = getExternalUrl("tracking-frontend.host").getOrElse("")
+  private lazy val businessTaxAccountHost: String = getExternalUrl("business-tax-frontend.host").getOrElse("")
+  private lazy val caHost: String = getExternalUrl("ca-frontend.host").getOrElse("")
 
   val pertaxUrl: String = s"$pertaxHost/personal-account"
   val businessTaxAccountUrl: String = s"$businessTaxAccountHost/business-account"
