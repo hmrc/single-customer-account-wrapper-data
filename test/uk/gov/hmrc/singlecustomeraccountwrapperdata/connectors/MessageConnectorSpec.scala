@@ -97,6 +97,22 @@ class MessageConnectorSpec extends AsyncWordSpec with Matchers with WireMockHelp
         response mustBe None
       }
     }
+
+    "return None if there is an exception" in {
+
+      server.stubFor(
+        get(urlEqualTo(unreadMessageCountUrl))
+          .willReturn(
+            badRequest()
+              .withHeader("Content-Type", "application/json")
+              .withBody("invalid body")
+          )
+      )
+      messageConnector.getUnreadMessageCount.map { response =>
+        response mustBe None
+      }
+
+    }
   }
 }
 
