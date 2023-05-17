@@ -16,19 +16,27 @@
 
 package uk.gov.hmrc.singlecustomeraccountwrapperdata.config
 
+import play.api.Configuration
 import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
 
 import javax.inject.{Inject, Singleton}
 
 @Singleton
-class AppConfig @Inject()(servicesConfig: ServicesConfig) {
+class AppConfig @Inject()(servicesConfig: ServicesConfig, configuration: Configuration) {
 
   val versionNum: String = "1.0.3"
 
-  val pertaxUrl: String = s"${servicesConfig.baseUrl(serviceName = "pertax-frontend")}/personal-account"
-  val trackingUrl: String = servicesConfig.baseUrl(serviceName = "tracking-frontend")
-  val businessTaxAccountUrl: String = s"${servicesConfig.baseUrl(serviceName = "business-tax-frontend")}/business-account"
-  val messageUrl: String = servicesConfig.baseUrl(serviceName = "message-frontend")
-  val defaultSignoutUrl: String = s"${servicesConfig.baseUrl(serviceName = "ca-frontend")}/gg/sign-out"
+  val messageFrontendServiceUrl: String = servicesConfig.baseUrl(serviceName = "message-frontend")
 
+  private lazy val pertaxHost: String = getExternalUrl(s"pertax-frontend.host").getOrElse("")
+  lazy val trackingHost: String = getExternalUrl(s"tracking-frontend.host").getOrElse("")
+  private lazy val businessTaxAccountHost: String = getExternalUrl(s"business-tax-frontend.host").getOrElse("")
+  private lazy val caHost: String = getExternalUrl(s"ca-frontend.host").getOrElse("")
+
+  val pertaxUrl: String = s"$pertaxHost/personal-account"
+  val businessTaxAccountUrl: String = s"$businessTaxAccountHost/business-account"
+  val defaultSignoutUrl: String = s"$caHost/gg/sign-out"
+
+  private def getExternalUrl(key: String): Option[String] =
+    configuration.getOptional[String](s"external-url.$key")
 }
