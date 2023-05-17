@@ -16,20 +16,19 @@
 
 package uk.gov.hmrc.singlecustomeraccountwrapperdata.config
 
-import play.api.Configuration
+import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
 
 import javax.inject.{Inject, Singleton}
 
 @Singleton
-class AppConfig @Inject()(configuration: Configuration) {
-
-  final val appName: String = configuration.get[String]("appName")
+class AppConfig @Inject()(servicesConfig: ServicesConfig) {
 
   val versionNum: String = "1.0.3"
 
-  final val pertaxUrl: String = s"${configuration.get[String]("services.pertax-frontend.url")}/personal-account"
-  final val trackingUrl: String = s"${configuration.get[String]("services.tracking-frontend.url")}"
-  final val businessTaxAccountUrl: String = s"${configuration.get[String]("services.business-tax-frontend.url")}/business-account"
-  final val messageUrl: String = configuration.get[String]("services.message.url")
-  final val defaultSignoutUrl: String = configuration.get[String]("services.gg-signout.url")
+  val pertaxUrl: String = s"${servicesConfig.baseUrl(serviceName = "pertax-frontend")}/personal-account"
+  val trackingUrl: String = servicesConfig.baseUrl(serviceName = "tracking-frontend")
+  val businessTaxAccountUrl: String = s"${servicesConfig.baseUrl(serviceName = "business-tax-frontend")}/business-account"
+  val messageUrl: String = servicesConfig.baseUrl(serviceName = "message-frontend")
+  val defaultSignoutUrl: String = s"${servicesConfig.baseUrl(serviceName = "ca-frontend")}/gg/sign-out"
+
 }
