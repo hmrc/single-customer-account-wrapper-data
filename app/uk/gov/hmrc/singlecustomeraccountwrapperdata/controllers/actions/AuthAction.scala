@@ -44,16 +44,6 @@ class AuthActionImpl @Inject()(
       if (confLevel.level < ConfidenceLevel.L200.level) Some(confLevel) else None
   }
 
-  private def trimmedRequest[A](request: Request[A]): Request[A] = request
-    .map {
-      case AnyContentAsFormUrlEncoded(data) =>
-        AnyContentAsFormUrlEncoded(data.map { case (key, vals) =>
-          (key, vals.map(_.trim))
-        })
-      case b => b
-    }
-    .asInstanceOf[Request[A]]
-
   def invokeBlock[A](request: Request[A], block: AuthenticatedRequest[A] => Future[Result]): Future[Result] = {
 
     implicit val hc: HeaderCarrier = HeaderCarrierConverter.fromRequest(request)//session!
@@ -81,7 +71,7 @@ class AuthActionImpl @Inject()(
           trustedHelper,
           None,
           enrolments,
-          trimmedRequest(request)
+          request
         )
         block(authenticatedRequest)
       case nino ~ _ ~ enrolments ~ Some(credentials) ~ _ ~ LT200(confidenceLevel) ~ name ~ _ ~ _ =>
@@ -94,7 +84,7 @@ class AuthActionImpl @Inject()(
           None,
           None,
           Set.empty[Enrolment],
-          trimmedRequest(request)
+          request
         )
         block(authenticatedRequest)
     }
@@ -110,7 +100,7 @@ class AuthActionImpl @Inject()(
         None,
         None,
         Set.empty,
-        trimmedRequest(request)
+        request
       )
       block(unauthenticatedRequest)
   }
