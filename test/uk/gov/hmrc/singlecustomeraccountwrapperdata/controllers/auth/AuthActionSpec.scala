@@ -131,6 +131,15 @@ class AuthActionSpec extends BaseSpec {
       contentAsString(result) must include(nino)
     }
 
+    "be created when a user has more than 50 CL but has a weak cred strength" in {
+
+      val controller = retrievals(confidenceLevel = ConfidenceLevel.L200, credentialStrength = CredentialStrength.weak)
+
+      val result = controller.onPageLoad(FakeRequest("", ""))
+      status(result) mustBe OK
+      contentAsString(result) must include("fail")
+    }
+
     "be created when a user has a weak cred strength" in {
 
       val controller = retrievals()
