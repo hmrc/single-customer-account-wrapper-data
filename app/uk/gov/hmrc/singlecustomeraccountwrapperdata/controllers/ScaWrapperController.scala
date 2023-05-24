@@ -48,7 +48,6 @@ class ScaWrapperController @Inject()(cc: ControllerComponents, appConfig: AppCon
   }
 
   private def wrapperDataResponseVersionFallback()(implicit request: AuthenticatedRequest[AnyContent], lang: Lang) = {
-    logger.warn(s"[ScaWrapperController][wrapperDataResponseVersionFallback] Using fallback menu config")
     WrapperDataResponse(
       wrapperConfig.fallbackMenuConfig(),
       wrapperConfig.ptaMinMenuConfig
