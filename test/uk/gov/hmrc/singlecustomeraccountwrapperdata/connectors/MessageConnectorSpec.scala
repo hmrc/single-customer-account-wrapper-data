@@ -17,16 +17,22 @@
 package uk.gov.hmrc.singlecustomeraccountwrapperdata.connectors
 
 import com.github.tomakehurst.wiremock.client.WireMock._
+import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.matchers.must.Matchers
+import org.scalatest.time.{Seconds, Span}
 import org.scalatest.wordspec.AsyncWordSpec
 import org.scalatestplus.mockito.MockitoSugar
+import play.api.http.Status.OK
 import play.api.libs.json.{JsObject, Json}
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.http.test.HttpClientSupport
 import utils.WireMockHelper
 
+import scala.concurrent.duration.DurationInt
+import scala.language.postfixOps
 
-class MessageConnectorSpec extends AsyncWordSpec with Matchers with WireMockHelper with HttpClientSupport with MockitoSugar {
+
+class MessageConnectorSpec extends AsyncWordSpec with Matchers with WireMockHelper with HttpClientSupport with MockitoSugar with ScalaFutures {
 
   import MessageConnectorSpec._
 
@@ -114,6 +120,31 @@ class MessageConnectorSpec extends AsyncWordSpec with Matchers with WireMockHelp
 
     }
   }
+
+  "The messageConnector with default settings" must {
+    "trigger a timeout if the request for get unread message count if it takes more than 1 second" in {
+
+      server.stubFor(
+        get(anyUrl()).willReturn(
+          aResponse()
+            .withStatus(OK)
+            .withBody("You haven't seen me, right!")
+            .withFixedDelay(2000)
+        )
+      )
+
+
+      implicit val patienceConfig: PatienceConfig = PatienceConfig(timeout = Span(3, Seconds))
+
+      val result = messageConnector.getUnreadMessageCount(scala.concurrent.ExecutionContext.global, HeaderCarrier())
+
+      result.isReadyWithin(1 second) mustBe false
+      whenReady(result) { res =>
+        res mustBe None
+      }
+    }
+  }
+
 }
 
 object MessageConnectorSpec {
