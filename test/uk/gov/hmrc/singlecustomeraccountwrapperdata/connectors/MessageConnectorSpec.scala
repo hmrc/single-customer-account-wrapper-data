@@ -124,7 +124,7 @@ class MessageConnectorSpec extends AsyncWordSpec with Matchers with WireMockHelp
   }
 
   "The messageConnector with default settings" must {
-    "trigger a timeout if the request for get unread message count takes more than 1 second" in {
+    "trigger a timeout if the request for get unread message count if it takes more than 1 second" in {
 
       server.stubFor(
         get(anyUrl()).willReturn(
@@ -137,14 +137,13 @@ class MessageConnectorSpec extends AsyncWordSpec with Matchers with WireMockHelp
 
 
         implicit val patienceConfig: PatienceConfig = PatienceConfig(timeout = Span(3, Seconds))
-         val position: Position = Position("MessageConnector.scala","uk/gov/hmrc/singlecustomeraccountwrapperdata/connectors/MessageConnector.scala",31)
 
-        val SUT: MessageConnector = injector.instanceOf[MessageConnector]
-
-        val result = SUT.getUnreadMessageCount(scala.concurrent.ExecutionContext.global, HeaderCarrier())
+        val result = messageConnector.getUnreadMessageCount(scala.concurrent.ExecutionContext.global, HeaderCarrier())
 
         result.isReadyWithin(1 second) mustBe false
-        result.futureValue(patienceConfig, position) mustBe None
+        whenReady(result) { res =>
+          res mustBe None
+        }
     }
   }
 
