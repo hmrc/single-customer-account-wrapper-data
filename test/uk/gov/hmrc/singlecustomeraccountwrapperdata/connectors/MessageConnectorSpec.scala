@@ -17,7 +17,6 @@
 package uk.gov.hmrc.singlecustomeraccountwrapperdata.connectors
 
 import com.github.tomakehurst.wiremock.client.WireMock._
-import org.scalactic.source.Position
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.matchers.must.Matchers
 import org.scalatest.time.{Seconds, Span}
@@ -29,7 +28,6 @@ import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.http.test.HttpClientSupport
 import utils.WireMockHelper
 
-import scala.concurrent.Future
 import scala.concurrent.duration.DurationInt
 import scala.language.postfixOps
 
@@ -136,14 +134,14 @@ class MessageConnectorSpec extends AsyncWordSpec with Matchers with WireMockHelp
       )
 
 
-        implicit val patienceConfig: PatienceConfig = PatienceConfig(timeout = Span(3, Seconds))
+      implicit val patienceConfig: PatienceConfig = PatienceConfig(timeout = Span(3, Seconds))
 
-        val result = messageConnector.getUnreadMessageCount(scala.concurrent.ExecutionContext.global, HeaderCarrier())
+      val result = messageConnector.getUnreadMessageCount(scala.concurrent.ExecutionContext.global, HeaderCarrier())
 
-        result.isReadyWithin(1 second) mustBe false
-        whenReady(result) { res =>
-          res mustBe None
-        }
+      result.isReadyWithin(1 second) mustBe false
+      whenReady(result) { res =>
+        res mustBe None
+      }
     }
   }
 
