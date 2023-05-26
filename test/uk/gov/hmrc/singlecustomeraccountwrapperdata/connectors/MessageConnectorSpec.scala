@@ -17,16 +17,24 @@
 package uk.gov.hmrc.singlecustomeraccountwrapperdata.connectors
 
 import com.github.tomakehurst.wiremock.client.WireMock._
+import org.scalactic.source.Position
+import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.matchers.must.Matchers
+import org.scalatest.time.{Seconds, Span}
 import org.scalatest.wordspec.AsyncWordSpec
 import org.scalatestplus.mockito.MockitoSugar
+import play.api.http.Status.OK
 import play.api.libs.json.{JsObject, Json}
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.http.test.HttpClientSupport
 import utils.WireMockHelper
 
+import scala.concurrent.Future
+import scala.concurrent.duration.DurationInt
+import scala.language.postfixOps
 
-class MessageConnectorSpec extends AsyncWordSpec with Matchers with WireMockHelper with HttpClientSupport with MockitoSugar {
+
+class MessageConnectorSpec extends AsyncWordSpec with Matchers with WireMockHelper with HttpClientSupport with MockitoSugar with ScalaFutures {
 
   import MessageConnectorSpec._
 
@@ -114,6 +122,32 @@ class MessageConnectorSpec extends AsyncWordSpec with Matchers with WireMockHelp
 
     }
   }
+
+  "The messageConnector with default settings" must {
+    "trigger a timeout if the request for get unread message count takes more than 1 second" in {
+
+      server.stubFor(
+        get(anyUrl()).willReturn(
+          aResponse()
+            .withStatus(OK)
+            .withBody("You haven't seen me, right!")
+            .withFixedDelay(2000)
+        )
+      )
+
+
+        implicit val patienceConfig: PatienceConfig = PatienceConfig(timeout = Span(3, Seconds))
+         val position: Position = Position("MessageConnector.scala","uk/gov/hmrc/singlecustomeraccountwrapperdata/connectors/MessageConnector.scala",31)
+
+        val SUT: MessageConnector = injector.instanceOf[MessageConnector]
+
+        val result = SUT.getUnreadMessageCount(scala.concurrent.ExecutionContext.global, HeaderCarrier())
+
+        result.isReadyWithin(1 second) mustBe false
+        result.futureValue(patienceConfig, position) mustBe None
+    }
+  }
+
 }
 
 object MessageConnectorSpec {
