@@ -148,5 +148,5 @@ class MessageConnectorSpec extends AsyncWordSpec with Matchers with WireMockHelp
 }
 
 object MessageConnectorSpec {
-  private val unreadMessageCountUrl = s"/messages?countOnly=true"
+  private val unreadMessageCountUrl = s"/messages/count?read=No"
 }
