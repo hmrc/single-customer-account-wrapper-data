@@ -54,7 +54,7 @@ class ScaMessageControllerISpec
       val response = Json.toJson(MessageCountResponse(MessageCount(total = 1, unread = 1))).toString()
 
       server.stubFor(
-        get(urlEqualTo("/messages?countOnly=true"))
+        get(urlEqualTo("/messages/count?read=No"))
           .willReturn(ok(response))
       )
 
@@ -70,7 +70,7 @@ class ScaMessageControllerISpec
       val response = Json.toJson(MessageCountResponse(MessageCount(total = 0, unread = 0))).toString()
 
       server.stubFor(
-        get(urlEqualTo("/messages?countOnly=true"))
+        get(urlEqualTo("/messages/count?read=No"))
           .willReturn(ok(response))
       )
 
@@ -86,7 +86,7 @@ class ScaMessageControllerISpec
       val response = Json.toJson(MessageCount(total = 1, unread = 1)).toString()
 
       server.stubFor(
-        get(urlEqualTo("/messages?countOnly=true"))
+        get(urlEqualTo("/messages/count?read=No"))
           .willReturn(ok(response))
       )
 
