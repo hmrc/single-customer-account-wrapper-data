@@ -19,7 +19,9 @@ package uk.gov.hmrc.singlecustomeraccountwrapperdata.controllers
 import play.api.Logging
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
+import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
+import uk.gov.hmrc.play.http.HeaderCarrierConverter
 import uk.gov.hmrc.singlecustomeraccountwrapperdata.connectors.MessageConnector
 import uk.gov.hmrc.singlecustomeraccountwrapperdata.controllers.actions.AuthAction
 
@@ -31,7 +33,7 @@ class ScaMessageController @Inject()(cc: ControllerComponents, messageConnector:
                                     (implicit ec: ExecutionContext) extends BackendController(cc) with Logging {
 
   def getUnreadMessageCount: Action[AnyContent] = authenticate.async { implicit request =>
-    logger.info(s"[ScaMessageController][getUnreadMessageCount]")
+    logger.info(s"[ScaMessageController][getUnreadMessageCount] Requesting unread message count")
 
     messageConnector.getUnreadMessageCount.map {
       case Some(unreadMessageCount) => Ok(Json.toJson(unreadMessageCount))
