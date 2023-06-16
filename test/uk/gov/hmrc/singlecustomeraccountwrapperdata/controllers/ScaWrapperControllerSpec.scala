@@ -78,12 +78,33 @@ class ScaWrapperControllerSpec extends BaseSpec {
   )
 
   "The Wrapper data API" must {
-    "return the normal menu config when wrapper-data and sca-wrapper are the same versions" in {
+    "return the normal menu without BTA config when wrapper-data and sca-wrapper are the same versions" in {
       val version: String = appConfig.versionNum
       val lang: String = "en"
       val result = controller.wrapperData(lang, version)(fakeRequest)
       status(result) shouldBe 200
       contentAsString(result).contains("Profile and settings") mustBe true
+      contentAsString(result).contains("Business tax account") mustBe false
+    }
+
+    "return the normal menu config with BTA when wrapper-data and sca-wrapper are the same versions" in {
+      wsClient.url(baseUrl).withHttpHeaders("Authorization" -> "Bearer123").get()
+      when(mockAuthConnector.authorise[AuthRetrievals](any(), any())(any(), any())) thenReturn Future.successful(
+        Some(nino) ~
+          Individual ~
+          Enrolments(fakeSaEnrolments("11111111", "Activated")) ~
+          Some(Credentials("id", "type")) ~
+          Some(CredentialStrength.strong) ~
+          ConfidenceLevel.L200 ~
+          Some(Name(Some("chaz"), Some("dingle"))) ~
+          None ~
+          Some("profileUrl")
+      )
+      val version: String = appConfig.versionNum
+      val lang: String = "en"
+      val result = controller.wrapperData(lang, version)(fakeRequest)
+      status(result) shouldBe 200
+      contentAsString(result).contains("Business tax account") mustBe true
     }
 
     "return the fallback menu config when wrapper-data and sca-wrapper are not the same versions" in {

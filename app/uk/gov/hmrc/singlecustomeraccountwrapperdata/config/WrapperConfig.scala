@@ -59,7 +59,7 @@ class WrapperConfig @Inject()(appConfig: AppConfig)(implicit val messages: Messa
     }.isDefined
 
     val btaConfig = Seq(MenuItemConfig("bta", messages("menu.bta"), s"${appConfig.businessTaxAccountUrl}", leftAligned = false, position = 3, None, None))
-    if (showBta) {
+    if (showBta && request.trustedHelper.isEmpty) {
       config ++ btaConfig
     } else {
       config
