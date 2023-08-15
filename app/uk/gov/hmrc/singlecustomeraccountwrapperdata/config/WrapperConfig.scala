@@ -35,7 +35,7 @@ class WrapperConfig @Inject()(appConfig: AppConfig)(implicit val messages: Messa
         MenuItemConfig("home", messages("menu.home"), s"${appConfig.pertaxUrl}", leftAligned = true, position = 0, Some("hmrc-account-icon hmrc-account-icon--home"), None),
         MenuItemConfig("messages", messages("menu.messages"), s"${appConfig.pertaxUrl}/messages", leftAligned = false, position = 0, None, None),
         MenuItemConfig("progress", messages("menu.progress"), s"${appConfig.trackingHost}/track", leftAligned = false, position = 1, None, None),
-        MenuItemConfig("profile", messages("menu.profile"), s"${appConfig.pertaxUrl}/your-profile", leftAligned = false, position = 2, None, None),
+        MenuItemConfig("profile", messages("menu.profile"), s"${appConfig.pertaxUrl}/profile-and-settings", leftAligned = false, position = 2, None, None),
         MenuItemConfig("signout", messages("menu.signout"), s"${appConfig.defaultSignoutUrl}", leftAligned = false, position = 4, None, None)
       )
     )
@@ -47,7 +47,7 @@ class WrapperConfig @Inject()(appConfig: AppConfig)(implicit val messages: Messa
         MenuItemConfig("home", messages("menu.home"), s"${appConfig.pertaxUrl}", leftAligned = true, position = 0, Some("hmrc-account-icon hmrc-account-icon--home"), None),
         MenuItemConfig("messages", messages("menu.messages"), s"${appConfig.pertaxUrl}/messages", leftAligned = false, position = 0, None, None),
         MenuItemConfig("progress", messages("menu.progress"), s"${appConfig.trackingHost}/track", leftAligned = false, position = 1, None, None),
-        MenuItemConfig("profile", messages("menu.profile"), s"${appConfig.pertaxUrl}/your-profile", leftAligned = false, position = 2, None, None),
+        MenuItemConfig("profile", messages("menu.profile"), s"${appConfig.pertaxUrl}/profile-and-settings", leftAligned = false, position = 2, None, None),
         MenuItemConfig("signout", messages("menu.signout"), s"${appConfig.defaultSignoutUrl}", leftAligned = false, position = 4, None, None)
       )
     )
