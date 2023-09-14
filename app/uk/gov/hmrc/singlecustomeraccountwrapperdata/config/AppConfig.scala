@@ -27,7 +27,7 @@ class AppConfig @Inject()(servicesConfig: ServicesConfig, configuration: Configu
   val versionNum: String = "1.0.3"
 
   // ms-url for backend call
-  val messageServiceUrl: String = servicesConfig.baseUrl(serviceName = "message")
+  val messageServiceUrl: String = servicesConfig.baseUrl(serviceName = "secure-messaging")
 
   // fe-host to redirect on browser
   private lazy val pertaxHost: String = getExternalUrl("pertax-frontend.host").getOrElse("")
