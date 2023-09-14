@@ -51,10 +51,10 @@ class ScaMessageControllerISpec
   "ScaMessageController" must {
     "return a 200 wrapper data response" in {
 
-      val response = Json.toJson(MessageCountResponse(MessageCount(total = 1, unread = 1))).toString()
+      val response = Json.toJson(MessageCount(total = 1, unread = 1)).toString()
 
       server.stubFor(
-        get(urlEqualTo("/messages?countOnly=true"))
+        get(urlEqualTo("/secure-messaging/messages/count"))
           .willReturn(ok(response))
       )
 
@@ -67,10 +67,10 @@ class ScaMessageControllerISpec
 
     "return a 204 given no unread messages" in {
 
-      val response = Json.toJson(MessageCountResponse(MessageCount(total = 0, unread = 0))).toString()
+      val response = Json.toJson(MessageCount(total = 0, unread = 0)).toString()
 
       server.stubFor(
-        get(urlEqualTo("/messages?countOnly=true"))
+        get(urlEqualTo("/secure-messaging/messages/count"))
           .willReturn(ok(response))
       )
 
@@ -83,10 +83,10 @@ class ScaMessageControllerISpec
 
     "return a 204 given a bad json response" in {
 
-      val response = Json.toJson(MessageCount(total = 1, unread = 1)).toString()
+      val response = Json.toJson(MessageCountResponse(MessageCount(total = 1, unread = 1))).toString()
 
       server.stubFor(
-        get(urlEqualTo("/messages?countOnly=true"))
+        get(urlEqualTo("/secure-messaging/messages/count"))
           .willReturn(ok(response))
       )
 
