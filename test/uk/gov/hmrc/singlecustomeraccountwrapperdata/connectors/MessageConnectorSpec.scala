@@ -38,18 +38,17 @@ class MessageConnectorSpec extends AsyncWordSpec with Matchers with WireMockHelp
 
   private implicit lazy val hc: HeaderCarrier = HeaderCarrier()
 
-  override protected def portConfigKeys: String = "microservice.services.message.port"
+  override protected def portConfigKeys: String = "microservice.services.secure-messaging.port"
 
   private lazy val messageConnector: MessageConnector = injector.instanceOf[MessageConnector]
 
   "getUnreadMessageCount" must {
     "return the unread message count if more than zero" in {
       val messageResponse: JsObject = Json.obj(
-        "count" -> Json.obj(
           "total" -> 2,
           "unread" -> 1
         )
-      )
+
 
       server.stubFor(
         get(urlEqualTo(unreadMessageCountUrl))
@@ -86,10 +85,8 @@ class MessageConnectorSpec extends AsyncWordSpec with Matchers with WireMockHelp
 
     "return None if the unread message count is less than zero" in {
       val messageResponse: JsObject = Json.obj(
-        "count" -> Json.obj(
           "total" -> 2,
           "unread" -> -1
-        )
       )
       server.stubFor(
         get(urlEqualTo(unreadMessageCountUrl))
@@ -148,5 +145,5 @@ class MessageConnectorSpec extends AsyncWordSpec with Matchers with WireMockHelp
 }
 
 object MessageConnectorSpec {
-  private val unreadMessageCountUrl = s"/messages?countOnly=true"
+  private val unreadMessageCountUrl = s"/secure-messaging/messages/count"
 }
