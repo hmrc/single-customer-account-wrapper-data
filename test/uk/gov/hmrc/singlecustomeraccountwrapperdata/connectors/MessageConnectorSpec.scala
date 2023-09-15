@@ -45,10 +45,11 @@ class MessageConnectorSpec extends AsyncWordSpec with Matchers with WireMockHelp
   "getUnreadMessageCount" must {
     "return the unread message count if more than zero" in {
       val messageResponse: JsObject = Json.obj(
+        "count" -> Json.obj(
           "total" -> 2,
           "unread" -> 1
         )
-
+      )
 
       server.stubFor(
         get(urlEqualTo(unreadMessageCountUrl))
@@ -85,8 +86,10 @@ class MessageConnectorSpec extends AsyncWordSpec with Matchers with WireMockHelp
 
     "return None if the unread message count is less than zero" in {
       val messageResponse: JsObject = Json.obj(
+        "count" -> Json.obj(
           "total" -> 2,
           "unread" -> -1
+        )
       )
       server.stubFor(
         get(urlEqualTo(unreadMessageCountUrl))
@@ -145,5 +148,5 @@ class MessageConnectorSpec extends AsyncWordSpec with Matchers with WireMockHelp
 }
 
 object MessageConnectorSpec {
-  private val unreadMessageCountUrl = s"/secure-messaging/messages/count"
+  private val unreadMessageCountUrl = s"/secure-messaging/messages/count?taxIdentifiers=nino"
 }
