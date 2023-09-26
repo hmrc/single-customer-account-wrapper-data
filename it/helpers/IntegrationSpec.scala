@@ -33,7 +33,7 @@ trait IntegrationSpec extends AnyWordSpec with GuiceOneAppPerSuite with WireMock
     GuiceApplicationBuilder()
       .configure(
         "microservice.services.auth.port" -> server.port(),
-        "microservice.services.secure-messaging.port" -> server.port()
+        "microservice.services.secure-message.port" -> server.port()
       )
 
   override def beforeEach() = {
