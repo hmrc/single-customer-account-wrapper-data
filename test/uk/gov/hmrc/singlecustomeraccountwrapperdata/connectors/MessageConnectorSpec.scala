@@ -38,7 +38,7 @@ class MessageConnectorSpec extends AsyncWordSpec with Matchers with WireMockHelp
 
   private implicit lazy val hc: HeaderCarrier = HeaderCarrier()
 
-  override protected def portConfigKeys: String = "microservice.services.secure-messaging.port"
+  override protected def portConfigKeys: String = "microservice.services.secure-message.port"
 
   private lazy val messageConnector: MessageConnector = injector.instanceOf[MessageConnector]
 
