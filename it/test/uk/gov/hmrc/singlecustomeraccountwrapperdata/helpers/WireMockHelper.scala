@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-package helpers
+
+package test.uk.gov.hmrc.singlecustomeraccountwrapperdata.helpers
 
 import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig

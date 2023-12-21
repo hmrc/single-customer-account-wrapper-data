@@ -14,19 +14,13 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.singlecustomeraccountwrapperdata
+package test.uk.gov.hmrc.singlecustomeraccountwrapperdata
 
-import helpers.IntegrationSpec
-import org.scalatest.concurrent.{IntegrationPatience, ScalaFutures}
-import org.scalatest.matchers.should.Matchers
-import org.scalatest.wordspec.AnyWordSpec
-import org.scalatestplus.play.guice.GuiceOneServerPerSuite
 import play.api.Application
-import play.api.inject.guice.GuiceApplicationBuilder
-import play.api.libs.ws.WSClient
 import play.api.mvc.{AnyContentAsEmpty, Result}
 import play.api.test.FakeRequest
 import play.api.test.Helpers.{route, writeableOf_AnyContentAsEmpty}
+import test.uk.gov.hmrc.singlecustomeraccountwrapperdata.helpers.IntegrationSpec
 import uk.gov.hmrc.http.HttpVerbs.GET
 import uk.gov.hmrc.http.SessionKeys
 

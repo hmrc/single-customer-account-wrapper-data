@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package helpers
+package test.uk.gov.hmrc.singlecustomeraccountwrapperdata.helpers
 
 import com.github.tomakehurst.wiremock.client.WireMock._
 import org.scalatest.concurrent.ScalaFutures
@@ -23,7 +23,6 @@ import org.scalatest.time.{Millis, Seconds, Span}
 import org.scalatest.wordspec.AnyWordSpec
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
 import play.api.inject.guice.GuiceApplicationBuilder
-import uk.gov.hmrc.domain.Generator
 
 trait IntegrationSpec extends AnyWordSpec with GuiceOneAppPerSuite with WireMockHelper with ScalaFutures with Matchers {
 
