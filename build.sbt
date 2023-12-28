@@ -19,4 +19,4 @@ lazy val microservice = Project("single-customer-account-wrapper-data", file("."
 lazy val it = project
   .enablePlugins(PlayScala)
   .dependsOn(microservice % "test->test") // the "test->test" allows reusing test code and test dependencies
-  .settings(DefaultBuildSettings.itSettings)
+  .settings(DefaultBuildSettings.itSettings())
