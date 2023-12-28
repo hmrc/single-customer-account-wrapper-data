@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package test.uk.gov.hmrc.singlecustomeraccountwrapperdata
+package uk.gov.hmrc.singlecustomeraccountwrapperdata
 
 import com.github.tomakehurst.wiremock.client.WireMock._
 import play.api.Application
@@ -22,9 +22,9 @@ import play.api.libs.json.Json
 import play.api.mvc.{AnyContentAsEmpty, Result}
 import play.api.test.FakeRequest
 import play.api.test.Helpers.{route, writeableOf_AnyContentAsEmpty}
-import test.uk.gov.hmrc.singlecustomeraccountwrapperdata.helpers.IntegrationSpec
 import uk.gov.hmrc.http.HttpVerbs.GET
 import uk.gov.hmrc.http.SessionKeys
+import uk.gov.hmrc.singlecustomeraccountwrapperdata.helpers.IntegrationSpec
 import uk.gov.hmrc.singlecustomeraccountwrapperdata.models.{MessageCount, MessageCountResponse}
 
 import java.util.UUID

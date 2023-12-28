@@ -14,9 +14,8 @@
  * limitations under the License.
  */
 
-package test.uk.gov.hmrc.singlecustomeraccountwrapperdata.helpers
+package uk.gov.hmrc.singlecustomeraccountwrapperdata.helpers
 
-import com.github.tomakehurst.wiremock.client.WireMock._
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.matchers.must.Matchers
 import org.scalatest.time.{Millis, Seconds, Span}

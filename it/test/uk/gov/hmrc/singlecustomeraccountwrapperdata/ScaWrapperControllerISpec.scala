@@ -14,15 +14,15 @@
  * limitations under the License.
  */
 
-package test.uk.gov.hmrc.singlecustomeraccountwrapperdata
+package uk.gov.hmrc.singlecustomeraccountwrapperdata
 
 import play.api.Application
 import play.api.mvc.{AnyContentAsEmpty, Result}
 import play.api.test.FakeRequest
 import play.api.test.Helpers.{route, writeableOf_AnyContentAsEmpty}
-import test.uk.gov.hmrc.singlecustomeraccountwrapperdata.helpers.IntegrationSpec
 import uk.gov.hmrc.http.HttpVerbs.GET
 import uk.gov.hmrc.http.SessionKeys
+import uk.gov.hmrc.singlecustomeraccountwrapperdata.helpers.IntegrationSpec
 
 import java.util.UUID
 import scala.concurrent.{ExecutionContext, Future}
