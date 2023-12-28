@@ -16,22 +16,18 @@
 
 package uk.gov.hmrc.singlecustomeraccountwrapperdata
 
-import com.github.tomakehurst.wiremock.client.WireMock._
-import helpers.IntegrationSpec
 import play.api.Application
-import play.api.libs.json.Json
 import play.api.mvc.{AnyContentAsEmpty, Result}
 import play.api.test.FakeRequest
 import play.api.test.Helpers.{route, writeableOf_AnyContentAsEmpty}
 import uk.gov.hmrc.http.HttpVerbs.GET
 import uk.gov.hmrc.http.SessionKeys
-import uk.gov.hmrc.singlecustomeraccountwrapperdata.models.{MessageCount, MessageCountResponse}
+import uk.gov.hmrc.singlecustomeraccountwrapperdata.helpers.IntegrationSpec
 
 import java.util.UUID
 import scala.concurrent.{ExecutionContext, Future}
 
-
-class ScaMessageControllerISpec
+class ScaWrapperControllerISpec
   extends IntegrationSpec {
 
   override implicit lazy val app: Application = localGuiceApplicationBuilder()
@@ -40,23 +36,16 @@ class ScaMessageControllerISpec
 
   implicit lazy val ec = app.injector.instanceOf[ExecutionContext]
 
-  val url = "/single-customer-account-wrapper-data/message-data"
-
-  def request: FakeRequest[AnyContentAsEmpty.type] = {
-    val uuid = UUID.randomUUID().toString
-    FakeRequest(GET, url)
-      .withSession(SessionKeys.authToken -> "Bearer 1", SessionKeys.sessionId -> s"session-$uuid")
-  }
-
-  "ScaMessageController" must {
+  "ScaWrapperController" must {
     "return a 200 wrapper data response" in {
 
-      val response = Json.toJson(MessageCountResponse(MessageCount(total = 1, unread = 1))).toString()
+      val url = "/single-customer-account-wrapper-data/wrapper-data?lang=en&version=1.1"
 
-      server.stubFor(
-        get(urlEqualTo("/secure-messaging/messages/count?taxIdentifiers=nino"))
-          .willReturn(ok(response))
-      )
+      def request: FakeRequest[AnyContentAsEmpty.type] = {
+        val uuid = UUID.randomUUID().toString
+        FakeRequest(GET, url)
+          .withSession(SessionKeys.authToken -> "Bearer 1", SessionKeys.sessionId -> s"session-$uuid")
+      }
 
       val result: Future[Result] = route(app, request).get
 
@@ -65,37 +54,39 @@ class ScaMessageControllerISpec
       }
     }
 
-    "return a 204 given no unread messages" in {
+    "return a 200 wrapper data response given a different wrapper library version" in {
 
-      val response = Json.toJson(MessageCountResponse(MessageCount(total = 0, unread = 0))).toString()
+      val url = "/single-customer-account-wrapper-data/wrapper-data?lang=en&version=0.1"
 
-      server.stubFor(
-        get(urlEqualTo("/secure-messaging/messages/count?taxIdentifiers=nino"))
-          .willReturn(ok(response))
-      )
+      def request: FakeRequest[AnyContentAsEmpty.type] = {
+        val uuid = UUID.randomUUID().toString
+        FakeRequest(GET, url)
+          .withSession(SessionKeys.authToken -> "Bearer 1", SessionKeys.sessionId -> s"session-$uuid")
+      }
 
       val result: Future[Result] = route(app, request).get
 
       whenReady(result) { res =>
-        res.header.status mustBe 204
+        res.header.status mustBe 200
       }
     }
 
-    "return a 204 given a bad json response" in {
+    "return a 400 given missing parameters in the url" in {
 
-      val response = Json.toJson(MessageCount(total = 1, unread = 1)).toString()
 
-      server.stubFor(
-        get(urlEqualTo("/secure-messaging/messages/count?taxIdentifiers=nino"))
-          .willReturn(ok(response))
-      )
+      val url = "/single-customer-account-wrapper-data/wrapper-data"
+
+      def request: FakeRequest[AnyContentAsEmpty.type] = {
+        val uuid = UUID.randomUUID().toString
+        FakeRequest(GET, url)
+          .withSession(SessionKeys.authToken -> "Bearer 1", SessionKeys.sessionId -> s"session-$uuid")
+      }
 
       val result: Future[Result] = route(app, request).get
 
       whenReady(result) { res =>
-        res.header.status mustBe 204
+        res.header.status mustBe 400
       }
     }
-
   }
 }

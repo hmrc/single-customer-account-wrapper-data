@@ -19,8 +19,8 @@ package uk.gov.hmrc.singlecustomeraccountwrapperdata.config
 import play.api.i18n.{Lang, MessagesApi}
 import play.api.mvc.AnyContent
 import uk.gov.hmrc.auth.core.Enrolment
-import uk.gov.hmrc.singlecustomeraccountwrapperdata.models.auth.AuthenticatedRequest
 import uk.gov.hmrc.singlecustomeraccountwrapperdata.models.{MenuItemConfig, PtaMinMenuConfig}
+import uk.gov.hmrc.singlecustomeraccountwrapperdata.models.auth.AuthenticatedRequest
 
 import javax.inject.{Inject, Singleton}
 
