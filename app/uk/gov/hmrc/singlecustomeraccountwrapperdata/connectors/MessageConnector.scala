@@ -28,7 +28,10 @@ import scala.concurrent.{ExecutionContext, Future}
 class MessageConnector @Inject()(http: HttpClient, appConfig: AppConfig) extends Logging {
 
   def getUnreadMessageCount(implicit ec: ExecutionContext, hc: HeaderCarrier): Future[Option[Int]] = {
-    http.GET[MessageCountResponse](appConfig.messageServiceUrl + "/secure-messaging/messages/count?taxIdentifiers=nino").map { response =>
+    val params = Seq("nino", "sautr", "HMRC-OBTDS-ORG", "HMRC-MTD-VAT", "HMRC-MTD-IT", "HMRC-PPT-ORG", "IR-PAYE")
+      .map(t => s"taxIdentifiers=$t").mkString("&")
+    
+    http.GET[MessageCountResponse](appConfig.messageServiceUrl + s"/secure-messaging/messages/count?$params").map { response =>
       val unreadCount = response.count.unread
       logger.info(s"[MessageConnector][getUnreadMessageCount] Unread message count requested, $unreadCount unread messages returned")
       unreadCount match {
