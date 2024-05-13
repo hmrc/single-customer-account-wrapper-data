@@ -29,8 +29,12 @@ import uk.gov.hmrc.singlecustomeraccountwrapperdata.models.auth.AuthenticatedReq
 import javax.inject.{Inject, Singleton}
 
 @Singleton()
-class ScaWrapperController @Inject()(cc: ControllerComponents, appConfig: AppConfig, wrapperConfig: WrapperConfig,
-                                     authenticate: AuthAction) extends BackendController(cc) with I18nSupport with Logging {
+class ScaWrapperController @Inject() (
+  cc: ControllerComponents,
+  appConfig: AppConfig,
+  wrapperConfig: WrapperConfig,
+  authenticate: AuthAction
+) extends BackendController(cc) with I18nSupport with Logging {
 
   def wrapperData(lang: String, version: String): Action[AnyContent] = authenticate { implicit request =>
     implicit val playLang: Lang = Lang(lang)
@@ -38,20 +42,23 @@ class ScaWrapperController @Inject()(cc: ControllerComponents, appConfig: AppCon
     val wrapperDataVersion: String = appConfig.versionNum.take(1)
     val libraryVersion = version.take(1)
     val response = if (wrapperDataVersion == libraryVersion) {
-      logger.info(s"[ScaWrapperController][wrapperData] Wrapper data successful request- version:$wrapperDataVersion, lang: $playLang")
+      logger.info(
+        s"[ScaWrapperController][wrapperData] Wrapper data successful request- version:$wrapperDataVersion, lang: $playLang"
+      )
       WrapperDataResponse(wrapperConfig.menuConfig(), wrapperConfig.ptaMinMenuConfig)
     } else {
-      logger.warn(s"[ScaWrapperController][wrapperData] Wrapper data fallback request- version:$wrapperDataVersion, library version: $libraryVersion, lang: $playLang")
+      logger.warn(
+        s"[ScaWrapperController][wrapperData] Wrapper data fallback request- version:$wrapperDataVersion, library version: $libraryVersion, lang: $playLang"
+      )
       wrapperDataResponseVersionFallback()
     }
     Ok(Json.toJson(response))
   }
 
-  private def wrapperDataResponseVersionFallback()(implicit request: AuthenticatedRequest[AnyContent], lang: Lang) = {
+  private def wrapperDataResponseVersionFallback()(implicit request: AuthenticatedRequest[AnyContent], lang: Lang) =
     WrapperDataResponse(
       wrapperConfig.fallbackMenuConfig(),
       wrapperConfig.ptaMinMenuConfig
     )
-  }
 
 }

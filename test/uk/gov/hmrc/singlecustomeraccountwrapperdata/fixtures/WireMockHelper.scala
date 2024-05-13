@@ -30,9 +30,8 @@ trait WireMockHelper extends BeforeAndAfterAll with BeforeAndAfterEach {
     super.beforeAll()
   }
 
-  override def beforeEach(): Unit = {
+  override def beforeEach(): Unit =
     super.beforeEach()
-  }
 
   override def afterAll(): Unit = {
     super.afterAll()

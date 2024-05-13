@@ -27,15 +27,19 @@ import javax.inject.{Inject, Singleton}
 import scala.concurrent.ExecutionContext
 
 @Singleton()
-class ScaMessageController @Inject()(cc: ControllerComponents, messageConnector: MessageConnector, authenticate: AuthAction)
-                                    (implicit ec: ExecutionContext) extends BackendController(cc) with Logging {
+class ScaMessageController @Inject() (
+  cc: ControllerComponents,
+  messageConnector: MessageConnector,
+  authenticate: AuthAction
+)(implicit ec: ExecutionContext)
+    extends BackendController(cc) with Logging {
 
   def getUnreadMessageCount: Action[AnyContent] = authenticate.async { implicit request =>
     logger.info(s"[ScaMessageController][getUnreadMessageCount] Requesting unread message count")
 
     messageConnector.getUnreadMessageCount.map {
       case Some(unreadMessageCount) => Ok(Json.toJson(unreadMessageCount))
-      case _ => NoContent
+      case _                        => NoContent
     }
   }
 

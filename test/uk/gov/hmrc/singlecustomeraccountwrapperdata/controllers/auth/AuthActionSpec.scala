@@ -71,8 +71,10 @@ class AuthActionSpec extends BaseSpec {
     profileUrl: Option[String] = None,
     exception: Option[AuthorisationException] = None
   ): Harness = {
-    if(exception.isDefined){
-      when(mockAuthConnector.authorise[AuthRetrievals](any(), any())(any(), any())) thenReturn Future.failed(exception.get)
+    if (exception.isDefined) {
+      when(mockAuthConnector.authorise[AuthRetrievals](any(), any())(any(), any())) thenReturn Future.failed(
+        exception.get
+      )
     } else {
       when(mockAuthConnector.authorise[AuthRetrievals](any(), any())(any(), any())) thenReturn Future.successful(
         nino ~ affinityGroup ~ saEnrolments ~ Some(fakeCredentials) ~ Some(
@@ -88,7 +90,7 @@ class AuthActionSpec extends BaseSpec {
   }
 
   "An authenticated request" must {
-    "be created when a user has a nino and SA enrolment" in  {
+    "be created when a user has a nino and SA enrolment" in {
       val utr = new SaUtrGenerator().nextSaUtr.utr
 
       val controller = retrievals(saEnrolments = Enrolments(fakeSaEnrolments(utr)))
@@ -102,7 +104,10 @@ class AuthActionSpec extends BaseSpec {
     "be created when a user has a nino and SA enrolment and trusted helper" in {
       val utr = new SaUtrGenerator().nextSaUtr.utr
 
-      val controller = retrievals(saEnrolments = Enrolments(fakeSaEnrolments(utr)), trustedHelper = Some(TrustedHelper("chaz", "dingle", "link", nino)))
+      val controller = retrievals(
+        saEnrolments = Enrolments(fakeSaEnrolments(utr)),
+        trustedHelper = Some(TrustedHelper("chaz", "dingle", "link", nino))
+      )
 
       val result = controller.onPageLoad(FakeRequest("", ""))
       status(result) mustBe OK

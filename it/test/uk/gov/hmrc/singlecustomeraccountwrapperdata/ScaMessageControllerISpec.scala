@@ -30,9 +30,7 @@ import uk.gov.hmrc.singlecustomeraccountwrapperdata.models.{MessageCount, Messag
 import java.util.UUID
 import scala.concurrent.{ExecutionContext, Future}
 
-
-class ScaMessageControllerISpec
-  extends IntegrationSpec {
+class ScaMessageControllerISpec extends IntegrationSpec {
 
   override implicit lazy val app: Application = localGuiceApplicationBuilder()
     .configure()
@@ -54,9 +52,13 @@ class ScaMessageControllerISpec
       val response = Json.toJson(MessageCountResponse(MessageCount(total = 1, unread = 1))).toString()
 
       server.stubFor(
-        get(urlEqualTo("/secure-messaging/messages/count?taxIdentifiers=nino&taxIdentifiers=sautr&" +
-          "taxIdentifiers=HMRC-OBTDS-ORG&taxIdentifiers=HMRC-MTD-VAT&taxIdentifiers=HMRC-MTD-IT&" +
-          "taxIdentifiers=HMRC-PPT-ORG&taxIdentifiers=IR-PAYE" ))
+        get(
+          urlEqualTo(
+            "/secure-messaging/messages/count?taxIdentifiers=nino&taxIdentifiers=sautr&" +
+              "taxIdentifiers=HMRC-OBTDS-ORG&taxIdentifiers=HMRC-MTD-VAT&taxIdentifiers=HMRC-MTD-IT&" +
+              "taxIdentifiers=HMRC-PPT-ORG&taxIdentifiers=IR-PAYE"
+          )
+        )
           .willReturn(ok(response))
       )
 

@@ -25,25 +25,30 @@ import uk.gov.hmrc.singlecustomeraccountwrapperdata.models.MessageCountResponse
 
 import scala.concurrent.{ExecutionContext, Future}
 
-class MessageConnector @Inject()(http: HttpClient, appConfig: AppConfig) extends Logging {
+class MessageConnector @Inject() (http: HttpClient, appConfig: AppConfig) extends Logging {
 
   def getUnreadMessageCount(implicit ec: ExecutionContext, hc: HeaderCarrier): Future[Option[Int]] = {
     val params = Seq("nino", "sautr", "HMRC-OBTDS-ORG", "HMRC-MTD-VAT", "HMRC-MTD-IT", "HMRC-PPT-ORG", "IR-PAYE")
-      .map(t => s"taxIdentifiers=$t").mkString("&")
-    
-    http.GET[MessageCountResponse](appConfig.messageServiceUrl + s"/secure-messaging/messages/count?$params").map { response =>
-      val unreadCount = response.count.unread
-      logger.info(s"[MessageConnector][getUnreadMessageCount] Unread message count requested, $unreadCount unread messages returned")
-      unreadCount match {
-        case num if num <= 0 =>
-          None
-        case unreadCount =>
-          Some(unreadCount)
+      .map(t => s"taxIdentifiers=$t")
+      .mkString("&")
+
+    http
+      .GET[MessageCountResponse](appConfig.messageServiceUrl + s"/secure-messaging/messages/count?$params")
+      .map { response =>
+        val unreadCount = response.count.unread
+        logger.info(
+          s"[MessageConnector][getUnreadMessageCount] Unread message count requested, $unreadCount unread messages returned"
+        )
+        unreadCount match {
+          case num if num <= 0 =>
+            None
+          case unreadCount =>
+            Some(unreadCount)
+        }
       }
-    }.recoverWith {
-      case ex: Exception =>
+      .recoverWith { case ex: Exception =>
         logger.error(s"[MessageConnector][getUnreadMessageCount] Exception: ${ex.getMessage}")
         Future.successful(None)
-    }
+      }
   }
 }

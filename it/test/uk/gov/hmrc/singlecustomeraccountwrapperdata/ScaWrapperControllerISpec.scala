@@ -27,8 +27,7 @@ import uk.gov.hmrc.singlecustomeraccountwrapperdata.helpers.IntegrationSpec
 import java.util.UUID
 import scala.concurrent.{ExecutionContext, Future}
 
-class ScaWrapperControllerISpec
-  extends IntegrationSpec {
+class ScaWrapperControllerISpec extends IntegrationSpec {
 
   override implicit lazy val app: Application = localGuiceApplicationBuilder()
     .configure()
@@ -72,7 +71,6 @@ class ScaWrapperControllerISpec
     }
 
     "return a 400 given missing parameters in the url" in {
-
 
       val url = "/single-customer-account-wrapper-data/wrapper-data"
 
