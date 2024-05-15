@@ -46,8 +46,9 @@ class ScaMessageControllerSpec extends AsyncWordSpec with Matchers with MockitoS
     )
 
   val application: Application = new GuiceApplicationBuilder()
-    .configure(conf = "auditing.enabled" -> false, "metrics.enabled" -> false, "metrics.jvm" -> false).
-    overrides(modules: _*).build()
+    .configure(conf = "auditing.enabled" -> false, "metrics.enabled" -> false, "metrics.jvm" -> false)
+    .overrides(modules: _*)
+    .build()
 
   private val controller = application.injector.instanceOf[ScaMessageController]
 
@@ -59,7 +60,8 @@ class ScaMessageControllerSpec extends AsyncWordSpec with Matchers with MockitoS
     "return unreadMessageCount if there is" in {
 
       val unreadMessageCount = 1
-      when(mockMessageConnector.getUnreadMessageCount(any(), any())).thenReturn(Future.successful(Some(unreadMessageCount)))
+      when(mockMessageConnector.getUnreadMessageCount(any(), any()))
+        .thenReturn(Future.successful(Some(unreadMessageCount)))
 
       val result = controller.getUnreadMessageCount(fakeRequest)
 

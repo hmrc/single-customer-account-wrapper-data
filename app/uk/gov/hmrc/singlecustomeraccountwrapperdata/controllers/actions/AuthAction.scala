@@ -29,10 +29,9 @@ import uk.gov.hmrc.singlecustomeraccountwrapperdata.models.auth.AuthenticatedReq
 
 import scala.concurrent.{ExecutionContext, Future}
 
-class AuthActionImpl @Inject()(
-                                val authConnector: AuthConnector,
-                                cc: ControllerComponents)
-                              (implicit val executionContext: ExecutionContext) extends AuthorisedFunctions with AuthAction with Logging {
+class AuthActionImpl @Inject() (val authConnector: AuthConnector, cc: ControllerComponents)(implicit
+  val executionContext: ExecutionContext
+) extends AuthorisedFunctions with AuthAction with Logging {
 
   object GTOE200 {
     def unapply(confLevel: ConfidenceLevel): Option[ConfidenceLevel] =
@@ -46,7 +45,7 @@ class AuthActionImpl @Inject()(
 
   def invokeBlock[A](request: Request[A], block: AuthenticatedRequest[A] => Future[Result]): Future[Result] = {
 
-    implicit val hc: HeaderCarrier = HeaderCarrierConverter.fromRequest(request)//session!
+    implicit val hc: HeaderCarrier = HeaderCarrierConverter.fromRequest(request) // session!
 
     authorised().retrieve(
       Retrievals.nino and
@@ -60,7 +59,7 @@ class AuthActionImpl @Inject()(
         Retrievals.profile
     ) {
       case nino ~ _ ~ Enrolments(enrolments) ~ Some(credentials) ~ Some(CredentialStrength.strong) ~
-        GTOE200(confidenceLevel) ~ name ~ trustedHelper ~ profile =>
+          GTOE200(confidenceLevel) ~ name ~ trustedHelper ~ _ =>
         logger.info(s"[AuthActionImpl][invokeBlock] Successful confidence level 200+ request")
 
         val authenticatedRequest = AuthenticatedRequest[A](
@@ -74,7 +73,7 @@ class AuthActionImpl @Inject()(
           request
         )
         block(authenticatedRequest)
-      case nino ~ _ ~ enrolments ~ Some(credentials) ~ _ ~ LT200(confidenceLevel) ~ name ~ _ ~ _ =>
+      case nino ~ _ ~ _ ~ Some(credentials) ~ _ ~ LT200(confidenceLevel) ~ name ~ _ ~ _ =>
         logger.warn(s"[AuthActionImpl][invokeBlock] Confidence level 50 request")
         val authenticatedRequest = AuthenticatedRequest[A](
           nino.map(domain.Nino),
@@ -87,14 +86,15 @@ class AuthActionImpl @Inject()(
           request
         )
         block(authenticatedRequest)
+
+      case _ => throw new RuntimeException("Invalid combination of retrievals")
     }
   }
-    .recoverWith {
-    case authException =>
+    .recoverWith { case authException =>
       logger.error(s"[AuthActionImpl][invokeBlock] exception: ${authException.getMessage}")
       val unauthenticatedRequest = AuthenticatedRequest[A](
         None,
-        Credentials("invalid","invalid"),
+        Credentials("invalid", "invalid"),
         ConfidenceLevel.L50,
         None,
         None,
@@ -103,12 +103,11 @@ class AuthActionImpl @Inject()(
         request
       )
       block(unauthenticatedRequest)
-  }
+    }
 
   override def parser: BodyParser[AnyContent] = cc.parsers.defaultBodyParser
 }
 
 @ImplementedBy(classOf[AuthActionImpl])
 trait AuthAction
-  extends ActionBuilder[AuthenticatedRequest, AnyContent] with ActionFunction[Request, AuthenticatedRequest] {
-}
+    extends ActionBuilder[AuthenticatedRequest, AnyContent] with ActionFunction[Request, AuthenticatedRequest] {}

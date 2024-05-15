@@ -22,7 +22,7 @@ import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
 import javax.inject.{Inject, Singleton}
 
 @Singleton
-class AppConfig @Inject()(servicesConfig: ServicesConfig, configuration: Configuration) {
+class AppConfig @Inject() (servicesConfig: ServicesConfig, configuration: Configuration) {
 
   val versionNum: String = "1.0.3"
 

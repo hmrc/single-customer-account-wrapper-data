@@ -30,11 +30,10 @@ trait IntegrationSpec extends AnyWordSpec with GuiceOneAppPerSuite with WireMock
   protected def localGuiceApplicationBuilder(): GuiceApplicationBuilder =
     GuiceApplicationBuilder()
       .configure(
-        "microservice.services.auth.port" -> server.port(),
+        "microservice.services.auth.port"           -> server.port(),
         "microservice.services.secure-message.port" -> server.port()
       )
 
-  override def beforeEach() = {
+  override def beforeEach() =
     super.beforeEach()
-  }
 }

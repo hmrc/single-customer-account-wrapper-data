@@ -21,10 +21,11 @@ import uk.gov.hmrc.auth.core.retrieve.{Credentials, Name}
 import uk.gov.hmrc.auth.core.{ConfidenceLevel, Enrolment}
 
 case class AuthResponse(
-                         nino: Option[String],
-                         enrolments: Set[Enrolment],
-                         confidenceLevel: ConfidenceLevel,
-                         name: Option[Name],
-                         trustedHelper: Option[TrustedHelper],
-                         credentials: Credentials,
-                         credentialStrength: String)
+  nino: Option[String],
+  enrolments: Set[Enrolment],
+  confidenceLevel: ConfidenceLevel,
+  name: Option[Name],
+  trustedHelper: Option[TrustedHelper],
+  credentials: Credentials,
+  credentialStrength: String
+)

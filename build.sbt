@@ -1,20 +1,30 @@
 import uk.gov.hmrc.DefaultBuildSettings
 
-ThisBuild / majorVersion := 0
+ThisBuild / majorVersion := 1
 ThisBuild / scalaVersion := "2.13.12"
+ThisBuild / scalafmtOnCompile := true
 
 lazy val microservice = Project("single-customer-account-wrapper-data", file("."))
   .enablePlugins(play.sbt.PlayScala, SbtDistributablesPlugin)
   .disablePlugins(JUnitXmlReportPlugin) //Required to prevent https://github.com/scalatest/scalatest/issues/1427
   .settings(
     libraryDependencies ++= AppDependencies.compile ++ AppDependencies.test,
-    // https://www.scala-lang.org/2021/01/12/configuring-and-suppressing-warnings.html
-    // suppress warnings in generated routes files
-    scalacOptions += "-Wconf:src=routes/.*:s",
+    scalacOptions ++= Seq(
+      "-unchecked",
+      "-feature",
+      "-Xlint:_",
+      "-Werror",
+      "-Wdead-code",
+      "-Wunused:_",
+      "-Wextra-implicit",
+      "-Wconf:src=routes/.*:s"
+    ),
     PlayKeys.playDefaultPort := 8422
   )
-  .settings(resolvers += Resolver.jcenterRepo)
   .settings(CodeCoverageSettings.settings: _*)
+
+Test / parallelExecution := true
+Test / scalacOptions --= Seq("-Wdead-code", "-Wvalue-discard")
 
 lazy val it = project
   .enablePlugins(PlayScala)

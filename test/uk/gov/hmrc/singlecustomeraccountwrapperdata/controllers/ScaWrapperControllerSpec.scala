@@ -36,6 +36,7 @@ import uk.gov.hmrc.singlecustomeraccountwrapperdata.fixtures.RetrievalOps.Ops
 import uk.gov.hmrc.singlecustomeraccountwrapperdata.models.MenuItemConfig
 import uk.gov.hmrc.singlecustomeraccountwrapperdata.models.auth.AuthenticatedRequest
 
+import scala.annotation.nowarn
 import scala.concurrent.Future
 
 class ScaWrapperControllerSpec extends BaseSpec {
@@ -44,22 +45,66 @@ class ScaWrapperControllerSpec extends BaseSpec {
   lazy val appConfig: AppConfig = injector.instanceOf[AppConfig]
 
   lazy val wrapperConfig: WrapperConfig = new WrapperConfig(appConfig)(messagesApi) {
-    override def fallbackMenuConfig()(implicit request: AuthenticatedRequest[AnyContent], lang: Lang): Seq[MenuItemConfig] = {
+    @nowarn("msg=parameter (request|lang) in method fallbackMenuConfig is never used")
+    override def fallbackMenuConfig()(implicit
+      request: AuthenticatedRequest[AnyContent],
+      lang: Lang
+    ): Seq[MenuItemConfig] =
       Seq(
-        MenuItemConfig("Fallback1", "Fallback1", s"${appConfig.pertaxUrl}", leftAligned = true, position = 0, Some("hmrc-account-icon hmrc-account-icon--home"), None),
-        MenuItemConfig("Fallback2", "Fallback2", s"${appConfig.pertaxUrl}/messages", leftAligned = false, position = 0, None, None),
-        MenuItemConfig("Fallback3", "Fallback3", s"${appConfig.pertaxUrl}/track", leftAligned = false, position = 1, None, None),
-        MenuItemConfig("Fallback4", "Fallback4", s"${appConfig.pertaxUrl}/profile-and-settings", leftAligned = false, position = 2, None, None),
-        MenuItemConfig("Fallback5", "Fallback5", s"${appConfig.defaultSignoutUrl}", leftAligned = false, position = 4, None, None)
+        MenuItemConfig(
+          "Fallback1",
+          "Fallback1",
+          s"${appConfig.pertaxUrl}",
+          leftAligned = true,
+          position = 0,
+          Some("hmrc-account-icon hmrc-account-icon--home"),
+          None
+        ),
+        MenuItemConfig(
+          "Fallback2",
+          "Fallback2",
+          s"${appConfig.pertaxUrl}/messages",
+          leftAligned = false,
+          position = 0,
+          None,
+          None
+        ),
+        MenuItemConfig(
+          "Fallback3",
+          "Fallback3",
+          s"${appConfig.pertaxUrl}/track",
+          leftAligned = false,
+          position = 1,
+          None,
+          None
+        ),
+        MenuItemConfig(
+          "Fallback4",
+          "Fallback4",
+          s"${appConfig.pertaxUrl}/profile-and-settings",
+          leftAligned = false,
+          position = 2,
+          None,
+          None
+        ),
+        MenuItemConfig(
+          "Fallback5",
+          "Fallback5",
+          s"${appConfig.defaultSignoutUrl}",
+          leftAligned = false,
+          position = 4,
+          None,
+          None
+        )
       )
-    }
   }
 
   override implicit val hc: HeaderCarrier = HeaderCarrier(authorization = Some(Authorization("Bearer 123")))
   val mockAuthConnector: AuthConnector = mock[AuthConnector]
   lazy val authAction = new AuthActionImpl(mockAuthConnector, messagesControllerComponents)
 
-  private val controller = new ScaWrapperController(Helpers.stubControllerComponents(), appConfig, wrapperConfig, authAction)
+  private val controller =
+    new ScaWrapperController(Helpers.stubControllerComponents(), appConfig, wrapperConfig, authAction)
   private val wsClient = app.injector.instanceOf[WSClient]
   private val baseUrl = "http://localhost:8422/single-customer-account-wrapper-data/wrapper-data/:version"
   val nino = "AA999999A"

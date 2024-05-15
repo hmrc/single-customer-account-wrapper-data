@@ -31,8 +31,8 @@ import utils.WireMockHelper
 import scala.concurrent.duration.DurationInt
 import scala.language.postfixOps
 
-
-class MessageConnectorSpec extends AsyncWordSpec with Matchers with WireMockHelper with HttpClientSupport with MockitoSugar with ScalaFutures {
+class MessageConnectorSpec
+    extends AsyncWordSpec with Matchers with WireMockHelper with HttpClientSupport with MockitoSugar with ScalaFutures {
 
   import MessageConnectorSpec._
 
@@ -46,7 +46,7 @@ class MessageConnectorSpec extends AsyncWordSpec with Matchers with WireMockHelp
     "return the unread message count if more than zero" in {
       val messageResponse: JsObject = Json.obj(
         "count" -> Json.obj(
-          "total" -> 2,
+          "total"  -> 2,
           "unread" -> 1
         )
       )
@@ -67,7 +67,7 @@ class MessageConnectorSpec extends AsyncWordSpec with Matchers with WireMockHelp
     "return None if the unread message count equal to zero" in {
       val messageResponse: JsObject = Json.obj(
         "count" -> Json.obj(
-          "total" -> 2,
+          "total"  -> 2,
           "unread" -> 0
         )
       )
@@ -87,7 +87,7 @@ class MessageConnectorSpec extends AsyncWordSpec with Matchers with WireMockHelp
     "return None if the unread message count is less than zero" in {
       val messageResponse: JsObject = Json.obj(
         "count" -> Json.obj(
-          "total" -> 2,
+          "total"  -> 2,
           "unread" -> -1
         )
       )
@@ -132,7 +132,6 @@ class MessageConnectorSpec extends AsyncWordSpec with Matchers with WireMockHelp
             .withFixedDelay(2000)
         )
       )
-
 
       implicit val patienceConfig: PatienceConfig = PatienceConfig(timeout = Span(3, Seconds))
 
