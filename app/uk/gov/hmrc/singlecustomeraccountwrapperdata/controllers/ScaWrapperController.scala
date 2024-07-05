@@ -44,7 +44,8 @@ class ScaWrapperController @Inject() (
     val wrapperDataVersion: String = appConfig.versionNum.take(1)
     val libraryVersion = version.take(1)
     val httpUserAgent = request.headers.get(HeaderNames.USER_AGENT)
-    val urBanners: List[UrBanner] = httpUserAgent.flatMap(urBannersConfig.getUrBannersByService.get(_)).getOrElse(List.empty)
+    val urBanners: List[UrBanner] =
+      httpUserAgent.flatMap(urBannersConfig.getUrBannersByService.get(_)).getOrElse(List.empty)
 
     val response = if (wrapperDataVersion == libraryVersion) {
       logger.info(
@@ -63,7 +64,8 @@ class ScaWrapperController @Inject() (
   private def wrapperDataResponseVersionFallback()(implicit request: AuthenticatedRequest[AnyContent], lang: Lang) =
     WrapperDataResponse(
       wrapperConfig.fallbackMenuConfig(),
-      wrapperConfig.ptaMinMenuConfig
+      wrapperConfig.ptaMinMenuConfig,
+      List.empty
     )
 
 }

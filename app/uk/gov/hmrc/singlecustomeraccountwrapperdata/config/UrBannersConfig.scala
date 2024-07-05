@@ -17,15 +17,14 @@
 package uk.gov.hmrc.singlecustomeraccountwrapperdata.config
 
 import com.google.inject.{Inject, Singleton}
-import com.typesafe.config.ConfigException
+import play.api.libs.json.{Json, OFormat}
 import play.api.{Configuration, Logging}
 
-import java.time.format.{DateTimeFormatter, DateTimeParseException}
-import java.time.{DayOfWeek, LocalTime}
-import java.util.TimeZone
-import scala.util.{Failure, Success, Try}
+case class UrBanner(page: String, link: String, isEnabled: Boolean)
 
-case class UrBanner(page: String, link: String)
+object UrBanner {
+  implicit val format: OFormat[UrBanner] = Json.format[UrBanner]
+}
 
 /*
 
@@ -36,25 +35,24 @@ Map(
  */
 
 @Singleton
-class UrBannersConfig @Inject()(configuration: Configuration) extends Logging {
+class UrBannersConfig @Inject() (configuration: Configuration) extends Logging {
 
   def getUrBannersByService: Map[String, List[UrBanner]] = {
     val config = configuration.underlying
 
     val maxItems: Int = configuration.get[Int]("ur-banners.max-items")
     val numberOfServices = (0 until maxItems).takeWhile(i => config.hasPathOrNull(s"ur-banners.$i")).size
-    (0 until numberOfServices)
-      .map { indexService =>
-        val service = configuration.get[String](s"ur-banners.$indexService.service")
-        val numberOfPages = (0 until maxItems).takeWhile(j => config.hasPathOrNull(s"ur-banners.$indexService.$j")).size
-        val urBanners: List[UrBanner] = (0 until numberOfPages)
-          .map { indexPage =>
-            val page = configuration.get[String](s"ur-banners.$indexService.$indexPage.page")
-            val link = configuration.get[String](s"ur-banners.$indexService.$indexPage.link")
-            UrBanner(page, link)
-          }.toList
+    (0 until numberOfServices).map { indexService =>
+      val service = configuration.get[String](s"ur-banners.$indexService.service")
+      val numberOfPages = (0 until maxItems).takeWhile(j => config.hasPathOrNull(s"ur-banners.$indexService.$j")).size
+      val urBanners: List[UrBanner] = (0 until numberOfPages).map { indexPage =>
+        val page = configuration.get[String](s"ur-banners.$indexService.$indexPage.page")
+        val link = configuration.get[String](s"ur-banners.$indexService.$indexPage.link")
+        val isEnabled = configuration.get[Boolean](s"ur-banners.$indexService.$indexPage.isEnabled")
+        UrBanner(page, link, isEnabled)
+      }.toList
 
-        service -> urBanners
-      }.toMap
+      service -> urBanners
+    }.toMap
   }
 }
