@@ -17,7 +17,7 @@
 package uk.gov.hmrc.singlecustomeraccountwrapperdata.controllers
 
 import org.mockito.ArgumentMatchers.any
-import org.mockito.Mockito.{reset, times, verify, when}
+import org.mockito.Mockito.{reset, when}
 import org.scalatest.matchers.should.Matchers.convertToAnyShouldWrapper
 import play.api.http.HeaderNames
 import play.api.i18n.{Lang, MessagesApi}
