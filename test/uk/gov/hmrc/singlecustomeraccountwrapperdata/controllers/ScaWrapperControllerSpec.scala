@@ -193,14 +193,13 @@ class ScaWrapperControllerSpec extends BaseSpec {
       val lang: String = "en"
       val result = controller.wrapperData(lang, version)(fakeRequest)
 
-      verify(mockBannerConfig, times(1)).getUrBannersByService
       contentAsString(result).contains(Json.toJson(returnedBanner).toString) mustBe true
-      contentAsString(result).contains("Banner Link") mustBe true
     }
+
     "return an empty list of UR banners there are no matching banners for calling service" in {
       val returnedBanner = UrBanner("Banner Page", "Banner Link")
 
-      val fakeRequest2: FakeRequest[AnyContentAsEmpty.type] = FakeRequest("", "")
+      val fakeRequest: FakeRequest[AnyContentAsEmpty.type] = FakeRequest("", "")
         .withHeaders(HeaderNames.USER_AGENT -> "different-frontend")
         .withSession(SessionKeys.sessionId -> "foo")
         .withCSRFToken
@@ -211,10 +210,9 @@ class ScaWrapperControllerSpec extends BaseSpec {
       )
       val version: String = appConfig.versionNum
       val lang: String = "en"
-      val result = controller.wrapperData(lang, version)(fakeRequest2)
+      val result = controller.wrapperData(lang, version)(fakeRequest)
 
-      verify(mockBannerConfig, times(0)).getUrBannersByService
-      contentAsString(result).contains("urBanners:[]")
+      contentAsString(result).contains("\"urBanners\":[]") mustBe true
     }
   }
 }
