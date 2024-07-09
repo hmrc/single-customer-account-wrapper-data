@@ -46,7 +46,7 @@ class ScaMessageControllerSpec extends AsyncWordSpec with Matchers with MockitoS
     )
 
   val application: Application = new GuiceApplicationBuilder()
-    .configure(conf = "auditing.enabled" -> false, "metrics.enabled" -> false, "metrics.jvm" -> false)
+    .configure(conf = "auditing.enabled" -> false, "metrics.jvm" -> false)
     .overrides(modules: _*)
     .build()
 
