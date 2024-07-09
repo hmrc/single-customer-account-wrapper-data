@@ -17,19 +17,22 @@
 package uk.gov.hmrc.singlecustomeraccountwrapperdata.controllers
 
 import org.mockito.ArgumentMatchers.any
-import org.mockito.Mockito.when
+import org.mockito.Mockito.{reset, times, verify, when}
 import org.scalatest.matchers.should.Matchers.convertToAnyShouldWrapper
+import play.api.http.HeaderNames
 import play.api.i18n.{Lang, MessagesApi}
+import play.api.libs.json.Json
 import play.api.libs.ws.WSClient
-import play.api.mvc.AnyContent
-import play.api.test.Helpers
+import play.api.mvc.{AnyContent, AnyContentAsEmpty}
+import play.api.test.CSRFTokenHelper.CSRFFRequestHeader
+import play.api.test.{FakeRequest, Helpers}
 import play.api.test.Helpers.{contentAsString, defaultAwaitTimeout, status}
 import uk.gov.hmrc.auth.core.AffinityGroup.Individual
 import uk.gov.hmrc.auth.core.retrieve.v2.TrustedHelper
 import uk.gov.hmrc.auth.core.retrieve.{Credentials, Name}
 import uk.gov.hmrc.auth.core.{AuthConnector, ConfidenceLevel, CredentialStrength, Enrolments}
-import uk.gov.hmrc.http.{Authorization, HeaderCarrier}
-import uk.gov.hmrc.singlecustomeraccountwrapperdata.config.{AppConfig, WrapperConfig}
+import uk.gov.hmrc.http.{Authorization, HeaderCarrier, SessionKeys}
+import uk.gov.hmrc.singlecustomeraccountwrapperdata.config.{AppConfig, UrBanner, UrBannersConfig, WrapperConfig}
 import uk.gov.hmrc.singlecustomeraccountwrapperdata.controllers.actions.AuthActionImpl
 import uk.gov.hmrc.singlecustomeraccountwrapperdata.fixtures.BaseSpec
 import uk.gov.hmrc.singlecustomeraccountwrapperdata.fixtures.RetrievalOps.Ops
@@ -102,9 +105,16 @@ class ScaWrapperControllerSpec extends BaseSpec {
   override implicit val hc: HeaderCarrier = HeaderCarrier(authorization = Some(Authorization("Bearer 123")))
   val mockAuthConnector: AuthConnector = mock[AuthConnector]
   lazy val authAction = new AuthActionImpl(mockAuthConnector, messagesControllerComponents)
+  lazy val mockBannerConfig: UrBannersConfig = mock[UrBannersConfig]
 
   private val controller =
-    new ScaWrapperController(Helpers.stubControllerComponents(), appConfig, wrapperConfig, authAction)
+    new ScaWrapperController(
+      Helpers.stubControllerComponents(),
+      appConfig,
+      wrapperConfig,
+      mockBannerConfig,
+      authAction
+    )
   private val wsClient = app.injector.instanceOf[WSClient]
   private val baseUrl = "http://localhost:8422/single-customer-account-wrapper-data/wrapper-data/:version"
   val nino = "AA999999A"
@@ -121,6 +131,12 @@ class ScaWrapperControllerSpec extends BaseSpec {
       Some(TrustedHelper("name", "name", "link", "AA999999A")) ~
       Some("profileUrl")
   )
+
+  override def beforeEach(): Unit = {
+    super.beforeEach()
+    reset(mockBannerConfig)
+    when(mockBannerConfig.getUrBannersByService).thenReturn(Map.empty)
+  }
 
   "The Wrapper data API" must {
     "return the normal menu without BTA config when wrapper-data and sca-wrapper are the same versions" in {
@@ -159,6 +175,46 @@ class ScaWrapperControllerSpec extends BaseSpec {
       val result = controller.wrapperData(lang, version)(fakeRequest)
       status(result) shouldBe 200
       contentAsString(result).contains("Fallback1") mustBe true
+    }
+
+    "return a list of UR banners for calling service when there are matching banners" in {
+      val returnedBanner = UrBanner("Banner Page", "Banner Link")
+
+      lazy val fakeRequest: FakeRequest[AnyContentAsEmpty.type] = FakeRequest("", "")
+        .withHeaders(HeaderNames.USER_AGENT -> "test-frontend")
+        .withSession(SessionKeys.sessionId -> "foo")
+        .withCSRFToken
+        .asInstanceOf[FakeRequest[AnyContentAsEmpty.type]]
+
+      when(mockBannerConfig.getUrBannersByService).thenReturn(
+        Map("test-frontend" -> List(returnedBanner))
+      )
+      val version: String = appConfig.versionNum
+      val lang: String = "en"
+      val result = controller.wrapperData(lang, version)(fakeRequest)
+
+      verify(mockBannerConfig, times(1)).getUrBannersByService
+      contentAsString(result).contains(Json.toJson(returnedBanner).toString) mustBe true
+      contentAsString(result).contains("Banner Link") mustBe true
+    }
+    "return an empty list of UR banners there are no matching banners for calling service" in {
+      val returnedBanner = UrBanner("Banner Page", "Banner Link")
+
+      val fakeRequest2: FakeRequest[AnyContentAsEmpty.type] = FakeRequest("", "")
+        .withHeaders(HeaderNames.USER_AGENT -> "different-frontend")
+        .withSession(SessionKeys.sessionId -> "foo")
+        .withCSRFToken
+        .asInstanceOf[FakeRequest[AnyContentAsEmpty.type]]
+
+      when(mockBannerConfig.getUrBannersByService).thenReturn(
+        Map("test-frontend" -> List(returnedBanner))
+      )
+      val version: String = appConfig.versionNum
+      val lang: String = "en"
+      val result = controller.wrapperData(lang, version)(fakeRequest2)
+
+      verify(mockBannerConfig, times(0)).getUrBannersByService
+      contentAsString(result).contains("urBanners:[]")
     }
   }
 }
