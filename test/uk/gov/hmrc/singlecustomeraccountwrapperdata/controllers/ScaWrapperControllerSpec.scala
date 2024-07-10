@@ -178,7 +178,7 @@ class ScaWrapperControllerSpec extends BaseSpec {
     }
 
     "return a list of UR banners for calling service when there are matching banners" in {
-      val returnedBanner = UrBanner("Banner Page", "Banner Link")
+      val returnedBanner = UrBanner("Banner Page", "Banner Link", true)
 
       lazy val fakeRequest: FakeRequest[AnyContentAsEmpty.type] = FakeRequest("", "")
         .withHeaders(HeaderNames.USER_AGENT -> "test-frontend")
@@ -197,7 +197,7 @@ class ScaWrapperControllerSpec extends BaseSpec {
     }
 
     "return an empty list of UR banners there are no matching banners for calling service" in {
-      val returnedBanner = UrBanner("Banner Page", "Banner Link")
+      val returnedBanner = UrBanner("Banner Page", "Banner Link", true)
 
       val fakeRequest: FakeRequest[AnyContentAsEmpty.type] = FakeRequest("", "")
         .withHeaders(HeaderNames.USER_AGENT -> "different-frontend")

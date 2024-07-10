@@ -22,9 +22,9 @@ import uk.gov.hmrc.singlecustomeraccountwrapperdata.fixtures.BaseSpec
 
 class UrBannersConfigSpec extends BaseSpec {
 
-  lazy val testBanner1: UrBanner = UrBanner("/home", "TestLink1")
-  lazy val testBanner2: UrBanner = UrBanner("/another-page", "TestLink2")
-  lazy val testBanner3: UrBanner = UrBanner("/second-service", "TestLink3")
+  lazy val testBanner1: UrBanner = UrBanner("/home", "TestLink1", true)
+  lazy val testBanner2: UrBanner = UrBanner("/another-page", "TestLink2", false)
+  lazy val testBanner3: UrBanner = UrBanner("/second-service", "TestLink3", true)
 
   override implicit lazy val app: Application =
     GuiceApplicationBuilder()
