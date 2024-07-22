@@ -29,14 +29,17 @@ class UrBannersConfigSpec extends BaseSpec {
   override implicit lazy val app: Application =
     GuiceApplicationBuilder()
       .configure(
-        "ur-banners.0.service" -> "test-frontend",
-        "ur-banners.0.0.page"  -> testBanner1.page,
-        "ur-banners.0.0.link"  -> testBanner1.link,
-        "ur-banners.0.1.page"  -> testBanner2.page,
-        "ur-banners.0.1.link"  -> testBanner2.link,
-        "ur-banners.1.service" -> "second-frontend",
-        "ur-banners.1.0.page"  -> testBanner3.page,
-        "ur-banners.1.0.link"  -> testBanner3.link
+        "ur-banners.0.service"     -> "test-frontend",
+        "ur-banners.0.0.page"      -> testBanner1.page,
+        "ur-banners.0.0.link"      -> testBanner1.link,
+        "ur-banners.0.0.isEnabled" -> testBanner1.isEnabled,
+        "ur-banners.0.1.page"      -> testBanner2.page,
+        "ur-banners.0.1.link"      -> testBanner2.link,
+        "ur-banners.0.1.isEnabled" -> testBanner2.isEnabled,
+        "ur-banners.1.service"     -> "second-frontend",
+        "ur-banners.1.0.page"      -> testBanner3.page,
+        "ur-banners.1.0.link"      -> testBanner3.link,
+        "ur-banners.1.0.isEnabled" -> testBanner3.isEnabled
       )
       .build()
 
