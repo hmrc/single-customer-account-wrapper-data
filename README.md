@@ -20,7 +20,31 @@ In order to update the menu options or add an additional menu option one needs t
 
 In the event that Wrapper Data is offline, the library has a fallback menu config and fallback service links. This ensures the wrapper does not cause technical problems on consuming services. It is recommended to keep the library version up to date, so that the fallback menu and links are up to date
 
+**Adding in UR banners to config:**
+
+The wrapper data service can now be used to add a UR banner to a certain URL within a service. In order to do so your service will need the sca-wrapper library version 1.11.0 or higher, then you need to add your service and selected pages to the app-config-base single-customer-account-wrapper-data file in the format:
+```scala
+ur-banners {
+       max-items = X
+       0 {
+         service = "example-frontend"
+         0 {
+           link = "https://link1.example.com"
+           page = "/example-uri"
+           isEnabled = true
+         }
+         1 {
+           link = "https://link1.example.com"
+           page = "/secondary-example-uri"
+           isEnabled = true
+         }
+       }
+}
+```
+Please ensure array indexing is kept in sequential order. Once the app-config-base file is updated and merged, the single-customer-account-wrapper-data service can be redeployed, bringing in the new banners.
+
 **Versioning:**
+
 The Wrapper Data microservice will be backwards compatible with earlier versions of the Library, so if a consuming service does not update their library due to time constraints, the previous version of the latest menu config will still be returned. However it is recommended to keep the library up to date. Using sbt dependencyUpdates or a similar version checker is also recommended. If a breaking change occurs and the fallback version will not be sufficient, for example in the event of a security update, drastic rework, etc. SCA may enforce Bobby Rules to ensure that consuming services update their library versions ASAP, which will break build pipelines until the consuming service updates their SCA library version.
 
 
