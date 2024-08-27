@@ -22,7 +22,7 @@ import play.api.i18n.{I18nSupport, Lang}
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
-import uk.gov.hmrc.singlecustomeraccountwrapperdata.config.{AppConfig, UrBanner, UrBannersConfig, WrapperConfig}
+import uk.gov.hmrc.singlecustomeraccountwrapperdata.config.{AppConfig, SmartAppBannerConfig, SmartAppBannerUrlConfigs, UrBanner, UrBannersConfig, WrapperConfig}
 import uk.gov.hmrc.singlecustomeraccountwrapperdata.controllers.actions.AuthAction
 import uk.gov.hmrc.singlecustomeraccountwrapperdata.models.WrapperDataResponse
 import uk.gov.hmrc.singlecustomeraccountwrapperdata.models.auth.AuthenticatedRequest
@@ -35,6 +35,7 @@ class ScaWrapperController @Inject() (
   appConfig: AppConfig,
   wrapperConfig: WrapperConfig,
   urBannersConfig: UrBannersConfig,
+  smartAppBannersConfig: SmartAppBannerConfig,
   authenticate: AuthAction
 ) extends BackendController(cc) with I18nSupport with Logging {
 
@@ -46,12 +47,14 @@ class ScaWrapperController @Inject() (
     val httpUserAgent = request.headers.get(HeaderNames.USER_AGENT)
     val urBanners: List[UrBanner] =
       httpUserAgent.flatMap(urBannersConfig.getUrBannersByService.get(_)).getOrElse(List.empty)
+    val smartBanners: List[SmartAppBannerUrlConfigs] =
+      httpUserAgent.flatMap(smartAppBannersConfig.getSmartAppBannersByService.get(_)).getOrElse(List.empty)
 
     val response = if (wrapperDataVersion == libraryVersion) {
       logger.info(
         s"[ScaWrapperController][wrapperData] Wrapper data successful request- version:$wrapperDataVersion, lang: $playLang"
       )
-      WrapperDataResponse(wrapperConfig.menuConfig(), wrapperConfig.ptaMinMenuConfig, urBanners)
+      WrapperDataResponse(wrapperConfig.menuConfig(), wrapperConfig.ptaMinMenuConfig, urBanners, smartBanners)
     } else {
       logger.warn(
         s"[ScaWrapperController][wrapperData] Wrapper data fallback request- version:$wrapperDataVersion, library version: $libraryVersion, lang: $playLang"
@@ -65,6 +68,7 @@ class ScaWrapperController @Inject() (
     WrapperDataResponse(
       wrapperConfig.fallbackMenuConfig(),
       wrapperConfig.ptaMinMenuConfig,
+      List.empty,
       List.empty
     )
 

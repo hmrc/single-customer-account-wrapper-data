@@ -8,9 +8,38 @@ This Microservice gets called by the SCA-Wrapper library and has the menu item c
 **Requirement to run the microservice in local**:
 
 1. Clone the repo
-2. Make sure the wrapper data is not running via the service manager. If it is stop it from service manager:
+2. Make sure the wrapper data is not ru>Ô][;p,,]\\,ki\]'ning via the service manager. If it is stop it from service manager:
        sm2 --stop SINGLE_CUSTOMER_ACCOUNT_WRAPPER_DATA
 3. Now run the wrapper data in local using “sbt run” command
+
+**Adding in UR banners to config:**
+
+The wrapper data service can now be used to add a UR banner to a certain URL within a service. In order to do so your service will need the sca-wrapper library version 1.11.0 or higher, then you need to add your service and selected pages to the app-config-base single-customer-account-wrapper-data file in the format:
+```scala
+smart-app-banner {
+       0 {
+              service = "pertax-frontend"
+              urls {
+                     0 {
+                            url = "/"
+                            campaignId = "xxx"
+                            iosArgs = "xxx"
+                     }
+              }
+       }
+       1 {
+              service = "tax-summaries-frontend"
+              urls {
+                     0 {
+                            url = "/"
+                            campaignId = "xxx"
+                            iosArgs = "xxx"
+                     }
+              }
+       }
+}
+```
+Please ensure array indexing is kept in sequential order. Once the app-config-base file is updated and merged, the single-customer-account-wrapper-data service can be redeployed, bringing in the smart banners.
 
 **Adding/Updating menu item:**
 
