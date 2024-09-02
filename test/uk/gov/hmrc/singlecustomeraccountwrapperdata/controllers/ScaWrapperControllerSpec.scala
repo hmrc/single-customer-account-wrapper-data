@@ -254,8 +254,6 @@ class ScaWrapperControllerSpec extends BaseSpec {
       val lang: String = "en"
       val result = controller.wrapperData(lang, version)(fakeRequest)
 
-      print(result)
-
       contentAsString(result).contains("\"urBanners\":[]") mustBe true
     }
   }
