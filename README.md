@@ -8,7 +8,7 @@ This Microservice gets called by the SCA-Wrapper library and has the menu item c
 **Requirement to run the microservice in local**:
 
 1. Clone the repo
-2. Make sure the wrapper data is not ru>Ô][;p,,]\\,ki\]'ning via the service manager. If it is stop it from service manager:
+2. Make sure the wrapper data is not running via the service manager. If it is stop it from service manager:
        sm2 --stop SINGLE_CUSTOMER_ACCOUNT_WRAPPER_DATA
 3. Now run the wrapper data in local using “sbt run” command
 
