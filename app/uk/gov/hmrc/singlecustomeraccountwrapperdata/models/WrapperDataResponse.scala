@@ -23,7 +23,7 @@ case class WrapperDataResponse(
   menuItemConfig: scala.collection.Seq[MenuItemConfig],
   ptaMinMenuConfig: PtaMinMenuConfig,
   urBanners: List[UrBanner],
-  smartAppBanners: List[SmartAppBannerUrlConfigs]
+  smartAppBannerUrlConfigs: List[SmartAppBannerUrlConfigs]
 )
 
 object WrapperDataResponse {

@@ -24,7 +24,7 @@ import javax.inject.{Inject, Singleton}
 @Singleton
 class AppConfig @Inject() (servicesConfig: ServicesConfig, configuration: Configuration) {
 
-  val versionNum: String = "1.0.3"
+  val versionNum: String = "1.0.4"
 
   // ms-url for backend call
   val messageServiceUrl: String = servicesConfig.baseUrl(serviceName = "secure-message")
