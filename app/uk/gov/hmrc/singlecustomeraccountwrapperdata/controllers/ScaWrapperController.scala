@@ -54,12 +54,12 @@ class ScaWrapperController @Inject() (
       logger.info(
         s"[ScaWrapperController][wrapperData] Wrapper data successful request- version:$wrapperDataVersion, lang: $playLang"
       )
-        WrapperDataResponse(
-          wrapperConfig.menuConfig(),
-          wrapperConfig.ptaMinMenuConfig,
-          urBanners,
-          smartAppBannerUrlConfigs
-        )
+      WrapperDataResponse(
+        wrapperConfig.menuConfig(),
+        wrapperConfig.ptaMinMenuConfig,
+        urBanners,
+        smartAppBannerUrlConfigs
+      )
     } else {
       logger.warn(
         s"[ScaWrapperController][wrapperData] Wrapper data fallback request- version:$wrapperDataVersion, library version: $libraryVersion, lang: $playLang"
