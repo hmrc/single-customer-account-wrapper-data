@@ -17,12 +17,13 @@
 package uk.gov.hmrc.singlecustomeraccountwrapperdata.models
 
 import play.api.libs.json.{Json, OFormat}
-import uk.gov.hmrc.singlecustomeraccountwrapperdata.config.UrBanner
+import uk.gov.hmrc.singlecustomeraccountwrapperdata.config.{UrBanner, Webchat}
 
 case class WrapperDataResponse(
   menuItemConfig: scala.collection.Seq[MenuItemConfig],
   ptaMinMenuConfig: PtaMinMenuConfig,
-  urBanners: List[UrBanner]
+  urBanners: List[UrBanner],
+  webchatPages: List[Webchat]
 )
 
 object WrapperDataResponse {
