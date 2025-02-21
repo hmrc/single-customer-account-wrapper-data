@@ -41,6 +41,27 @@ ur-banners {
        }
 }
 ```
+
+**Adding Webchat to pages via config:**
+
+In a similar to the UR banners, the wrapper data service can now be used to enable webchat on certain URL within a service. In order to do so your service will need the sca-wrapper library version 2.5.0 or higher, then you need to add your service and selected pages to the app-config-base single-customer-account-wrapper-data file in the format:
+```scala
+webchat {
+       max-items = X
+       0 {
+         service = "example-frontend"
+         0 {
+           page = "/example-uri"
+           isEnabled = true
+         }
+         1 {
+           page = "/secondary-example-uri"
+           isEnabled = true
+         }
+       }
+}
+```
+
 Please ensure array indexing is kept in sequential order. Once the app-config-base file is updated and merged, the single-customer-account-wrapper-data service can be redeployed, bringing in the new banners.
 
 **Versioning:**
