@@ -34,7 +34,6 @@ class WebchatConfig @Inject() (configuration: Configuration) extends Logging {
 
     val maxItems: Int = configuration.get[Int]("webchat.max-items")
     val numberOfServices = (0 until maxItems).takeWhile(i => config.hasPathOrNull(s"webchat.$i")).size
-    println(s"bbbbb $maxItems $numberOfServices")
     (0 until numberOfServices).map { indexService =>
       val service = configuration.get[String](s"webchat.$indexService.service")
       val numberOfPages = (0 until maxItems).takeWhile(j => config.hasPathOrNull(s"webchat.$indexService.$j")).size
@@ -43,7 +42,6 @@ class WebchatConfig @Inject() (configuration: Configuration) extends Logging {
         val isEnabled = configuration.get[Boolean](s"webchat.$indexService.$indexPage.isEnabled")
         Webchat(page, isEnabled)
       }.toList
-      println("aaaaa " + indexService + " " + webchatUrls)
       service -> webchatUrls
     }.toMap
   }
