@@ -29,14 +29,14 @@ class WebchatConfigSpec extends BaseSpec {
   override implicit lazy val app: Application =
     GuiceApplicationBuilder()
       .configure(
-        "ur-banners.0.service"     -> "test-frontend",
-        "ur-banners.0.0.page"      -> testWebchat1.page,
-        "ur-banners.0.0.isEnabled" -> testWebchat1.isEnabled,
-        "ur-banners.0.1.page"      -> testWebchat2.page,
-        "ur-banners.0.1.isEnabled" -> testWebchat2.isEnabled,
-        "ur-banners.1.service"     -> "second-frontend",
-        "ur-banners.1.0.page"      -> testWebchat3.page,
-        "ur-banners.1.0.isEnabled" -> testWebchat3.isEnabled
+        "webchat.0.service"     -> "test-frontend",
+        "webchat.0.0.page"      -> testWebchat1.page,
+        "webchat.0.0.isEnabled" -> testWebchat1.isEnabled,
+        "webchat.0.1.page"      -> testWebchat2.page,
+        "webchat.0.1.isEnabled" -> testWebchat2.isEnabled,
+        "webchat.1.service"     -> "second-frontend",
+        "webchat.1.0.page"      -> testWebchat3.page,
+        "webchat.1.0.isEnabled" -> testWebchat3.isEnabled
       )
       .build()
 
