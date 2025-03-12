@@ -220,7 +220,7 @@ class ScaWrapperControllerSpec extends BaseSpec {
     }
 
     "return an list of webchat enabled pages when there are matching banners for calling service" in {
-      val returnedPages = List(Webchat("Banner Page", true), Webchat("Second Page", false))
+      val returnedPages = List(Webchat("Banner Page", "skin", true), Webchat("Second Page", "skin", false))
 
       val fakeRequest: FakeRequest[AnyContentAsEmpty.type] = FakeRequest("", "")
         .withHeaders(HeaderNames.USER_AGENT -> "test-frontend")
@@ -240,7 +240,7 @@ class ScaWrapperControllerSpec extends BaseSpec {
     }
 
     "return an empty list of Webchat pages when there are no matching pages for calling service" in {
-      val returnedPages = List(Webchat("Banner Page", true), Webchat("Second Page", false))
+      val returnedPages = List(Webchat("Banner Page", "skin", true), Webchat("Second Page", "skin", false))
 
       val fakeRequest: FakeRequest[AnyContentAsEmpty.type] = FakeRequest("", "")
         .withHeaders(HeaderNames.USER_AGENT -> "different-frontend")

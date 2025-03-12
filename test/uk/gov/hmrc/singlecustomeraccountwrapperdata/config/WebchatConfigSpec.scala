@@ -22,21 +22,24 @@ import uk.gov.hmrc.singlecustomeraccountwrapperdata.fixtures.BaseSpec
 
 class WebchatConfigSpec extends BaseSpec {
 
-  lazy val testWebchat1: Webchat = Webchat("/home", true)
-  lazy val testWebchat2: Webchat = Webchat("/another-page", false)
-  lazy val testWebchat3: Webchat = Webchat("/second-service", true)
+  lazy val testWebchat1: Webchat = Webchat("/home", "skin", true)
+  lazy val testWebchat2: Webchat = Webchat("/another-page", "Alternate", false)
+  lazy val testWebchat3: Webchat = Webchat("/second-service", "skin", true)
 
   override implicit lazy val app: Application =
     GuiceApplicationBuilder()
       .configure(
-        "webchat.0.service"     -> "test-frontend",
-        "webchat.0.0.page"      -> testWebchat1.page,
-        "webchat.0.0.isEnabled" -> testWebchat1.isEnabled,
-        "webchat.0.1.page"      -> testWebchat2.page,
-        "webchat.0.1.isEnabled" -> testWebchat2.isEnabled,
-        "webchat.1.service"     -> "second-frontend",
-        "webchat.1.0.page"      -> testWebchat3.page,
-        "webchat.1.0.isEnabled" -> testWebchat3.isEnabled
+        "webchat.0.service"       -> "test-frontend",
+        "webchat.0.0.pattern"     -> testWebchat1.pattern,
+        "webchat.0.0.skinElement" -> testWebchat1.skinElement,
+        "webchat.0.0.isEnabled"   -> testWebchat1.isEnabled,
+        "webchat.0.1.pattern"     -> testWebchat2.pattern,
+        "webchat.0.1.skinElement" -> testWebchat2.skinElement,
+        "webchat.0.1.isEnabled"   -> testWebchat2.isEnabled,
+        "webchat.1.service"       -> "second-frontend",
+        "webchat.1.0.pattern"     -> testWebchat3.pattern,
+        "webchat.1.0.skinElement" -> testWebchat3.skinElement,
+        "webchat.1.0.isEnabled"   -> testWebchat3.isEnabled
       )
       .build()
 

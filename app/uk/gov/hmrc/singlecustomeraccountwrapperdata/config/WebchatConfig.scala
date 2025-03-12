@@ -20,7 +20,7 @@ import com.google.inject.{Inject, Singleton}
 import play.api.libs.json.{Json, OFormat}
 import play.api.{Configuration, Logging}
 
-case class Webchat(page: String, isEnabled: Boolean)
+case class Webchat(pattern: String, skinElement: String, isEnabled: Boolean)
 
 object Webchat {
   implicit val format: OFormat[Webchat] = Json.format[Webchat]
@@ -38,9 +38,10 @@ class WebchatConfig @Inject() (configuration: Configuration) extends Logging {
       val service = configuration.get[String](s"webchat.$indexService.service")
       val numberOfPages = (0 until maxItems).takeWhile(j => config.hasPathOrNull(s"webchat.$indexService.$j")).size
       val webchatUrls: List[Webchat] = (0 until numberOfPages).map { indexPage =>
-        val page = configuration.get[String](s"webchat.$indexService.$indexPage.page")
+        val pattern = configuration.get[String](s"webchat.$indexService.$indexPage.pattern")
+        val skinElement = configuration.get[String](s"webchat.$indexService.$indexPage.skinElement")
         val isEnabled = configuration.get[Boolean](s"webchat.$indexService.$indexPage.isEnabled")
-        Webchat(page, isEnabled)
+        Webchat(pattern, skinElement, isEnabled)
       }.toList
       service -> webchatUrls
     }.toMap

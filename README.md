@@ -51,16 +51,19 @@ webchat {
        0 {
          service = "example-frontend"
          0 {
-           page = "/example-uri"
+           pattern = "/example-uri/.*"
+           skinElement = "popup"
            isEnabled = true
          }
          1 {
-           page = "/secondary-example-uri"
-           isEnabled = true
+           pattern = "/secondary-example-uri/sign-out"
+           skinElement = "embedded"
+           isEnabled = false
          }
        }
 }
 ```
+Where skinElement can be set as either pop or embedded in line with https://github.com/hmrc/digital-engagement-platform-chat and pattern is a regex expression matching desired URLs in the service
 
 Please ensure array indexing is kept in sequential order. Once the app-config-base file is updated and merged, the single-customer-account-wrapper-data service can be redeployed, bringing in the new banners.
 
