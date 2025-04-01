@@ -32,7 +32,7 @@ import uk.gov.hmrc.auth.core.retrieve.v2.TrustedHelper
 import uk.gov.hmrc.auth.core.retrieve.{Credentials, Name}
 import uk.gov.hmrc.auth.core.{AuthConnector, ConfidenceLevel, CredentialStrength, Enrolments}
 import uk.gov.hmrc.http.{Authorization, HeaderCarrier, SessionKeys}
-import uk.gov.hmrc.singlecustomeraccountwrapperdata.config.{AppConfig, UrBanner, UrBannersConfig, WrapperConfig}
+import uk.gov.hmrc.singlecustomeraccountwrapperdata.config.{AppConfig, UrBanner, UrBannersConfig, Webchat, WebchatConfig, WrapperConfig}
 import uk.gov.hmrc.singlecustomeraccountwrapperdata.controllers.actions.AuthActionImpl
 import uk.gov.hmrc.singlecustomeraccountwrapperdata.fixtures.BaseSpec
 import uk.gov.hmrc.singlecustomeraccountwrapperdata.fixtures.RetrievalOps.Ops
@@ -106,6 +106,7 @@ class ScaWrapperControllerSpec extends BaseSpec {
   val mockAuthConnector: AuthConnector = mock[AuthConnector]
   lazy val authAction = new AuthActionImpl(mockAuthConnector, messagesControllerComponents)
   lazy val mockBannerConfig: UrBannersConfig = mock[UrBannersConfig]
+  lazy val mockWebchatConfig: WebchatConfig = mock[WebchatConfig]
 
   private val controller =
     new ScaWrapperController(
@@ -113,6 +114,7 @@ class ScaWrapperControllerSpec extends BaseSpec {
       appConfig,
       wrapperConfig,
       mockBannerConfig,
+      mockWebchatConfig,
       authAction
     )
   private val wsClient = app.injector.instanceOf[WSClient]
@@ -136,6 +138,7 @@ class ScaWrapperControllerSpec extends BaseSpec {
     super.beforeEach()
     reset(mockBannerConfig)
     when(mockBannerConfig.getUrBannersByService).thenReturn(Map.empty)
+    when(mockWebchatConfig.getWebchatUrlsByService).thenReturn(Map.empty)
   }
 
   "The Wrapper data API" must {
@@ -208,11 +211,52 @@ class ScaWrapperControllerSpec extends BaseSpec {
       when(mockBannerConfig.getUrBannersByService).thenReturn(
         Map("test-frontend" -> List(returnedBanner))
       )
+
       val version: String = appConfig.versionNum
       val lang: String = "en"
       val result = controller.wrapperData(lang, version)(fakeRequest)
 
       contentAsString(result).contains("\"urBanners\":[]") mustBe true
+    }
+
+    "return an list of webchat enabled pages when there are matching banners for calling service" in {
+      val returnedPages = List(Webchat("Banner Page", "skin", true), Webchat("Second Page", "skin", false))
+
+      val fakeRequest: FakeRequest[AnyContentAsEmpty.type] = FakeRequest("", "")
+        .withHeaders(HeaderNames.USER_AGENT -> "test-frontend")
+        .withSession(SessionKeys.sessionId -> "foo")
+        .withCSRFToken
+        .asInstanceOf[FakeRequest[AnyContentAsEmpty.type]]
+
+      when(mockWebchatConfig.getWebchatUrlsByService).thenReturn(
+        Map("test-frontend" -> returnedPages)
+      )
+
+      val version: String = appConfig.versionNum
+      val lang: String = "en"
+      val result = controller.wrapperData(lang, version)(fakeRequest)
+
+      contentAsString(result).contains(Json.toJson(returnedPages).toString) mustBe true
+    }
+
+    "return an empty list of Webchat pages when there are no matching pages for calling service" in {
+      val returnedPages = List(Webchat("Banner Page", "skin", true), Webchat("Second Page", "skin", false))
+
+      val fakeRequest: FakeRequest[AnyContentAsEmpty.type] = FakeRequest("", "")
+        .withHeaders(HeaderNames.USER_AGENT -> "different-frontend")
+        .withSession(SessionKeys.sessionId -> "foo")
+        .withCSRFToken
+        .asInstanceOf[FakeRequest[AnyContentAsEmpty.type]]
+
+      when(mockWebchatConfig.getWebchatUrlsByService).thenReturn(
+        Map("test-frontend" -> returnedPages)
+      )
+
+      val version: String = appConfig.versionNum
+      val lang: String = "en"
+      val result = controller.wrapperData(lang, version)(fakeRequest)
+
+      contentAsString(result).contains("\"webchatPages\":[]") mustBe true
     }
   }
 }

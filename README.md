@@ -41,7 +41,33 @@ ur-banners {
        }
 }
 ```
+
+**Adding Webchat to pages via config:**
+
+Similarly to the UR banners, the wrapper data service can now be used to enable webchat on certain URL within a service. In order to do so your service will need the sca-wrapper library version 2.7.0 or higher and for scala 2.x only, then you need to add your service and selected pages to the app-config-base single-customer-account-wrapper-data file in the format:
+```scala
+webchat {
+       max-items = X
+       0 {
+         service = "example-frontend"
+         0 {
+           pattern = "/example-uri/.*"
+           skinElement = "popup"
+           isEnabled = true
+         }
+         1 {
+           pattern = "/secondary-example-uri/sign-out"
+           skinElement = "embedded"
+           isEnabled = false
+         }
+       }
+}
+```
+Where skinElement can be set as either pop or embedded in line with https://github.com/hmrc/digital-engagement-platform-chat and pattern is a regex expression matching desired URLs in the service
+
 Please ensure array indexing is kept in sequential order. Once the app-config-base file is updated and merged, the single-customer-account-wrapper-data service can be redeployed, bringing in the new banners.
+
+The pattern needs to match the path of the request. i.e. the url without the query string and without the host. For example the path for https://tax.service.gov.uk/personal-account?q=1 is /personal-account. "/personal-account" will match the exact path and "/personal-account.*" will match anything prefixed with "/personal-account".
 
 **Versioning:**
 
