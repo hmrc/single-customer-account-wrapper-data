@@ -19,21 +19,23 @@ package uk.gov.hmrc.singlecustomeraccountwrapperdata.connectors
 import com.google.inject.Inject
 import play.api.Logging
 import uk.gov.hmrc.http.HttpReads.Implicits._
-import uk.gov.hmrc.http.{HeaderCarrier, HttpClient}
+import uk.gov.hmrc.http.client.HttpClientV2
+import uk.gov.hmrc.http.{HeaderCarrier, StringContextOps}
 import uk.gov.hmrc.singlecustomeraccountwrapperdata.config.AppConfig
 import uk.gov.hmrc.singlecustomeraccountwrapperdata.models.MessageCountResponse
 
 import scala.concurrent.{ExecutionContext, Future}
 
-class MessageConnector @Inject() (http: HttpClient, appConfig: AppConfig) extends Logging {
+class MessageConnector @Inject() (http: HttpClientV2, appConfig: AppConfig) extends Logging {
 
   def getUnreadMessageCount(implicit ec: ExecutionContext, hc: HeaderCarrier): Future[Option[Int]] = {
     val params = Seq("nino", "sautr", "HMRC-OBTDS-ORG", "HMRC-MTD-VAT", "HMRC-MTD-IT", "HMRC-PPT-ORG", "IR-PAYE")
       .map(t => s"taxIdentifiers=$t")
       .mkString("&")
-
+    val url = appConfig.messageServiceUrl + s"/secure-messaging/messages/count?$params"
     http
-      .GET[MessageCountResponse](appConfig.messageServiceUrl + s"/secure-messaging/messages/count?$params")
+      .get(url"$url")
+      .execute[MessageCountResponse]
       .map { response =>
         val unreadCount = response.count.unread
         logger.info(

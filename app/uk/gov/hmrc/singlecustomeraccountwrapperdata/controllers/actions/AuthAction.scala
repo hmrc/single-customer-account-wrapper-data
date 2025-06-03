@@ -25,11 +25,16 @@ import uk.gov.hmrc.auth.core.retrieve.{Credentials, Name, ~}
 import uk.gov.hmrc.domain
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.http.HeaderCarrierConverter
+import uk.gov.hmrc.singlecustomeraccountwrapperdata.connectors.FandFConnector
 import uk.gov.hmrc.singlecustomeraccountwrapperdata.models.auth.AuthenticatedRequest
 
 import scala.concurrent.{ExecutionContext, Future}
 
-class AuthActionImpl @Inject() (val authConnector: AuthConnector, cc: ControllerComponents)(implicit
+class AuthActionImpl @Inject() (
+  val authConnector: AuthConnector,
+  cc: ControllerComponents,
+  fandFConnector: FandFConnector
+)(implicit
   val executionContext: ExecutionContext
 ) extends AuthorisedFunctions with AuthAction with Logging {
 
@@ -47,48 +52,59 @@ class AuthActionImpl @Inject() (val authConnector: AuthConnector, cc: Controller
 
     implicit val hc: HeaderCarrier = HeaderCarrierConverter.fromRequest(request) // session!
 
-    authorised().retrieve(
-      Retrievals.nino and
-        Retrievals.affinityGroup and
-        Retrievals.allEnrolments and
-        Retrievals.credentials and
-        Retrievals.credentialStrength and
-        Retrievals.confidenceLevel and
-        Retrievals.name and
-        Retrievals.trustedHelper and
-        Retrievals.profile
-    ) {
-      case nino ~ _ ~ Enrolments(enrolments) ~ Some(credentials) ~ Some(CredentialStrength.strong) ~
-          GTOE200(confidenceLevel) ~ name ~ trustedHelper ~ _ =>
-        logger.info(s"[AuthActionImpl][invokeBlock] Successful confidence level 200+ request")
+    fandFConnector
+      .getTrustedHelper()
+      .recoverWith { e =>
+        logger.error(s"Trusted helper retrieval failed", e)
+        Future.successful(None)
+      }
+      .flatMap { trustedHelper =>
+        authorised().retrieve(
+          Retrievals.nino and
+            Retrievals.affinityGroup and
+            Retrievals.allEnrolments and
+            Retrievals.credentials and
+            Retrievals.credentialStrength and
+            Retrievals.confidenceLevel and
+            Retrievals.name and
+            Retrievals.profile
+        ) {
+          case nino ~ _ ~ Enrolments(enrolments) ~ Some(credentials) ~ Some(CredentialStrength.strong) ~
+              GTOE200(confidenceLevel) ~ name ~ _ =>
+            logger.info(s"[AuthActionImpl][invokeBlock] Successful confidence level 200+ request")
 
-        val authenticatedRequest = AuthenticatedRequest[A](
-          trustedHelper.fold(nino.map(domain.Nino))(helper => Some(domain.Nino(helper.principalNino))),
-          credentials,
-          confidenceLevel,
-          Some(trustedHelper.fold(name.getOrElse(Name(None, None)))(helper => Name(Some(helper.principalName), None))),
-          trustedHelper,
-          None,
-          enrolments,
-          request
-        )
-        block(authenticatedRequest)
-      case nino ~ _ ~ _ ~ Some(credentials) ~ _ ~ LT200(confidenceLevel) ~ name ~ _ ~ _ =>
-        logger.warn(s"[AuthActionImpl][invokeBlock] Confidence level 50 request")
-        val authenticatedRequest = AuthenticatedRequest[A](
-          nino.map(domain.Nino),
-          credentials,
-          confidenceLevel,
-          name,
-          None,
-          None,
-          Set.empty[Enrolment],
-          request
-        )
-        block(authenticatedRequest)
+            val authenticatedRequest = AuthenticatedRequest[A](
+              trustedHelper.fold(nino.map(domain.Nino))(helper => Some(domain.Nino(helper.principalNino))),
+              credentials,
+              confidenceLevel,
+              Some(
+                trustedHelper.fold(name.getOrElse(Name(None, None)))(helper => Name(Some(helper.principalName), None))
+              ),
+              trustedHelper,
+              None,
+              enrolments,
+              request
+            )
+            block(authenticatedRequest)
+          case nino ~ _ ~ _ ~ Some(credentials) ~ _ ~ LT200(confidenceLevel) ~ name ~ _ =>
+            logger.warn(s"[AuthActionImpl][invokeBlock] Confidence level 50 request")
+            val authenticatedRequest = AuthenticatedRequest[A](
+              trustedHelper.fold(nino.map(domain.Nino))(helper => Some(domain.Nino(helper.principalNino))),
+              credentials,
+              confidenceLevel,
+              Some(
+                trustedHelper.fold(name.getOrElse(Name(None, None)))(helper => Name(Some(helper.principalName), None))
+              ),
+              trustedHelper,
+              None,
+              Set.empty[Enrolment],
+              request
+            )
+            block(authenticatedRequest)
 
-      case _ => throw new RuntimeException("Invalid combination of retrievals")
-    }
+          case _ => throw new RuntimeException("Invalid combination of retrievals")
+        }
+      }
   }
     .recoverWith { case authException =>
       logger.error(s"[AuthActionImpl][invokeBlock] exception: ${authException.getMessage}")

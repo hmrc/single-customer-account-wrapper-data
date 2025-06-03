@@ -41,4 +41,6 @@ class AppConfig @Inject() (servicesConfig: ServicesConfig, configuration: Config
 
   private def getExternalUrl(key: String): Option[String] =
     configuration.getOptional[String](s"external-url.$key")
+
+  lazy val fandfHost: String = servicesConfig.baseUrl("fandf")
 }
