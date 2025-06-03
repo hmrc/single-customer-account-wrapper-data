@@ -49,14 +49,14 @@ class AuthActionImpl @Inject() (
   }
 
   private def authRequestBuilder[A](
-                                     request: Request[A],
-                                     nino: Option[String],
-                                     trustedHelper: Option[TrustedHelper],
-                                     credentials: Credentials,
-                                     confidenceLevel: ConfidenceLevel,
-                                     enrolments: Set[Enrolment],
-                                     name: Option[Name]
-                                   ): AuthenticatedRequest[A] =
+    request: Request[A],
+    nino: Option[String],
+    trustedHelper: Option[TrustedHelper],
+    credentials: Credentials,
+    confidenceLevel: ConfidenceLevel,
+    enrolments: Set[Enrolment],
+    name: Option[Name]
+  ): AuthenticatedRequest[A] =
     AuthenticatedRequest[A](
       trustedHelper.fold(nino.map(domain.Nino))(helper => Some(domain.Nino(helper.principalNino))),
       credentials,
