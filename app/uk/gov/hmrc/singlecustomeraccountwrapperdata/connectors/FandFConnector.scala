@@ -36,13 +36,23 @@ class FandFConnector @Inject() (
   def getTrustedHelper()(implicit hc: HeaderCarrier): Future[Option[TrustedHelper]] =
     httpClient
       .get(url"${appConfig.fandfHost}/delegation/get")
-      .execute[HttpResponse]
-      .map { httpResponse =>
-        httpResponse.status match {
-          case NOT_FOUND => None
-          case OK => Some(httpResponse.json.as[TrustedHelper](uk.gov.hmrc.auth.core.retrieve.v2.TrustedHelper.reads))
-          case status => throw UpstreamErrorResponse("Invalid response status", status)
-        }
-      }
+      .execute[Either[UpstreamErrorResponse, HttpResponse]]
+      .map(
+        _.fold(
+          error => {
+            logger.error(s"Fandf call failed with status ${error.statusCode} and message ${error.getMessage()}")
+            None
+          },
+          httpResponse =>
+            httpResponse.status match {
+              case NOT_FOUND => None
+              case OK =>
+                Some(httpResponse.json.as[TrustedHelper](uk.gov.hmrc.auth.core.retrieve.v2.TrustedHelper.reads))
+              case status =>
+                logger.error(s"Unexpected $status response from fandf, with message ${httpResponse.body}")
+                None
+            }
+        )
+      )
 
 }

@@ -76,10 +76,6 @@ class AuthActionImpl @Inject() (
 
     fandFConnector
       .getTrustedHelper()
-      .recoverWith { e =>
-        logger.error(s"Trusted helper retrieval failed", e)
-        Future.successful(None)
-      }
       .flatMap { trustedHelper =>
         authorised().retrieve(
           Retrievals.nino and
