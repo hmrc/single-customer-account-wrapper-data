@@ -37,23 +37,16 @@ class FandFConnector @Inject() (
     httpClient
       .get(url"${appConfig.fandfHost}/delegation/get")
       .execute[Either[UpstreamErrorResponse, HttpResponse]]
-      .map(
-        _.fold(
-          error => {
-            if (error.statusCode != NOT_FOUND) {
-              logger.error(s"Fandf call failed with status ${error.statusCode} and message ${error.getMessage()}")
-            }
-            None
-          },
-          httpResponse =>
-            httpResponse.status match {
-              case OK =>
-                Some(httpResponse.json.as[TrustedHelper](uk.gov.hmrc.auth.core.retrieve.v2.TrustedHelper.reads))
-              case status =>
-                logger.error(s"Unexpected $status response from fandf, with message ${httpResponse.body}")
-                None
-            }
-        )
-      )
-
+      .map {
+        case Left(error) if error.statusCode == NOT_FOUND =>
+          None
+        case Left(error) =>
+          logger.error(s"Fandf call failed with status ${error.statusCode} and message ${error.getMessage()}")
+          None
+        case Right(response) if response.status == OK =>
+          Some(response.json.as[TrustedHelper](uk.gov.hmrc.auth.core.retrieve.v2.TrustedHelper.reads))
+        case Right(response) =>
+          logger.error(s"Unexpected ${response.status} response from fandf, with message ${response.body}")
+          None
+      }
 }
