@@ -40,12 +40,13 @@ class FandFConnector @Inject() (
       .map(
         _.fold(
           error => {
-            logger.error(s"Fandf call failed with status ${error.statusCode} and message ${error.getMessage()}")
+            if (error.statusCode != NOT_FOUND) {
+              logger.error(s"Fandf call failed with status ${error.statusCode} and message ${error.getMessage()}")
+            }
             None
           },
           httpResponse =>
             httpResponse.status match {
-              case NOT_FOUND => None
               case OK =>
                 Some(httpResponse.json.as[TrustedHelper](uk.gov.hmrc.auth.core.retrieve.v2.TrustedHelper.reads))
               case status =>

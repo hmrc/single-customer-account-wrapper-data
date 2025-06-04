@@ -24,7 +24,7 @@ import org.scalatest.wordspec.AsyncWordSpec
 import org.scalatestplus.mockito.MockitoSugar
 import uk.gov.hmrc.auth.core.retrieve.v2.TrustedHelper
 import uk.gov.hmrc.domain.Generator
-import uk.gov.hmrc.http.{HeaderCarrier, UpstreamErrorResponse}
+import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.http.test.HttpClientV2Support
 import utils.WireMockHelper
 
@@ -78,14 +78,22 @@ class FandFConnectorSpec
       result mustBe None
     }
 
-    "return an error when unexpected status returned" in {
+    "return None when error status returned" in {
       server.stubFor(
         WireMock.get(urlEqualTo("/delegation/get")).willReturn(serverError())
       )
+      val result = Await.result(connector.getTrustedHelper(), Duration.Inf)
 
-      recoverToSucceededIf[UpstreamErrorResponse] {
-        connector.getTrustedHelper()
-      }
+      result mustBe None
+    }
+
+    "return None when unexpected status returned" in {
+      server.stubFor(
+        WireMock.get(urlEqualTo("/delegation/get")).willReturn(noContent())
+      )
+      val result = Await.result(connector.getTrustedHelper(), Duration.Inf)
+
+      result mustBe None
     }
 
   }
