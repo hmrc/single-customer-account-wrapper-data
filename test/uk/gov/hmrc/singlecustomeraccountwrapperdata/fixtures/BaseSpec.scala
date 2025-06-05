@@ -32,7 +32,6 @@ import play.api.mvc.{AnyContentAsEmpty, BodyParsers, MessagesControllerComponent
 import play.api.test.CSRFTokenHelper.CSRFFRequestHeader
 import play.api.test.{FakeRequest, Injecting}
 import uk.gov.hmrc.auth.core._
-import uk.gov.hmrc.auth.core.retrieve.v2.TrustedHelper
 import uk.gov.hmrc.auth.core.retrieve.{Credentials, Name, ~}
 import uk.gov.hmrc.http.{HeaderCarrier, SessionKeys}
 import uk.gov.hmrc.singlecustomeraccountwrapperdata.config.AppConfig
@@ -73,7 +72,7 @@ trait BaseSpec
 
   type AuthRetrievals =
     Option[String] ~ AffinityGroup ~ Enrolments ~ Option[Credentials] ~ Option[String] ~
-      ConfidenceLevel ~ Option[Name] ~ Option[TrustedHelper] ~ Option[String]
+      ConfidenceLevel ~ Option[Name] ~ Option[String]
 
   def fakeSaEnrolments(utr: String, enrolmentState: String) = Set(
     Enrolment("IR-SA", Seq(EnrolmentIdentifier("UTR", utr)), enrolmentState)
