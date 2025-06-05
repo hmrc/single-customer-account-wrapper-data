@@ -1,7 +1,7 @@
 import uk.gov.hmrc.DefaultBuildSettings
 
-ThisBuild / majorVersion := 1
-ThisBuild / scalaVersion := "2.13.12"
+ThisBuild / majorVersion := 2
+ThisBuild / scalaVersion := "3.3.6"
 ThisBuild / scalafmtOnCompile := true
 
 lazy val microservice = Project("single-customer-account-wrapper-data", file("."))
@@ -10,13 +10,11 @@ lazy val microservice = Project("single-customer-account-wrapper-data", file("."
   .settings(
     libraryDependencies ++= AppDependencies.compile ++ AppDependencies.test,
     scalacOptions ++= Seq(
-      "-unchecked",
       "-feature",
-      "-Xlint:_",
+      "-unchecked",
+      "-language:noAutoTupling",
       "-Werror",
-      "-Wdead-code",
-      "-Wunused:_",
-      "-Wextra-implicit",
+      "-Wconf:msg=Flag.*repeatedly:s",
       "-Wconf:src=routes/.*:s"
     ),
     PlayKeys.playDefaultPort := 8422
@@ -24,7 +22,6 @@ lazy val microservice = Project("single-customer-account-wrapper-data", file("."
   .settings(CodeCoverageSettings.settings: _*)
 
 Test / parallelExecution := true
-Test / scalacOptions --= Seq("-Wdead-code", "-Wvalue-discard")
 
 lazy val it = project
   .enablePlugins(PlayScala)
