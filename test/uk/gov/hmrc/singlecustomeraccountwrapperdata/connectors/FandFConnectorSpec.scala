@@ -68,6 +68,16 @@ class FandFConnectorSpec
       result mustBe Some(trustedHelper)
     }
 
+    "return as Some(trustedHelper) when invalid json returned" in {
+      server.stubFor(
+        WireMock.get(urlEqualTo("/delegation/get")).willReturn(ok("Nonsense response"))
+      )
+
+      val result: Option[TrustedHelper] = Await.result(connector.getTrustedHelper(), Duration.Inf)
+
+      result mustBe None
+    }
+
     "return as None when not found returned" in {
       server.stubFor(
         WireMock.get(urlEqualTo("/delegation/get")).willReturn(notFound())

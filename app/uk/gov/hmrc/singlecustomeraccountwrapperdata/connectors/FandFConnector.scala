@@ -26,6 +26,8 @@ import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse, StringContextOps, Upstream
 import uk.gov.hmrc.singlecustomeraccountwrapperdata.config.AppConfig
 
 import scala.concurrent.{ExecutionContext, Future}
+import scala.util.control.NonFatal
+import scala.util.{Failure, Success, Try}
 
 class FandFConnector @Inject() (
   val httpClient: HttpClientV2,
@@ -36,17 +38,25 @@ class FandFConnector @Inject() (
   def getTrustedHelper()(implicit hc: HeaderCarrier): Future[Option[TrustedHelper]] =
     httpClient
       .get(url"${appConfig.fandfHost}/delegation/get")
-      .execute[Either[UpstreamErrorResponse, HttpResponse]]
-      .map {
-        case Left(error) if error.statusCode == NOT_FOUND =>
-          None
-        case Left(error) =>
-          logger.error(s"Fandf call failed with status ${error.statusCode} and message ${error.getMessage()}")
-          None
-        case Right(response) if response.status == OK =>
-          Some(response.json.as[TrustedHelper](uk.gov.hmrc.auth.core.retrieve.v2.TrustedHelper.reads))
-        case Right(response) =>
-          logger.error(s"Unexpected ${response.status} response from fandf, with message ${response.body}")
-          None
+      .execute[HttpResponse]
+      .map { httpResponse =>
+        httpResponse.status match {
+          case NOT_FOUND => None
+          case OK =>
+            Try(httpResponse.json.as[TrustedHelper](uk.gov.hmrc.auth.core.retrieve.v2.TrustedHelper.reads)) match {
+              case Success(trustedHelper) => Some(trustedHelper)
+              case Failure(ex) =>
+                logger.error(s"Failed to parse TrustedHelper", ex)
+                None
+            }
+          case status =>
+            val ex = UpstreamErrorResponse("Invalid response status", status)
+            logger.error(ex.message, ex)
+            None
+        }
+      }
+      .recover { case NonFatal(ex) =>
+        logger.error(s"Exception: ${ex.getMessage}", ex)
+        None
       }
 }
