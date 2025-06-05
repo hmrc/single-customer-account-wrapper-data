@@ -42,7 +42,7 @@ class AuthActionSpec extends BaseSpec {
 //    .overrides(bind[AuthConnector].toInstance(mockAuthConnector))
     .build()
 
-  val mockAuthConnector = mock[AuthConnector]
+  val mockAuthConnector                          = mock[AuthConnector]
   def controllerComponents: ControllerComponents = app.injector.instanceOf[ControllerComponents]
 
   class Harness(authAction: AuthAction) extends InjectedController {
@@ -53,11 +53,11 @@ class AuthActionSpec extends BaseSpec {
       )
     }
   }
-  val fakeNino = Nino(new Generator(new Random()).nextNino.nino)
-  val nino = fakeNino.nino
-  val fakeCredentials = Credentials("foo", "bar")
+  val fakeNino               = Nino(new Generator(new Random()).nextNino.nino)
+  val nino                   = fakeNino.nino
+  val fakeCredentials        = Credentials("foo", "bar")
   val fakeCredentialStrength = CredentialStrength.strong
-  val fakeConfidenceLevel = ConfidenceLevel.L200
+  val fakeConfidenceLevel    = ConfidenceLevel.L200
 
   def fakeSaEnrolments(utr: String) = Set(Enrolment("IR-SA", Seq(EnrolmentIdentifier("UTR", utr)), "Activated"))
 

@@ -42,7 +42,7 @@ class MessageConnector @Inject() (http: HttpClient, appConfig: AppConfig) extend
         unreadCount match {
           case num if num <= 0 =>
             None
-          case unreadCount =>
+          case unreadCount     =>
             Some(unreadCount)
         }
       }

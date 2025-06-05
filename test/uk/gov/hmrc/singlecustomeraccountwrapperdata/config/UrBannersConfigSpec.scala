@@ -49,8 +49,8 @@ class UrBannersConfigSpec extends BaseSpec {
     "return a list of banners for all services" in {
       bannersConfig.getUrBannersByService must be
       Map(
-        "test-frontend"   -> List(testBanner1, testBanner2),
-        "second-frontend" -> List(testBanner3)
+        "test-frontend"                     -> List(testBanner1, testBanner2),
+        "second-frontend"                   -> List(testBanner3)
       )
     }
   }

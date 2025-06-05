@@ -31,7 +31,9 @@ import scala.concurrent.{ExecutionContext, Future}
 
 class AuthActionImpl @Inject() (val authConnector: AuthConnector, cc: ControllerComponents)(implicit
   val executionContext: ExecutionContext
-) extends AuthorisedFunctions with AuthAction with Logging {
+) extends AuthorisedFunctions
+    with AuthAction
+    with Logging {
 
   object GTOE200 {
     def unapply(confLevel: ConfidenceLevel): Option[ConfidenceLevel] =
@@ -110,4 +112,5 @@ class AuthActionImpl @Inject() (val authConnector: AuthConnector, cc: Controller
 
 @ImplementedBy(classOf[AuthActionImpl])
 trait AuthAction
-    extends ActionBuilder[AuthenticatedRequest, AnyContent] with ActionFunction[Request, AuthenticatedRequest] {}
+    extends ActionBuilder[AuthenticatedRequest, AnyContent]
+    with ActionFunction[Request, AuthenticatedRequest] {}

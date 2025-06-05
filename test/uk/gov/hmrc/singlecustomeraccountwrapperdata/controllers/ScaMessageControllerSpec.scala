@@ -37,7 +37,7 @@ class ScaMessageControllerSpec extends AsyncWordSpec with Matchers with MockitoS
 
   implicit val hc: HeaderCarrier = HeaderCarrier()
 
-  private val fakeRequest = FakeRequest("GET", "/")
+  private val fakeRequest                            = FakeRequest("GET", "/")
   private val mockMessageConnector: MessageConnector = mock[MessageConnector]
 
   val modules: Seq[GuiceableModule] =

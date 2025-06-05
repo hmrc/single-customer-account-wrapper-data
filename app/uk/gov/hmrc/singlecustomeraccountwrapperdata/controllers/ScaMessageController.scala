@@ -32,7 +32,8 @@ class ScaMessageController @Inject() (
   messageConnector: MessageConnector,
   authenticate: AuthAction
 )(implicit ec: ExecutionContext)
-    extends BackendController(cc) with Logging {
+    extends BackendController(cc)
+    with Logging {
 
   def getUnreadMessageCount: Action[AnyContent] = authenticate.async { implicit request =>
     logger.info(s"[ScaMessageController][getUnreadMessageCount] Requesting unread message count")

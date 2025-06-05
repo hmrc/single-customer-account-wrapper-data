@@ -49,8 +49,8 @@ class WebchatConfigSpec extends BaseSpec {
     "return a list of webchat pages for all services" in {
       webchatConfig.getWebchatUrlsByService must be
       Map(
-        "test-frontend"   -> List(testWebchat1, testWebchat2),
-        "second-frontend" -> List(testWebchat3)
+        "test-frontend"                       -> List(testWebchat1, testWebchat2),
+        "second-frontend"                     -> List(testWebchat3)
       )
     }
   }

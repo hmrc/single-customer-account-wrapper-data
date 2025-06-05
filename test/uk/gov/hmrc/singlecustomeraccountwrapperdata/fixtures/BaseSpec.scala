@@ -43,37 +43,43 @@ import scala.concurrent.duration.{FiniteDuration, _}
 import scala.reflect.ClassTag
 
 trait BaseSpec
-    extends AnyWordSpec with Matchers with ScalaFutures with PatienceConfiguration with Injecting with MockitoSugar
-    with GuiceOneAppPerSuite with BeforeAndAfterEach {
+    extends AnyWordSpec
+    with Matchers
+    with ScalaFutures
+    with PatienceConfiguration
+    with Injecting
+    with MockitoSugar
+    with GuiceOneAppPerSuite
+    with BeforeAndAfterEach {
 
   // override lazy val app: Application = applicationBuilder().build()
-  implicit val system: ActorSystem = ActorSystem("Test")
-  implicit val materializer: Materializer = Materializer(system)
-  lazy val injector: Injector = app.injector
+  implicit val system: ActorSystem                   = ActorSystem("Test")
+  implicit val materializer: Materializer            = Materializer(system)
+  lazy val injector: Injector                        = app.injector
   def injected[T](implicit evidence: ClassTag[T]): T = app.injector.instanceOf[T]
 
   override implicit lazy val app: Application = GuiceApplicationBuilder().build()
 
-  implicit val defaultTimeout: FiniteDuration = 5.seconds
-  implicit val hc: HeaderCarrier = HeaderCarrier()
-  implicit lazy val ec: ExecutionContext = app.injector.instanceOf[ExecutionContext]
+  implicit val defaultTimeout: FiniteDuration       = 5.seconds
+  implicit val hc: HeaderCarrier                    = HeaderCarrier()
+  implicit lazy val ec: ExecutionContext            = app.injector.instanceOf[ExecutionContext]
   implicit val frontendAppConfigInstance: AppConfig = injector.instanceOf[AppConfig]
 
-  lazy val fakeRequest: FakeRequest[AnyContentAsEmpty.type] = FakeRequest("", "")
+  lazy val fakeRequest: FakeRequest[AnyContentAsEmpty.type]           = FakeRequest("", "")
     .withSession(SessionKeys.sessionId -> "foo")
     .withCSRFToken
     .asInstanceOf[FakeRequest[AnyContentAsEmpty.type]]
-  lazy val messagesApiInstance: MessagesApi = injector.instanceOf[MessagesApi]
+  lazy val messagesApiInstance: MessagesApi                           = injector.instanceOf[MessagesApi]
   // lazy val messages: Messages = messagesApiInstance.preferred(fakeRequest)
   lazy val messagesControllerComponents: MessagesControllerComponents =
     injector.instanceOf[MessagesControllerComponents]
-  lazy val authActionInstance: AuthAction = injector.instanceOf[AuthAction]
-  lazy val bodyParserInstance: BodyParsers.Default = injector.instanceOf[BodyParsers.Default]
-  lazy val FakeAuthAction: AuthAction = mock[AuthAction]
+  lazy val authActionInstance: AuthAction                             = injector.instanceOf[AuthAction]
+  lazy val bodyParserInstance: BodyParsers.Default                    = injector.instanceOf[BodyParsers.Default]
+  lazy val FakeAuthAction: AuthAction                                 = mock[AuthAction]
 
   type AuthRetrievals =
-    Option[String] ~ AffinityGroup ~ Enrolments ~ Option[Credentials] ~ Option[String] ~
-      ConfidenceLevel ~ Option[Name] ~ Option[TrustedHelper] ~ Option[String]
+    Option[String] ~ AffinityGroup ~ Enrolments ~ Option[Credentials] ~ Option[String] ~ ConfidenceLevel ~
+      Option[Name] ~ Option[TrustedHelper] ~ Option[String]
 
   def fakeSaEnrolments(utr: String, enrolmentState: String) = Set(
     Enrolment("IR-SA", Seq(EnrolmentIdentifier("UTR", utr)), enrolmentState)
