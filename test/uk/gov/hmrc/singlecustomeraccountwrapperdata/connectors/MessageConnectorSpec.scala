@@ -25,15 +25,14 @@ import org.scalatestplus.mockito.MockitoSugar
 import play.api.http.Status.OK
 import play.api.libs.json.{JsObject, Json}
 import uk.gov.hmrc.http.HeaderCarrier
-import uk.gov.hmrc.http.test.HttpClientV2Support
+import uk.gov.hmrc.http.test.HttpClientSupport
 import utils.WireMockHelper
 
 import scala.concurrent.duration.DurationInt
 import scala.language.postfixOps
 
 class MessageConnectorSpec
-    extends AsyncWordSpec with Matchers with WireMockHelper with HttpClientV2Support with MockitoSugar
-    with ScalaFutures {
+    extends AsyncWordSpec with Matchers with WireMockHelper with HttpClientSupport with MockitoSugar with ScalaFutures {
 
   import MessageConnectorSpec._
 
