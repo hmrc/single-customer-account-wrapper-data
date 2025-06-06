@@ -28,7 +28,6 @@ import uk.gov.hmrc.auth.core._
 import uk.gov.hmrc.auth.core.retrieve.Credentials
 import uk.gov.hmrc.auth.core.retrieve.v2.TrustedHelper
 import uk.gov.hmrc.domain.{Generator, Nino, SaUtrGenerator}
-import uk.gov.hmrc.singlecustomeraccountwrapperdata.connectors.FandFConnector
 import uk.gov.hmrc.singlecustomeraccountwrapperdata.controllers.actions.{AuthAction, AuthActionImpl}
 import uk.gov.hmrc.singlecustomeraccountwrapperdata.fixtures.BaseSpec
 import uk.gov.hmrc.singlecustomeraccountwrapperdata.models.auth.AuthenticatedRequest
@@ -44,7 +43,6 @@ class AuthActionSpec extends BaseSpec {
     .build()
 
   val mockAuthConnector = mock[AuthConnector]
-  val mockFandFConnector: FandFConnector = mock[FandFConnector]
   def controllerComponents: ControllerComponents = app.injector.instanceOf[ControllerComponents]
 
   class Harness(authAction: AuthAction) extends InjectedController {
@@ -69,6 +67,7 @@ class AuthActionSpec extends BaseSpec {
     saEnrolments: Enrolments = Enrolments(Set.empty),
     credentialStrength: String = CredentialStrength.strong,
     confidenceLevel: ConfidenceLevel = ConfidenceLevel.L200,
+    trustedHelper: Option[TrustedHelper] = None,
     profileUrl: Option[String] = None,
     exception: Option[AuthorisationException] = None
   ): Harness = {
@@ -80,19 +79,18 @@ class AuthActionSpec extends BaseSpec {
       when(mockAuthConnector.authorise[AuthRetrievals](any(), any())(any(), any())) thenReturn Future.successful(
         nino ~ affinityGroup ~ saEnrolments ~ Some(fakeCredentials) ~ Some(
           credentialStrength
-        ) ~ confidenceLevel ~ None ~ profileUrl
+        ) ~ confidenceLevel ~ None ~ trustedHelper ~ profileUrl
       )
     }
 
     val authAction =
-      new AuthActionImpl(mockAuthConnector, controllerComponents, mockFandFConnector)
+      new AuthActionImpl(mockAuthConnector, controllerComponents)
 
     new Harness(authAction)
   }
 
   "An authenticated request" must {
     "be created when a user has a nino and SA enrolment" in {
-      when(mockFandFConnector.getTrustedHelper()(any())).thenReturn(Future.successful(None))
       val utr = new SaUtrGenerator().nextSaUtr.utr
 
       val controller = retrievals(saEnrolments = Enrolments(fakeSaEnrolments(utr)))
@@ -106,11 +104,9 @@ class AuthActionSpec extends BaseSpec {
     "be created when a user has a nino and SA enrolment and trusted helper" in {
       val utr = new SaUtrGenerator().nextSaUtr.utr
 
-      when(mockFandFConnector.getTrustedHelper()(any()))
-        .thenReturn(Future.successful(Some(TrustedHelper("chaz", "dingle", "link", nino))))
-
       val controller = retrievals(
-        saEnrolments = Enrolments(fakeSaEnrolments(utr))
+        saEnrolments = Enrolments(fakeSaEnrolments(utr)),
+        trustedHelper = Some(TrustedHelper("chaz", "dingle", "link", nino))
       )
 
       val result = controller.onPageLoad(FakeRequest("", ""))
@@ -121,7 +117,7 @@ class AuthActionSpec extends BaseSpec {
     }
 
     "be created when a user has a nino and no enrolments" in {
-      when(mockFandFConnector.getTrustedHelper()(any())).thenReturn(Future.successful(None))
+
       val controller = retrievals()
 
       val result = controller.onPageLoad(FakeRequest("", ""))
@@ -132,7 +128,7 @@ class AuthActionSpec extends BaseSpec {
 
   "An unauthenticated request" must {
     "be created when a user has less than 200 CL" in {
-      when(mockFandFConnector.getTrustedHelper()(any())).thenReturn(Future.successful(None))
+
       val controller = retrievals(confidenceLevel = ConfidenceLevel.L50)
 
       val result = controller.onPageLoad(FakeRequest("", ""))
@@ -141,7 +137,7 @@ class AuthActionSpec extends BaseSpec {
     }
 
     "be created when a user has more than 50 CL but has a weak cred strength" in {
-      when(mockFandFConnector.getTrustedHelper()(any())).thenReturn(Future.successful(None))
+
       val controller = retrievals(confidenceLevel = ConfidenceLevel.L200, credentialStrength = CredentialStrength.weak)
 
       val result = controller.onPageLoad(FakeRequest("", ""))
@@ -150,7 +146,7 @@ class AuthActionSpec extends BaseSpec {
     }
 
     "be created when a user has a weak cred strength" in {
-      when(mockFandFConnector.getTrustedHelper()(any())).thenReturn(Future.successful(None))
+
       val controller = retrievals()
 
       val result = controller.onPageLoad(FakeRequest("", ""))
@@ -159,7 +155,7 @@ class AuthActionSpec extends BaseSpec {
     }
 
     "be created when an auth exception occurs" in {
-      when(mockFandFConnector.getTrustedHelper()(any())).thenReturn(Future.successful(None))
+
       val controller = retrievals(exception = Some(MissingBearerToken("error")))
 
       val result = controller.onPageLoad(FakeRequest("", ""))

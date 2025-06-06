@@ -28,11 +28,11 @@ import play.api.test.CSRFTokenHelper.CSRFFRequestHeader
 import play.api.test.{FakeRequest, Helpers}
 import play.api.test.Helpers.{contentAsString, defaultAwaitTimeout, status}
 import uk.gov.hmrc.auth.core.AffinityGroup.Individual
+import uk.gov.hmrc.auth.core.retrieve.v2.TrustedHelper
 import uk.gov.hmrc.auth.core.retrieve.{Credentials, Name}
 import uk.gov.hmrc.auth.core.{AuthConnector, ConfidenceLevel, CredentialStrength, Enrolments}
 import uk.gov.hmrc.http.{Authorization, HeaderCarrier, SessionKeys}
 import uk.gov.hmrc.singlecustomeraccountwrapperdata.config.{AppConfig, UrBanner, UrBannersConfig, Webchat, WebchatConfig, WrapperConfig}
-import uk.gov.hmrc.singlecustomeraccountwrapperdata.connectors.FandFConnector
 import uk.gov.hmrc.singlecustomeraccountwrapperdata.controllers.actions.AuthActionImpl
 import uk.gov.hmrc.singlecustomeraccountwrapperdata.fixtures.BaseSpec
 import uk.gov.hmrc.singlecustomeraccountwrapperdata.fixtures.RetrievalOps.Ops
@@ -104,8 +104,7 @@ class ScaWrapperControllerSpec extends BaseSpec {
 
   override implicit val hc: HeaderCarrier = HeaderCarrier(authorization = Some(Authorization("Bearer 123")))
   val mockAuthConnector: AuthConnector = mock[AuthConnector]
-  val mockFandFConnector: FandFConnector = mock[FandFConnector]
-  lazy val authAction = new AuthActionImpl(mockAuthConnector, messagesControllerComponents, mockFandFConnector)
+  lazy val authAction = new AuthActionImpl(mockAuthConnector, messagesControllerComponents)
   lazy val mockBannerConfig: UrBannersConfig = mock[UrBannersConfig]
   lazy val mockWebchatConfig: WebchatConfig = mock[WebchatConfig]
 
@@ -131,6 +130,7 @@ class ScaWrapperControllerSpec extends BaseSpec {
       Some(CredentialStrength.strong) ~
       ConfidenceLevel.L200 ~
       Some(Name(Some("chaz"), Some("dingle"))) ~
+      Some(TrustedHelper("name", "name", "link", "AA999999A")) ~
       Some("profileUrl")
   )
 
@@ -139,22 +139,10 @@ class ScaWrapperControllerSpec extends BaseSpec {
     reset(mockBannerConfig)
     when(mockBannerConfig.getUrBannersByService).thenReturn(Map.empty)
     when(mockWebchatConfig.getWebchatUrlsByService).thenReturn(Map.empty)
-    when(mockFandFConnector.getTrustedHelper()(any())).thenReturn(Future.successful(None))
   }
 
   "The Wrapper data API" must {
     "return the normal menu without BTA config when wrapper-data and sca-wrapper are the same versions" in {
-      when(mockAuthConnector.authorise[AuthRetrievals](any(), any())(any(), any())) thenReturn Future.successful(
-        Some(nino) ~
-          Individual ~
-          Enrolments(Set.empty) ~
-          Some(Credentials("id", "type")) ~
-          Some(CredentialStrength.strong) ~
-          ConfidenceLevel.L200 ~
-          Some(Name(Some("chaz"), Some("dingle"))) ~
-          Some("profileUrl")
-      )
-
       val version: String = appConfig.versionNum
       val lang: String = "en"
       val result = controller.wrapperData(lang, version)(fakeRequest)
@@ -165,7 +153,6 @@ class ScaWrapperControllerSpec extends BaseSpec {
 
     "return the normal menu config with BTA when wrapper-data and sca-wrapper are the same versions" in {
       wsClient.url(baseUrl).withHttpHeaders("Authorization" -> "Bearer123").get()
-
       when(mockAuthConnector.authorise[AuthRetrievals](any(), any())(any(), any())) thenReturn Future.successful(
         Some(nino) ~
           Individual ~
@@ -174,6 +161,7 @@ class ScaWrapperControllerSpec extends BaseSpec {
           Some(CredentialStrength.strong) ~
           ConfidenceLevel.L200 ~
           Some(Name(Some("chaz"), Some("dingle"))) ~
+          None ~
           Some("profileUrl")
       )
       val version: String = appConfig.versionNum
@@ -252,7 +240,6 @@ class ScaWrapperControllerSpec extends BaseSpec {
     }
 
     "return an empty list of Webchat pages when there are no matching pages for calling service" in {
-
       val returnedPages = List(Webchat("Banner Page", "skin", true), Webchat("Second Page", "skin", false))
 
       val fakeRequest: FakeRequest[AnyContentAsEmpty.type] = FakeRequest("", "")
