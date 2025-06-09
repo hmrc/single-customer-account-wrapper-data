@@ -74,23 +74,22 @@ class AuthActionImpl @Inject() (
 
     implicit val hc: HeaderCarrier = HeaderCarrierConverter.fromRequest(request) // session!
 
-    fandFConnector
-      .getTrustedHelper()
-      .flatMap { trustedHelper =>
-        authorised().retrieve(
-          Retrievals.nino and
-            Retrievals.affinityGroup and
-            Retrievals.allEnrolments and
-            Retrievals.credentials and
-            Retrievals.credentialStrength and
-            Retrievals.confidenceLevel and
-            Retrievals.name and
-            Retrievals.profile
-        ) {
-          case nino ~ _ ~ Enrolments(enrolments) ~ Some(credentials) ~ Some(CredentialStrength.strong) ~
-              GTOE200(confidenceLevel) ~ name ~ _ =>
-            logger.info(s"[AuthActionImpl][invokeBlock] Successful confidence level 200+ request")
-
+    authorised().retrieve(
+      Retrievals.nino and
+        Retrievals.affinityGroup and
+        Retrievals.allEnrolments and
+        Retrievals.credentials and
+        Retrievals.credentialStrength and
+        Retrievals.confidenceLevel and
+        Retrievals.name and
+        Retrievals.profile
+    ) {
+      case nino ~ _ ~ Enrolments(enrolments) ~ Some(credentials) ~ Some(CredentialStrength.strong) ~
+          GTOE200(confidenceLevel) ~ name ~ _ =>
+        logger.info(s"[AuthActionImpl][invokeBlock] Successful confidence level 200+ request")
+        fandFConnector
+          .getTrustedHelper()
+          .flatMap { trustedHelper =>
             val authenticatedRequest = authRequestBuilder(
               request,
               nino,
@@ -101,37 +100,36 @@ class AuthActionImpl @Inject() (
               name
             )
             block(authenticatedRequest)
-          case nino ~ _ ~ _ ~ Some(credentials) ~ _ ~ LT200(confidenceLevel) ~ name ~ _ =>
-            logger.warn(s"[AuthActionImpl][invokeBlock] Confidence level 50 request")
-            val authenticatedRequest = authRequestBuilder(
-              request,
-              nino,
-              trustedHelper,
-              credentials,
-              confidenceLevel,
-              Set.empty[Enrolment],
-              name
-            )
-            block(authenticatedRequest)
+          }
+      case nino ~ _ ~ _ ~ Some(credentials) ~ _ ~ LT200(confidenceLevel) ~ name ~ _ =>
+        logger.warn(s"[AuthActionImpl][invokeBlock] Confidence level 50 request")
+        val authenticatedRequest = authRequestBuilder(
+          request,
+          nino,
+          None,
+          credentials,
+          confidenceLevel,
+          Set.empty[Enrolment],
+          name
+        )
+        block(authenticatedRequest)
 
-          case _ => throw new RuntimeException("Invalid combination of retrievals")
-        }
-      }
-  }
-    .recoverWith { case authException =>
-      logger.error(s"[AuthActionImpl][invokeBlock] exception: ${authException.getMessage}")
-      val unauthenticatedRequest = AuthenticatedRequest[A](
-        None,
-        Credentials("invalid", "invalid"),
-        ConfidenceLevel.L50,
-        None,
-        None,
-        None,
-        Set.empty,
-        request
-      )
-      block(unauthenticatedRequest)
+      case _ => throw new RuntimeException("Invalid combination of retrievals")
     }
+  }.recoverWith { case authException =>
+    logger.error(s"[AuthActionImpl][invokeBlock] exception: ${authException.getMessage}")
+    val unauthenticatedRequest = AuthenticatedRequest[A](
+      None,
+      Credentials("invalid", "invalid"),
+      ConfidenceLevel.L50,
+      None,
+      None,
+      None,
+      Set.empty,
+      request
+    )
+    block(unauthenticatedRequest)
+  }
 
   override def parser: BodyParser[AnyContent] = cc.parsers.defaultBodyParser
 }
