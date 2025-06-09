@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2025 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -77,10 +77,10 @@ trait BaseSpec
   lazy val FakeAuthAction: AuthAction                                 = mock[AuthAction]
 
   type AuthRetrievals =
-    Option[String] ~ AffinityGroup ~ Enrolments ~ Option[Credentials] ~ Option[String] ~ ConfidenceLevel ~
+    Option[String] ~ Option[AffinityGroup] ~ Enrolments ~ Option[Credentials] ~ Option[String] ~ ConfidenceLevel ~
       Option[Name] ~ Option[String]
 
-  def fakeSaEnrolments(utr: String, enrolmentState: String) = Set(
+  def fakeSaEnrolments(utr: String, enrolmentState: String): Set[Enrolment] = Set(
     Enrolment("IR-SA", Seq(EnrolmentIdentifier("UTR", utr)), enrolmentState)
   )
 

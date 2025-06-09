@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2025 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,7 @@ package uk.gov.hmrc.singlecustomeraccountwrapperdata.controllers
 
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.{reset, when}
-import org.scalatest.matchers.should.Matchers.convertToAnyShouldWrapper
+import org.scalatest.matchers.should.Matchers.shouldBe
 import play.api.http.HeaderNames
 import play.api.i18n.{Lang, MessagesApi}
 import play.api.libs.json.Json
@@ -39,7 +39,6 @@ import uk.gov.hmrc.singlecustomeraccountwrapperdata.fixtures.RetrievalOps.Ops
 import uk.gov.hmrc.singlecustomeraccountwrapperdata.models.MenuItemConfig
 import uk.gov.hmrc.singlecustomeraccountwrapperdata.models.auth.AuthenticatedRequest
 
-import scala.annotation.nowarn
 import scala.concurrent.Future
 
 class ScaWrapperControllerSpec extends BaseSpec {
@@ -48,7 +47,6 @@ class ScaWrapperControllerSpec extends BaseSpec {
   lazy val appConfig: AppConfig     = injector.instanceOf[AppConfig]
 
   lazy val wrapperConfig: WrapperConfig = new WrapperConfig(appConfig)(messagesApi) {
-    @nowarn("msg=parameter (request|lang) in method fallbackMenuConfig is never used")
     override def fallbackMenuConfig()(implicit
       request: AuthenticatedRequest[AnyContent],
       lang: Lang
@@ -125,7 +123,7 @@ class ScaWrapperControllerSpec extends BaseSpec {
   wsClient.url(baseUrl).withHttpHeaders("Authorization" -> "Bearer123").get()
   when(mockAuthConnector.authorise[AuthRetrievals](any(), any())(any(), any())) thenReturn Future.successful(
     Some(nino) ~
-      Individual ~
+      Some(Individual) ~
       Enrolments(fakeSaEnrolments("11111111", "Activated")) ~
       Some(Credentials("id", "type")) ~
       Some(CredentialStrength.strong) ~
@@ -146,7 +144,7 @@ class ScaWrapperControllerSpec extends BaseSpec {
     "return the normal menu without BTA config when wrapper-data and sca-wrapper are the same versions" in {
       when(mockAuthConnector.authorise[AuthRetrievals](any(), any())(any(), any())) thenReturn Future.successful(
         Some(nino) ~
-          Individual ~
+          Some(Individual) ~
           Enrolments(Set.empty) ~
           Some(Credentials("id", "type")) ~
           Some(CredentialStrength.strong) ~
@@ -168,7 +166,7 @@ class ScaWrapperControllerSpec extends BaseSpec {
 
       when(mockAuthConnector.authorise[AuthRetrievals](any(), any())(any(), any())) thenReturn Future.successful(
         Some(nino) ~
-          Individual ~
+          Some(Individual) ~
           Enrolments(fakeSaEnrolments("11111111", "Activated")) ~
           Some(Credentials("id", "type")) ~
           Some(CredentialStrength.strong) ~
