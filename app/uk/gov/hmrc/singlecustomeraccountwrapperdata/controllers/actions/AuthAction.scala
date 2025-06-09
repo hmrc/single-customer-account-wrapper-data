@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2025 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -65,7 +65,7 @@ class AuthActionImpl @Inject() (val authConnector: AuthConnector, cc: Controller
         logger.info(s"[AuthActionImpl][invokeBlock] Successful confidence level 200+ request")
 
         val authenticatedRequest = AuthenticatedRequest[A](
-          trustedHelper.fold(nino.map(domain.Nino))(helper => Some(domain.Nino(helper.principalNino))),
+          trustedHelper.fold(nino.map(domain.Nino))(helper => Some(domain.Nino(helper.principalNino.get))),
           credentials,
           confidenceLevel,
           Some(trustedHelper.fold(name.getOrElse(Name(None, None)))(helper => Name(Some(helper.principalName), None))),

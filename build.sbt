@@ -15,6 +15,7 @@ lazy val microservice = Project("single-customer-account-wrapper-data", file("."
       "-language:noAutoTupling",
       "-Werror",
       "-Wconf:msg=Flag.*repeatedly:s",
+      "-Wconf:msg=value name in trait Retrievals is deprecated:s",
       "-Wconf:src=routes/.*:s"
     ),
     PlayKeys.playDefaultPort := 8422
