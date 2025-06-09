@@ -17,7 +17,8 @@
 package uk.gov.hmrc.singlecustomeraccountwrapperdata.controllers.auth
 
 import org.mockito.ArgumentMatchers.any
-import org.mockito.Mockito.when
+import org.mockito.Mockito.{reset, times, verify, when}
+import org.scalatest.BeforeAndAfterEach
 import play.api.Application
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.mvc._
@@ -37,7 +38,7 @@ import uk.gov.hmrc.singlecustomeraccountwrapperdata.utils.RetrievalOps._
 import scala.concurrent.Future
 import scala.util.Random
 
-class AuthActionSpec extends BaseSpec {
+class AuthActionSpec extends BaseSpec with BeforeAndAfterEach {
 
   override implicit lazy val app: Application = GuiceApplicationBuilder()
 //    .overrides(bind[AuthConnector].toInstance(mockAuthConnector))
@@ -90,6 +91,11 @@ class AuthActionSpec extends BaseSpec {
     new Harness(authAction)
   }
 
+  override def beforeEach() = {
+    reset(mockFandFConnector)
+    reset(mockAuthConnector)
+  }
+
   "An authenticated request" must {
     "be created when a user has a nino and SA enrolment" in {
       when(mockFandFConnector.getTrustedHelper()(any())).thenReturn(Future.successful(None))
@@ -132,39 +138,39 @@ class AuthActionSpec extends BaseSpec {
 
   "An unauthenticated request" must {
     "be created when a user has less than 200 CL" in {
-      when(mockFandFConnector.getTrustedHelper()(any())).thenReturn(Future.successful(None))
       val controller = retrievals(confidenceLevel = ConfidenceLevel.L50)
 
       val result = controller.onPageLoad(FakeRequest("", ""))
       status(result) mustBe OK
       contentAsString(result) must include(nino)
+      verify(mockFandFConnector, times(0)).getTrustedHelper()(any())
     }
 
     "be created when a user has more than 50 CL but has a weak cred strength" in {
-      when(mockFandFConnector.getTrustedHelper()(any())).thenReturn(Future.successful(None))
       val controller = retrievals(confidenceLevel = ConfidenceLevel.L200, credentialStrength = CredentialStrength.weak)
 
       val result = controller.onPageLoad(FakeRequest("", ""))
       status(result) mustBe OK
       contentAsString(result) must include("fail")
+      verify(mockFandFConnector, times(0)).getTrustedHelper()(any())
     }
 
     "be created when a user has a weak cred strength" in {
-      when(mockFandFConnector.getTrustedHelper()(any())).thenReturn(Future.successful(None))
-      val controller = retrievals()
+      val controller = retrievals(credentialStrength = CredentialStrength.weak)
 
       val result = controller.onPageLoad(FakeRequest("", ""))
       status(result) mustBe OK
-      contentAsString(result) must include(nino)
+      contentAsString(result) must include("fail")
+      verify(mockFandFConnector, times(0)).getTrustedHelper()(any())
     }
 
     "be created when an auth exception occurs" in {
-      when(mockFandFConnector.getTrustedHelper()(any())).thenReturn(Future.successful(None))
       val controller = retrievals(exception = Some(MissingBearerToken("error")))
 
       val result = controller.onPageLoad(FakeRequest("", ""))
       status(result) mustBe OK
       contentAsString(result) must include("fail")
+      verify(mockFandFConnector, times(0)).getTrustedHelper()(any())
     }
   }
 
