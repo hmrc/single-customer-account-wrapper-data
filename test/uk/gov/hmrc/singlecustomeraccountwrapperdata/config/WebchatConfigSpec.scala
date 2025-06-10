@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 HM Revenue & Customs
+ * Copyright 2025 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ package uk.gov.hmrc.singlecustomeraccountwrapperdata.config
 
 import play.api.Application
 import play.api.inject.guice.GuiceApplicationBuilder
+import play.api.libs.json.Json
 import uk.gov.hmrc.singlecustomeraccountwrapperdata.fixtures.BaseSpec
 
 class WebchatConfigSpec extends BaseSpec {
@@ -52,6 +53,16 @@ class WebchatConfigSpec extends BaseSpec {
         "test-frontend"                       -> List(testWebchat1, testWebchat2),
         "second-frontend"                     -> List(testWebchat3)
       )
+    }
+  }
+
+  "Webchat" must {
+    "serialize and deserialize correctly" in {
+      val original = Webchat("/example-uri/.*", "popup", isEnabled = true)
+
+      val json         = Json.toJson(original)
+      val deserialized = json.as[Webchat]
+      deserialized mustBe original
     }
   }
 }

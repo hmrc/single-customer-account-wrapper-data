@@ -17,7 +17,8 @@
 package uk.gov.hmrc.singlecustomeraccountwrapperdata.connectors
 
 import com.github.tomakehurst.wiremock.client.WireMock
-import com.github.tomakehurst.wiremock.client.WireMock._
+import com.github.tomakehurst.wiremock.client.WireMock.*
+import com.github.tomakehurst.wiremock.http.Fault
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.matchers.must.Matchers
 import org.scalatest.wordspec.AsyncWordSpec
@@ -110,5 +111,15 @@ class FandFConnectorSpec
       result mustBe None
     }
 
+    "return None when there is an exception" in {
+      server.stubFor(
+        WireMock
+          .get(urlEqualTo("/delegation/get"))
+          .willReturn(aResponse().withFault(Fault.EMPTY_RESPONSE))
+      )
+      val result = Await.result(connector.getTrustedHelper(), Duration.Inf)
+
+      result mustBe None
+    }
   }
 }
