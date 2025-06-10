@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2025 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,7 +36,9 @@ class AuthActionImpl @Inject() (
   fandFConnector: FandFConnector
 )(implicit
   val executionContext: ExecutionContext
-) extends AuthorisedFunctions with AuthAction with Logging {
+) extends AuthorisedFunctions
+    with AuthAction
+    with Logging {
 
   object GTOE200 {
     def unapply(confLevel: ConfidenceLevel): Option[ConfidenceLevel] =
@@ -58,7 +60,7 @@ class AuthActionImpl @Inject() (
     name: Option[Name]
   ): AuthenticatedRequest[A] =
     AuthenticatedRequest[A](
-      trustedHelper.fold(nino.map(domain.Nino))(helper => Some(domain.Nino(helper.principalNino))),
+      trustedHelper.fold(nino.map(domain.Nino))(helper => Some(domain.Nino(helper.principalNino.get))),
       credentials,
       confidenceLevel,
       Some(
@@ -136,4 +138,5 @@ class AuthActionImpl @Inject() (
 
 @ImplementedBy(classOf[AuthActionImpl])
 trait AuthAction
-    extends ActionBuilder[AuthenticatedRequest, AnyContent] with ActionFunction[Request, AuthenticatedRequest] {}
+    extends ActionBuilder[AuthenticatedRequest, AnyContent]
+    with ActionFunction[Request, AuthenticatedRequest] {}

@@ -42,14 +42,14 @@ class FandFConnector @Inject() (
       .map { httpResponse =>
         httpResponse.status match {
           case NOT_FOUND => None
-          case OK =>
+          case OK        =>
             Try(httpResponse.json.as[TrustedHelper](uk.gov.hmrc.auth.core.retrieve.v2.TrustedHelper.reads)) match {
               case Success(trustedHelper) => Some(trustedHelper)
-              case Failure(ex) =>
+              case Failure(ex)            =>
                 logger.error(s"Failed to parse TrustedHelper", ex)
                 None
             }
-          case status =>
+          case status    =>
             val ex = UpstreamErrorResponse("Invalid response status", status)
             logger.error(ex.message, ex)
             None

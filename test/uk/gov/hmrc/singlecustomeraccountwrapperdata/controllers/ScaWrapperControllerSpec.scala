@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2025 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,7 @@ package uk.gov.hmrc.singlecustomeraccountwrapperdata.controllers
 
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.{reset, when}
-import org.scalatest.matchers.should.Matchers.convertToAnyShouldWrapper
+import org.scalatest.matchers.should.Matchers.shouldBe
 import play.api.http.HeaderNames
 import play.api.i18n.{Lang, MessagesApi}
 import play.api.libs.json.Json
@@ -39,16 +39,14 @@ import uk.gov.hmrc.singlecustomeraccountwrapperdata.fixtures.RetrievalOps.Ops
 import uk.gov.hmrc.singlecustomeraccountwrapperdata.models.MenuItemConfig
 import uk.gov.hmrc.singlecustomeraccountwrapperdata.models.auth.AuthenticatedRequest
 
-import scala.annotation.nowarn
 import scala.concurrent.Future
 
 class ScaWrapperControllerSpec extends BaseSpec {
 
   lazy val messagesApi: MessagesApi = injector.instanceOf[MessagesApi]
-  lazy val appConfig: AppConfig = injector.instanceOf[AppConfig]
+  lazy val appConfig: AppConfig     = injector.instanceOf[AppConfig]
 
   lazy val wrapperConfig: WrapperConfig = new WrapperConfig(appConfig)(messagesApi) {
-    @nowarn("msg=parameter (request|lang) in method fallbackMenuConfig is never used")
     override def fallbackMenuConfig()(implicit
       request: AuthenticatedRequest[AnyContent],
       lang: Lang
@@ -102,12 +100,12 @@ class ScaWrapperControllerSpec extends BaseSpec {
       )
   }
 
-  override implicit val hc: HeaderCarrier = HeaderCarrier(authorization = Some(Authorization("Bearer 123")))
-  val mockAuthConnector: AuthConnector = mock[AuthConnector]
-  val mockFandFConnector: FandFConnector = mock[FandFConnector]
-  lazy val authAction = new AuthActionImpl(mockAuthConnector, messagesControllerComponents, mockFandFConnector)
+  override implicit val hc: HeaderCarrier    = HeaderCarrier(authorization = Some(Authorization("Bearer 123")))
+  val mockAuthConnector: AuthConnector       = mock[AuthConnector]
+  val mockFandFConnector: FandFConnector     = mock[FandFConnector]
+  lazy val authAction                        = new AuthActionImpl(mockAuthConnector, messagesControllerComponents, mockFandFConnector)
   lazy val mockBannerConfig: UrBannersConfig = mock[UrBannersConfig]
-  lazy val mockWebchatConfig: WebchatConfig = mock[WebchatConfig]
+  lazy val mockWebchatConfig: WebchatConfig  = mock[WebchatConfig]
 
   private val controller =
     new ScaWrapperController(
@@ -118,14 +116,14 @@ class ScaWrapperControllerSpec extends BaseSpec {
       mockWebchatConfig,
       authAction
     )
-  private val wsClient = app.injector.instanceOf[WSClient]
-  private val baseUrl = "http://localhost:8422/single-customer-account-wrapper-data/wrapper-data/:version"
-  val nino = "AA999999A"
+  private val wsClient   = app.injector.instanceOf[WSClient]
+  private val baseUrl    = "http://localhost:8422/single-customer-account-wrapper-data/wrapper-data/:version"
+  val nino               = "AA999999A"
 
   wsClient.url(baseUrl).withHttpHeaders("Authorization" -> "Bearer123").get()
   when(mockAuthConnector.authorise[AuthRetrievals](any(), any())(any(), any())) thenReturn Future.successful(
     Some(nino) ~
-      Individual ~
+      Some(Individual) ~
       Enrolments(fakeSaEnrolments("11111111", "Activated")) ~
       Some(Credentials("id", "type")) ~
       Some(CredentialStrength.strong) ~
@@ -146,7 +144,7 @@ class ScaWrapperControllerSpec extends BaseSpec {
     "return the normal menu without BTA config when wrapper-data and sca-wrapper are the same versions" in {
       when(mockAuthConnector.authorise[AuthRetrievals](any(), any())(any(), any())) thenReturn Future.successful(
         Some(nino) ~
-          Individual ~
+          Some(Individual) ~
           Enrolments(Set.empty) ~
           Some(Credentials("id", "type")) ~
           Some(CredentialStrength.strong) ~
@@ -156,8 +154,8 @@ class ScaWrapperControllerSpec extends BaseSpec {
       )
 
       val version: String = appConfig.versionNum
-      val lang: String = "en"
-      val result = controller.wrapperData(lang, version)(fakeRequest)
+      val lang: String    = "en"
+      val result          = controller.wrapperData(lang, version)(fakeRequest)
       status(result) shouldBe 200
       contentAsString(result).contains("Profile and settings") mustBe true
       contentAsString(result).contains("Business tax account") mustBe false
@@ -168,7 +166,7 @@ class ScaWrapperControllerSpec extends BaseSpec {
 
       when(mockAuthConnector.authorise[AuthRetrievals](any(), any())(any(), any())) thenReturn Future.successful(
         Some(nino) ~
-          Individual ~
+          Some(Individual) ~
           Enrolments(fakeSaEnrolments("11111111", "Activated")) ~
           Some(Credentials("id", "type")) ~
           Some(CredentialStrength.strong) ~
@@ -177,8 +175,8 @@ class ScaWrapperControllerSpec extends BaseSpec {
           Some("profileUrl")
       )
       val version: String = appConfig.versionNum
-      val lang: String = "en"
-      val result = controller.wrapperData(lang, version)(fakeRequest)
+      val lang: String    = "en"
+      val result          = controller.wrapperData(lang, version)(fakeRequest)
       status(result) shouldBe 200
       contentAsString(result).contains("Business tax account") mustBe true
     }
@@ -186,8 +184,8 @@ class ScaWrapperControllerSpec extends BaseSpec {
     "return the fallback menu config when wrapper-data and sca-wrapper are not the same versions" in {
 
       val version: String = "0.0.1"
-      val lang: String = "en"
-      val result = controller.wrapperData(lang, version)(fakeRequest)
+      val lang: String    = "en"
+      val result          = controller.wrapperData(lang, version)(fakeRequest)
       status(result) shouldBe 200
       contentAsString(result).contains("Fallback1") mustBe true
     }
@@ -205,8 +203,8 @@ class ScaWrapperControllerSpec extends BaseSpec {
         Map("test-frontend" -> List(returnedBanner))
       )
       val version: String = appConfig.versionNum
-      val lang: String = "en"
-      val result = controller.wrapperData(lang, version)(fakeRequest)
+      val lang: String    = "en"
+      val result          = controller.wrapperData(lang, version)(fakeRequest)
 
       contentAsString(result).contains(Json.toJson(returnedBanner).toString) mustBe true
     }
@@ -225,8 +223,8 @@ class ScaWrapperControllerSpec extends BaseSpec {
       )
 
       val version: String = appConfig.versionNum
-      val lang: String = "en"
-      val result = controller.wrapperData(lang, version)(fakeRequest)
+      val lang: String    = "en"
+      val result          = controller.wrapperData(lang, version)(fakeRequest)
 
       contentAsString(result).contains("\"urBanners\":[]") mustBe true
     }
@@ -245,8 +243,8 @@ class ScaWrapperControllerSpec extends BaseSpec {
       )
 
       val version: String = appConfig.versionNum
-      val lang: String = "en"
-      val result = controller.wrapperData(lang, version)(fakeRequest)
+      val lang: String    = "en"
+      val result          = controller.wrapperData(lang, version)(fakeRequest)
 
       contentAsString(result).contains(Json.toJson(returnedPages).toString) mustBe true
     }
@@ -266,8 +264,8 @@ class ScaWrapperControllerSpec extends BaseSpec {
       )
 
       val version: String = appConfig.versionNum
-      val lang: String = "en"
-      val result = controller.wrapperData(lang, version)(fakeRequest)
+      val lang: String    = "en"
+      val result          = controller.wrapperData(lang, version)(fakeRequest)
 
       contentAsString(result).contains("\"webchatPages\":[]") mustBe true
     }

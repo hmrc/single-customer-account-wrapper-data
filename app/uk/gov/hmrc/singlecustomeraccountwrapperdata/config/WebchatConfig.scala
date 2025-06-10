@@ -32,15 +32,15 @@ class WebchatConfig @Inject() (configuration: Configuration) extends Logging {
   def getWebchatUrlsByService: Map[String, List[Webchat]] = {
     val config = configuration.underlying
 
-    val maxItems: Int = configuration.get[Int]("webchat.max-items")
+    val maxItems: Int    = configuration.get[Int]("webchat.max-items")
     val numberOfServices = (0 until maxItems).takeWhile(i => config.hasPathOrNull(s"webchat.$i")).size
     (0 until numberOfServices).map { indexService =>
-      val service = configuration.get[String](s"webchat.$indexService.service")
-      val numberOfPages = (0 until maxItems).takeWhile(j => config.hasPathOrNull(s"webchat.$indexService.$j")).size
+      val service                    = configuration.get[String](s"webchat.$indexService.service")
+      val numberOfPages              = (0 until maxItems).takeWhile(j => config.hasPathOrNull(s"webchat.$indexService.$j")).size
       val webchatUrls: List[Webchat] = (0 until numberOfPages).map { indexPage =>
-        val pattern = configuration.get[String](s"webchat.$indexService.$indexPage.pattern")
+        val pattern     = configuration.get[String](s"webchat.$indexService.$indexPage.pattern")
         val skinElement = configuration.get[String](s"webchat.$indexService.$indexPage.skinElement")
-        val isEnabled = configuration.get[Boolean](s"webchat.$indexService.$indexPage.isEnabled")
+        val isEnabled   = configuration.get[Boolean](s"webchat.$indexService.$indexPage.isEnabled")
         Webchat(pattern, skinElement, isEnabled)
       }.toList
       service -> webchatUrls

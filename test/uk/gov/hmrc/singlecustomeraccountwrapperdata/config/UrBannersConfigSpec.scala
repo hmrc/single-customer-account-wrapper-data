@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 HM Revenue & Customs
+ * Copyright 2025 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ package uk.gov.hmrc.singlecustomeraccountwrapperdata.config
 
 import play.api.Application
 import play.api.inject.guice.GuiceApplicationBuilder
+import play.api.libs.json.Json
 import uk.gov.hmrc.singlecustomeraccountwrapperdata.fixtures.BaseSpec
 
 class UrBannersConfigSpec extends BaseSpec {
@@ -49,9 +50,19 @@ class UrBannersConfigSpec extends BaseSpec {
     "return a list of banners for all services" in {
       bannersConfig.getUrBannersByService must be
       Map(
-        "test-frontend"   -> List(testBanner1, testBanner2),
-        "second-frontend" -> List(testBanner3)
+        "test-frontend"                     -> List(testBanner1, testBanner2),
+        "second-frontend"                   -> List(testBanner3)
       )
+    }
+  }
+
+  "UrBanner" must {
+    "serialize and deserialize correctly" in {
+      val original = UrBanner("/example", "https://link1.example.com", isEnabled = true)
+
+      val json         = Json.toJson(original)
+      val deserialized = json.as[UrBanner]
+      deserialized mustBe original
     }
   }
 }

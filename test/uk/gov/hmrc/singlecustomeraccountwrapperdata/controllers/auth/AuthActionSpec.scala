@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2025 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -41,31 +41,32 @@ import scala.util.Random
 class AuthActionSpec extends BaseSpec with BeforeAndAfterEach {
 
   override implicit lazy val app: Application = GuiceApplicationBuilder()
-//    .overrides(bind[AuthConnector].toInstance(mockAuthConnector))
     .build()
 
-  val mockAuthConnector = mock[AuthConnector]
-  val mockFandFConnector: FandFConnector = mock[FandFConnector]
+  val mockAuthConnector: AuthConnector           = mock[AuthConnector]
+  val mockFandFConnector: FandFConnector         = mock[FandFConnector]
   def controllerComponents: ControllerComponents = app.injector.instanceOf[ControllerComponents]
 
   class Harness(authAction: AuthAction) extends InjectedController {
-    def onPageLoad: Action[AnyContent] = authAction { request: AuthenticatedRequest[AnyContent] =>
+    def onPageLoad: Action[AnyContent] = authAction { (request: AuthenticatedRequest[AnyContent]) =>
       Ok(
         s"Nino: ${request.nino.getOrElse("fail").toString}, Enrolments: ${request.enrolments.toString}," +
           s"trustedHelper: ${request.trustedHelper}, profileUrl: ${request.profile}"
       )
     }
   }
-  val fakeNino = Nino(new Generator(new Random()).nextNino.nino)
-  val nino = fakeNino.nino
-  val fakeCredentials = Credentials("foo", "bar")
-  val fakeCredentialStrength = CredentialStrength.strong
-  val fakeConfidenceLevel = ConfidenceLevel.L200
+  val fakeNino: Nino                       = Nino(new Generator(new Random()).nextNino.nino)
+  val nino: String                         = fakeNino.nino
+  val fakeCredentials: Credentials         = Credentials("foo", "bar")
+  val fakeCredentialStrength: String       = CredentialStrength.strong
+  val fakeConfidenceLevel: ConfidenceLevel = ConfidenceLevel.L200
 
-  def fakeSaEnrolments(utr: String) = Set(Enrolment("IR-SA", Seq(EnrolmentIdentifier("UTR", utr)), "Activated"))
+  def fakeSaEnrolments(utr: String): Set[Enrolment] = Set(
+    Enrolment("IR-SA", Seq(EnrolmentIdentifier("UTR", utr)), "Activated")
+  )
 
   def retrievals(
-    nino: Option[String] = Some(nino.toString),
+    nino: Option[String] = Some(nino),
     affinityGroup: AffinityGroup = Individual,
     saEnrolments: Enrolments = Enrolments(Set.empty),
     credentialStrength: String = CredentialStrength.strong,
@@ -79,7 +80,7 @@ class AuthActionSpec extends BaseSpec with BeforeAndAfterEach {
       )
     } else {
       when(mockAuthConnector.authorise[AuthRetrievals](any(), any())(any(), any())) thenReturn Future.successful(
-        nino ~ affinityGroup ~ saEnrolments ~ Some(fakeCredentials) ~ Some(
+        nino ~ Some(affinityGroup) ~ saEnrolments ~ Some(fakeCredentials) ~ Some(
           credentialStrength
         ) ~ confidenceLevel ~ None ~ profileUrl
       )
@@ -91,7 +92,7 @@ class AuthActionSpec extends BaseSpec with BeforeAndAfterEach {
     new Harness(authAction)
   }
 
-  override def beforeEach() = {
+  override def beforeEach(): Unit = {
     reset(mockFandFConnector)
     reset(mockAuthConnector)
   }
@@ -113,7 +114,7 @@ class AuthActionSpec extends BaseSpec with BeforeAndAfterEach {
       val utr = new SaUtrGenerator().nextSaUtr.utr
 
       when(mockFandFConnector.getTrustedHelper()(any()))
-        .thenReturn(Future.successful(Some(TrustedHelper("chaz", "dingle", "link", nino))))
+        .thenReturn(Future.successful(Some(TrustedHelper("chaz", "dingle", "link", Some(nino)))))
 
       val controller = retrievals(
         saEnrolments = Enrolments(fakeSaEnrolments(utr))

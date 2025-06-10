@@ -40,14 +40,14 @@ class UrBannersConfig @Inject() (configuration: Configuration) extends Logging {
   def getUrBannersByService: Map[String, List[UrBanner]] = {
     val config = configuration.underlying
 
-    val maxItems: Int = configuration.get[Int]("ur-banners.max-items")
+    val maxItems: Int    = configuration.get[Int]("ur-banners.max-items")
     val numberOfServices = (0 until maxItems).takeWhile(i => config.hasPathOrNull(s"ur-banners.$i")).size
     (0 until numberOfServices).map { indexService =>
-      val service = configuration.get[String](s"ur-banners.$indexService.service")
-      val numberOfPages = (0 until maxItems).takeWhile(j => config.hasPathOrNull(s"ur-banners.$indexService.$j")).size
+      val service                   = configuration.get[String](s"ur-banners.$indexService.service")
+      val numberOfPages             = (0 until maxItems).takeWhile(j => config.hasPathOrNull(s"ur-banners.$indexService.$j")).size
       val urBanners: List[UrBanner] = (0 until numberOfPages).map { indexPage =>
-        val page = configuration.get[String](s"ur-banners.$indexService.$indexPage.page")
-        val link = configuration.get[String](s"ur-banners.$indexService.$indexPage.link")
+        val page      = configuration.get[String](s"ur-banners.$indexService.$indexPage.page")
+        val link      = configuration.get[String](s"ur-banners.$indexService.$indexPage.link")
         val isEnabled = configuration.get[Boolean](s"ur-banners.$indexService.$indexPage.isEnabled")
         UrBanner(page, link, isEnabled)
       }.toList

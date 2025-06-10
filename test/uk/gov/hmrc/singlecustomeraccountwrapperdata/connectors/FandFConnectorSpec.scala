@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2025 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,8 @@
 package uk.gov.hmrc.singlecustomeraccountwrapperdata.connectors
 
 import com.github.tomakehurst.wiremock.client.WireMock
-import com.github.tomakehurst.wiremock.client.WireMock._
+import com.github.tomakehurst.wiremock.client.WireMock.*
+import com.github.tomakehurst.wiremock.http.Fault
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.matchers.must.Matchers
 import org.scalatest.wordspec.AsyncWordSpec
@@ -32,7 +33,11 @@ import scala.concurrent.Await
 import scala.concurrent.duration.Duration
 
 class FandFConnectorSpec
-    extends AsyncWordSpec with Matchers with WireMockHelper with HttpClientV2Support with MockitoSugar
+    extends AsyncWordSpec
+    with Matchers
+    with WireMockHelper
+    with HttpClientV2Support
+    with MockitoSugar
     with ScalaFutures {
 
   override protected def portConfigKeys: String = "microservice.services.fandf.port"
@@ -40,7 +45,7 @@ class FandFConnectorSpec
   private val trustedHelperNino = new Generator().nextNino
 
   val trustedHelper: TrustedHelper =
-    TrustedHelper("principal Name", "attorneyName", "returnLink", trustedHelperNino.nino)
+    TrustedHelper("principal Name", "attorneyName", "returnLink", Some(trustedHelperNino.nino))
 
   implicit val hc: HeaderCarrier = HeaderCarrier()
 
@@ -106,5 +111,15 @@ class FandFConnectorSpec
       result mustBe None
     }
 
+    "return None when there is an exception" in {
+      server.stubFor(
+        WireMock
+          .get(urlEqualTo("/delegation/get"))
+          .willReturn(aResponse().withFault(Fault.EMPTY_RESPONSE))
+      )
+      val result = Await.result(connector.getTrustedHelper(), Duration.Inf)
+
+      result mustBe None
+    }
   }
 }

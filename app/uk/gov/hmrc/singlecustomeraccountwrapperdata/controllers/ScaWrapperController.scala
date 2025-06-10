@@ -37,17 +37,19 @@ class ScaWrapperController @Inject() (
   urBannersConfig: UrBannersConfig,
   webchatConfig: WebchatConfig,
   authenticate: AuthAction
-) extends BackendController(cc) with I18nSupport with Logging {
+) extends BackendController(cc)
+    with I18nSupport
+    with Logging {
 
   def wrapperData(lang: String, version: String): Action[AnyContent] = authenticate { implicit request =>
     implicit val playLang: Lang = Lang(lang)
 
     val wrapperDataVersion: String = appConfig.versionNum.take(1)
-    val libraryVersion = version.take(1)
-    val httpUserAgent = request.headers.get(HeaderNames.USER_AGENT)
-    val urBanners: List[UrBanner] =
+    val libraryVersion             = version.take(1)
+    val httpUserAgent              = request.headers.get(HeaderNames.USER_AGENT)
+    val urBanners: List[UrBanner]  =
       httpUserAgent.flatMap(urBannersConfig.getUrBannersByService.get(_)).getOrElse(List.empty)
-    val webChatPages = httpUserAgent.flatMap(webchatConfig.getWebchatUrlsByService.get(_)).getOrElse(List.empty)
+    val webChatPages               = httpUserAgent.flatMap(webchatConfig.getWebchatUrlsByService.get(_)).getOrElse(List.empty)
 
     val response = if (wrapperDataVersion == libraryVersion) {
       logger.info(
