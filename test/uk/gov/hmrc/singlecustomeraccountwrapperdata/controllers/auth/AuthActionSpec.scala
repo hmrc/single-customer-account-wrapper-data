@@ -133,6 +133,16 @@ class AuthActionSpec extends BaseSpec with BeforeAndAfterEach {
       val result = controller.onPageLoad(FakeRequest("", ""))
       status(result) mustBe OK
       contentAsString(result) must include(nino)
+      verify(mockFandFConnector, times(1)).getTrustedHelper()(any())
+    }
+
+    "be created when a user has no nino and not call trusted helpers" in {
+      val controller = retrievals(nino = None)
+
+      val result = controller.onPageLoad(FakeRequest("", ""))
+      status(result) mustBe OK
+      contentAsString(result) must include("Nino: fail")
+      verify(mockFandFConnector, times(0)).getTrustedHelper()(any())
     }
   }
 
