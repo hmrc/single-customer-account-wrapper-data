@@ -32,7 +32,11 @@ import scala.concurrent.duration.DurationInt
 import scala.language.postfixOps
 
 class MessageConnectorSpec
-    extends AsyncWordSpec with Matchers with WireMockHelper with HttpClientV2Support with MockitoSugar
+    extends AsyncWordSpec
+    with Matchers
+    with WireMockHelper
+    with HttpClientV2Support
+    with MockitoSugar
     with ScalaFutures {
 
   import MessageConnectorSpec._

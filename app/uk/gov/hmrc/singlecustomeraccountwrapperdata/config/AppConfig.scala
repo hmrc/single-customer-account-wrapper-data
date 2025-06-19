@@ -30,14 +30,14 @@ class AppConfig @Inject() (servicesConfig: ServicesConfig, configuration: Config
   val messageServiceUrl: String = servicesConfig.baseUrl(serviceName = "secure-message")
 
   // fe-host to redirect on browser
-  private lazy val pertaxHost: String = getExternalUrl("pertax-frontend.host").getOrElse("")
-  lazy val trackingHost: String = getExternalUrl("tracking-frontend.host").getOrElse("")
+  private lazy val pertaxHost: String             = getExternalUrl("pertax-frontend.host").getOrElse("")
+  lazy val trackingHost: String                   = getExternalUrl("tracking-frontend.host").getOrElse("")
   private lazy val businessTaxAccountHost: String = getExternalUrl("business-tax-frontend.host").getOrElse("")
-  private lazy val caHost: String = getExternalUrl("ca-frontend.host").getOrElse("")
+  private lazy val caHost: String                 = getExternalUrl("ca-frontend.host").getOrElse("")
 
-  val pertaxUrl: String = s"$pertaxHost/personal-account"
+  val pertaxUrl: String             = s"$pertaxHost/personal-account"
   val businessTaxAccountUrl: String = s"$businessTaxAccountHost/business-account"
-  val defaultSignoutUrl: String = s"$caHost/gg/sign-out"
+  val defaultSignoutUrl: String     = s"$caHost/gg/sign-out"
 
   private def getExternalUrl(key: String): Option[String] =
     configuration.getOptional[String](s"external-url.$key")

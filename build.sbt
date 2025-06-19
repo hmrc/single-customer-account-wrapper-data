@@ -1,8 +1,19 @@
+import scoverage.ScoverageKeys
 import uk.gov.hmrc.DefaultBuildSettings
 
-ThisBuild / majorVersion := 1
-ThisBuild / scalaVersion := "2.13.12"
+ThisBuild / majorVersion := 2
+ThisBuild / scalaVersion := "3.3.6"
 ThisBuild / scalafmtOnCompile := true
+
+val scoverageSettings: Seq[Setting[_]] = Seq(
+  ScoverageKeys.coverageExcludedPackages := "<empty>;Reverse.*;uk.gov.hmrc.BuildInfo;app.*;prod.*;.*Routes.*;testOnly.*;testOnlyDoNotUseInAppConf.*;.*\\$anon.*",
+  ScoverageKeys.coverageMinimumStmtTotal := 92,
+  ScoverageKeys.coverageMinimumBranchTotal := 70,
+  ScoverageKeys.coverageFailOnMinimum := true,
+  ScoverageKeys.coverageHighlighting := true
+)
+
+addCommandAlias("report", ";clean; coverage; test; it/test; coverageReport")
 
 lazy val microservice = Project("single-customer-account-wrapper-data", file("."))
   .enablePlugins(play.sbt.PlayScala, SbtDistributablesPlugin)
@@ -10,21 +21,19 @@ lazy val microservice = Project("single-customer-account-wrapper-data", file("."
   .settings(
     libraryDependencies ++= AppDependencies.compile ++ AppDependencies.test,
     scalacOptions ++= Seq(
-      "-unchecked",
       "-feature",
-      "-Xlint:_",
+      "-unchecked",
+      "-language:noAutoTupling",
       "-Werror",
-      "-Wdead-code",
-      "-Wunused:_",
-      "-Wextra-implicit",
+      "-Wconf:msg=Flag.*repeatedly:s",
+      "-Wconf:msg=value name in trait Retrievals is deprecated:s",
       "-Wconf:src=routes/.*:s"
     ),
-    PlayKeys.playDefaultPort := 8422
+    PlayKeys.playDefaultPort := 8422,
+    scoverageSettings
   )
-  .settings(CodeCoverageSettings.settings: _*)
 
 Test / parallelExecution := true
-Test / scalacOptions --= Seq("-Wdead-code", "-Wvalue-discard")
 
 lazy val it = project
   .enablePlugins(PlayScala)
