@@ -23,7 +23,8 @@ case class WrapperDataResponse(
   menuItemConfig: scala.collection.Seq[MenuItemConfig],
   ptaMinMenuConfig: PtaMinMenuConfig,
   urBanners: List[UrBanner],
-  webchatPages: List[Webchat]
+  webchatPages: List[Webchat],
+  unreadMessageCount: Option[Int]
 )
 
 object WrapperDataResponse {

@@ -22,27 +22,44 @@ import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 import uk.gov.hmrc.singlecustomeraccountwrapperdata.config.*
+import uk.gov.hmrc.singlecustomeraccountwrapperdata.connectors.MessageConnector
 import uk.gov.hmrc.singlecustomeraccountwrapperdata.controllers.actions.AuthAction
-import uk.gov.hmrc.singlecustomeraccountwrapperdata.models.WrapperDataResponse
 
 import javax.inject.{Inject, Singleton}
+import scala.concurrent.ExecutionContext
 
 @Singleton()
-class ScaWrapperController @Inject() (
+class ScaWrapperWithMessagesController @Inject() (
   cc: ControllerComponents,
   val appConfig: AppConfig,
   val wrapperConfig: WrapperConfig,
   val urBannersConfig: UrBannersConfig,
   val webchatConfig: WebchatConfig,
+  messageConnector: MessageConnector,
   authenticate: AuthAction
-) extends BackendController(cc)
+)(implicit ec: ExecutionContext)
+    extends BackendController(cc)
     with I18nSupport
     with Logging
     with WrapperDataBuilder {
 
-  def wrapperData(lang: String, version: String): Action[AnyContent] = authenticate { implicit request =>
-    implicit val playLang: Lang = Lang(lang)
-    val wrapperData             = buildWrapperData(playLang, version)
-    Ok(Json.toJson(wrapperData))
+  def wrapperDataWithMessages(lang: String, version: String): Action[AnyContent] = authenticate.async {
+    implicit request =>
+      implicit val playLang: Lang = Lang(lang)
+      val wrapperData             = buildWrapperData(playLang, version)
+
+      logger.info(s"[ScaWrapperWithMessagesController][wrapperDataWithMessages] Requesting unread message count")
+
+      messageConnector.getUnreadMessageCount
+        .map { maybeCount =>
+          Ok(Json.toJson(wrapperData.copy(unreadMessageCount = maybeCount)))
+        }
+        .recover { case ex: Exception =>
+          logger.error(
+            "[ScaWrapperWithMessagesController][wrapperDataWithMessages] Failed to fetch unread message count, returning wrapper data only",
+            ex
+          )
+          Ok(Json.toJson(wrapperData))
+        }
   }
 }
