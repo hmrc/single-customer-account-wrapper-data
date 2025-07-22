@@ -27,7 +27,7 @@ import play.api.test.Helpers.*
 import uk.gov.hmrc.auth.core.AffinityGroup.Individual
 import uk.gov.hmrc.auth.core.retrieve.{Credentials, Name}
 import uk.gov.hmrc.auth.core.{AuthConnector, ConfidenceLevel, CredentialStrength, Enrolments}
-import uk.gov.hmrc.http.{Authorization, HeaderCarrier}
+import uk.gov.hmrc.http.{Authorization, HeaderCarrier, UpstreamErrorResponse}
 import uk.gov.hmrc.singlecustomeraccountwrapperdata.config.{AppConfig, UrBannersConfig, WebchatConfig, WrapperConfig}
 import uk.gov.hmrc.singlecustomeraccountwrapperdata.connectors.{FandFConnector, MessageConnector}
 import uk.gov.hmrc.singlecustomeraccountwrapperdata.controllers.actions.AuthActionImpl
@@ -109,5 +109,27 @@ class ScaWrapperWithMessagesControllerSpec extends BaseSpec with Matchers with B
       val json   = Json.parse(contentAsString(result))
       (json \ "unreadMessageCount").isEmpty mustBe true
     }
+  }
+
+  "return wrapper data gracefully when UpstreamErrorResponse has client error (400–497)" in {
+    val ex = UpstreamErrorResponse("Client Error", 404, 404)
+    when(mockMessageConnector.getUnreadMessageCount(any(), any()))
+      .thenReturn(Future.failed(ex))
+
+    val result = controller.wrapperDataWithMessages("en", appConfig.versionNum)(fakeRequest)
+    status(result) mustBe OK
+    val json   = Json.parse(contentAsString(result))
+    (json \ "unreadMessageCount").isEmpty mustBe true
+  }
+
+  "return wrapper data gracefully when UpstreamErrorResponse has server error (≥ 499)" in {
+    val ex = UpstreamErrorResponse("Server Error", 503, 503)
+    when(mockMessageConnector.getUnreadMessageCount(any(), any()))
+      .thenReturn(Future.failed(ex))
+
+    val result = controller.wrapperDataWithMessages("en", appConfig.versionNum)(fakeRequest)
+    status(result) mustBe OK
+    val json   = Json.parse(contentAsString(result))
+    (json \ "unreadMessageCount").isEmpty mustBe true
   }
 }

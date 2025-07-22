@@ -20,6 +20,7 @@ import play.api.Logging
 import play.api.i18n.{I18nSupport, Lang}
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
+import uk.gov.hmrc.http.UpstreamErrorResponse
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 import uk.gov.hmrc.singlecustomeraccountwrapperdata.config.*
 import uk.gov.hmrc.singlecustomeraccountwrapperdata.connectors.MessageConnector
@@ -54,12 +55,26 @@ class ScaWrapperWithMessagesController @Inject() (
         .map { maybeCount =>
           Ok(Json.toJson(wrapperData.copy(unreadMessageCount = maybeCount)))
         }
-        .recover { case ex: Exception =>
-          logger.error(
-            "[ScaWrapperWithMessagesController][wrapperDataWithMessages] Failed to fetch unread message count, returning wrapper data only",
-            ex
-          )
-          Ok(Json.toJson(wrapperData))
+        .recover {
+          case e: UpstreamErrorResponse if e.statusCode >= 400 && e.statusCode < 498 =>
+            logger.error(
+              s"[ScaWrapperWithMessagesController][wrapperDataWithMessages] Client error from upstream with status ${e.statusCode}",
+              e
+            )
+            Ok(Json.toJson(wrapperData))
+
+          case e: UpstreamErrorResponse if e.statusCode >= 499 =>
+            logger.warn(
+              s"[ScaWrapperWithMessagesController][wrapperDataWithMessages] Upstream server error with status ${e.statusCode}: ${e.message}"
+            )
+            Ok(Json.toJson(wrapperData))
+
+          case ex: Throwable =>
+            logger.error(
+              "[ScaWrapperWithMessagesController][wrapperDataWithMessages] Unexpected error when fetching unread message count",
+              ex
+            )
+            Ok(Json.toJson(wrapperData))
         }
   }
 }
