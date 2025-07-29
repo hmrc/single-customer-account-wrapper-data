@@ -28,6 +28,7 @@ import uk.gov.hmrc.singlecustomeraccountwrapperdata.controllers.actions.AuthActi
 
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.ExecutionContext
+import scala.util.control.NonFatal
 
 @Singleton()
 class ScaWrapperWithMessagesController @Inject() (
@@ -68,8 +69,7 @@ class ScaWrapperWithMessagesController @Inject() (
               s"[ScaWrapperWithMessagesController][wrapperDataWithMessages] Upstream server error with status ${e.statusCode}: ${e.message}"
             )
             Ok(Json.toJson(wrapperData))
-
-          case ex: Throwable =>
+          case NonFatal(ex)                                    =>
             logger.error(
               "[ScaWrapperWithMessagesController][wrapperDataWithMessages] Unexpected error when fetching unread message count",
               ex
