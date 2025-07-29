@@ -26,10 +26,10 @@ import uk.gov.hmrc.singlecustomeraccountwrapperdata.models.auth.AuthenticatedReq
 
 trait WrapperDataBuilder extends Logging {
 
-  val appConfig: AppConfig
-  val wrapperConfig: WrapperConfig
-  val urBannersConfig: UrBannersConfig
-  val webchatConfig: WebchatConfig
+  protected val appConfig: AppConfig
+  protected val wrapperConfig: WrapperConfig
+  protected val urBannersConfig: UrBannersConfig
+  protected val webchatConfig: WebchatConfig
 
   def buildWrapperData(lang: Lang, version: String)(implicit
     request: AuthenticatedRequest[AnyContent]

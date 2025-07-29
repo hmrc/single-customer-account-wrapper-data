@@ -30,10 +30,10 @@ import javax.inject.{Inject, Singleton}
 @Singleton()
 class ScaWrapperController @Inject() (
   cc: ControllerComponents,
-  val appConfig: AppConfig,
-  val wrapperConfig: WrapperConfig,
-  val urBannersConfig: UrBannersConfig,
-  val webchatConfig: WebchatConfig,
+  protected val appConfig: AppConfig,
+  protected val wrapperConfig: WrapperConfig,
+  protected val urBannersConfig: UrBannersConfig,
+  protected val webchatConfig: WebchatConfig,
   authenticate: AuthAction
 ) extends BackendController(cc)
     with I18nSupport
