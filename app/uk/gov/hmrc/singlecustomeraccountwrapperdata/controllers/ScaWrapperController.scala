@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2025 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,60 +17,32 @@
 package uk.gov.hmrc.singlecustomeraccountwrapperdata.controllers
 
 import play.api.Logging
-import play.api.http.HeaderNames
 import play.api.i18n.{I18nSupport, Lang}
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
-import uk.gov.hmrc.singlecustomeraccountwrapperdata.config.{AppConfig, UrBanner, UrBannersConfig, WebchatConfig, WrapperConfig}
+import uk.gov.hmrc.singlecustomeraccountwrapperdata.config.*
 import uk.gov.hmrc.singlecustomeraccountwrapperdata.controllers.actions.AuthAction
 import uk.gov.hmrc.singlecustomeraccountwrapperdata.models.WrapperDataResponse
-import uk.gov.hmrc.singlecustomeraccountwrapperdata.models.auth.AuthenticatedRequest
 
 import javax.inject.{Inject, Singleton}
 
 @Singleton()
 class ScaWrapperController @Inject() (
   cc: ControllerComponents,
-  appConfig: AppConfig,
-  wrapperConfig: WrapperConfig,
-  urBannersConfig: UrBannersConfig,
-  webchatConfig: WebchatConfig,
+  protected val appConfig: AppConfig,
+  protected val wrapperConfig: WrapperConfig,
+  protected val urBannersConfig: UrBannersConfig,
+  protected val webchatConfig: WebchatConfig,
   authenticate: AuthAction
 ) extends BackendController(cc)
     with I18nSupport
-    with Logging {
+    with Logging
+    with WrapperDataBuilder {
 
   def wrapperData(lang: String, version: String): Action[AnyContent] = authenticate { implicit request =>
     implicit val playLang: Lang = Lang(lang)
-
-    val wrapperDataVersion: String = appConfig.versionNum.take(1)
-    val libraryVersion             = version.take(1)
-    val httpUserAgent              = request.headers.get(HeaderNames.USER_AGENT)
-    val urBanners: List[UrBanner]  =
-      httpUserAgent.flatMap(urBannersConfig.getUrBannersByService.get(_)).getOrElse(List.empty)
-    val webChatPages               = httpUserAgent.flatMap(webchatConfig.getWebchatUrlsByService.get(_)).getOrElse(List.empty)
-
-    val response = if (wrapperDataVersion == libraryVersion) {
-      logger.info(
-        s"[ScaWrapperController][wrapperData] Wrapper data successful request- version:$wrapperDataVersion, lang: $playLang"
-      )
-      WrapperDataResponse(wrapperConfig.menuConfig(), wrapperConfig.ptaMinMenuConfig, urBanners, webChatPages)
-    } else {
-      logger.warn(
-        s"[ScaWrapperController][wrapperData] Wrapper data fallback request- version:$wrapperDataVersion, library version: $libraryVersion, lang: $playLang"
-      )
-      wrapperDataResponseVersionFallback()
-    }
-    Ok(Json.toJson(response))
+    val wrapperData             = buildWrapperData(playLang, version)
+    Ok(Json.toJson(wrapperData))
   }
-
-  private def wrapperDataResponseVersionFallback()(implicit request: AuthenticatedRequest[AnyContent], lang: Lang) =
-    WrapperDataResponse(
-      wrapperConfig.fallbackMenuConfig(),
-      wrapperConfig.ptaMinMenuConfig,
-      List.empty,
-      List.empty
-    )
-
 }

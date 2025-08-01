@@ -23,7 +23,7 @@ import uk.gov.hmrc.singlecustomeraccountwrapperdata.config.{UrBanner, Webchat}
 
 class ModelJsonFormatSpec extends AnyWordSpec with Matchers {
 
-  private val menutItemConfig = MenuItemConfig(
+  private val menuItemConfig = MenuItemConfig(
     id = "menu",
     text = "Profile",
     href = "http://localhost:9232/personal-account/messages",
@@ -37,22 +37,17 @@ class ModelJsonFormatSpec extends AnyWordSpec with Matchers {
 
   "MenuItemConfig" must {
     "serialize and deserialize correctly" in {
-      val original = menutItemConfig
-
-      val json         = Json.toJson(original)
+      val json         = Json.toJson(menuItemConfig)
       val deserialized = json.as[MenuItemConfig]
-
-      deserialized mustBe original
+      deserialized mustBe menuItemConfig
     }
   }
 
   "MessageCount" must {
     "serialize and deserialize correctly" in {
-      val original = MessageCount(total = 10, unread = 3)
-
+      val original     = MessageCount(total = 10, unread = 3)
       val json         = Json.toJson(original)
       val deserialized = json.as[MessageCount]
-
       deserialized mustBe original
     }
   }
@@ -61,37 +56,44 @@ class ModelJsonFormatSpec extends AnyWordSpec with Matchers {
     "serialize and deserialize correctly" in {
       val messageCount = MessageCount(total = 10, unread = 3)
       val original     = MessageCountResponse(messageCount)
-
       val json         = Json.toJson(original)
       val deserialized = json.as[MessageCountResponse]
-
       deserialized mustBe original
     }
   }
 
   "PtaMinMenuConfig" must {
     "serialize and deserialize correctly" in {
-      val original = ptaMinMenuConfig
-
-      val json         = Json.toJson(original)
+      val json         = Json.toJson(ptaMinMenuConfig)
       val deserialized = json.as[PtaMinMenuConfig]
-
-      deserialized mustBe original
+      deserialized mustBe ptaMinMenuConfig
     }
   }
 
   "WrapperDataResponse" must {
-    "serialize and deserialize correctly" in {
-      val original = WrapperDataResponse(
-        menuItemConfig = Seq(menutItemConfig),
+    "serialize and deserialize correctly with unreadMessageCount None" in {
+      val original     = WrapperDataResponse(
+        menuItemConfig = Seq(menuItemConfig),
         ptaMinMenuConfig = ptaMinMenuConfig,
         urBanners = List(UrBanner("/example", "https://link1.example.com", isEnabled = true)),
-        webchatPages = List(Webchat("/example-uri/.*", "popup", isEnabled = true))
+        webchatPages = List(Webchat("/example-uri/.*", "popup", isEnabled = true)),
+        unreadMessageCount = None
       )
-
       val json         = Json.toJson(original)
       val deserialized = json.as[WrapperDataResponse]
+      deserialized mustBe original
+    }
 
+    "serialize and deserialize correctly with unreadMessageCount Some" in {
+      val original     = WrapperDataResponse(
+        menuItemConfig = Seq(menuItemConfig),
+        ptaMinMenuConfig = ptaMinMenuConfig,
+        urBanners = List(UrBanner("/example", "https://link1.example.com", isEnabled = true)),
+        webchatPages = List(Webchat("/example-uri/.*", "popup", isEnabled = true)),
+        unreadMessageCount = Some(5)
+      )
+      val json         = Json.toJson(original)
+      val deserialized = json.as[WrapperDataResponse]
       deserialized mustBe original
     }
   }
