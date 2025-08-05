@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2025 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,8 @@ import com.google.inject.{Inject, Singleton}
 import play.api.libs.json.{Json, OFormat}
 import play.api.{Configuration, Logging}
 
+import scala.jdk.CollectionConverters._
+
 case class Webchat(pattern: String, skinElement: String, isEnabled: Boolean)
 
 object Webchat {
@@ -30,20 +32,18 @@ object Webchat {
 class WebchatConfig @Inject() (configuration: Configuration) extends Logging {
 
   def getWebchatUrlsByService: Map[String, List[Webchat]] = {
-    val config = configuration.underlying
+    val configList = configuration.underlying.getConfigList("webchat.items").asScala.toList
 
-    val maxItems: Int    = configuration.get[Int]("webchat.max-items")
-    val numberOfServices = (0 until maxItems).takeWhile(i => config.hasPathOrNull(s"webchat.$i")).size
-    (0 until numberOfServices).map { indexService =>
-      val service                    = configuration.get[String](s"webchat.$indexService.service")
-      val numberOfPages              = (0 until maxItems).takeWhile(j => config.hasPathOrNull(s"webchat.$indexService.$j")).size
-      val webchatUrls: List[Webchat] = (0 until numberOfPages).map { indexPage =>
-        val pattern     = configuration.get[String](s"webchat.$indexService.$indexPage.pattern")
-        val skinElement = configuration.get[String](s"webchat.$indexService.$indexPage.skinElement")
-        val isEnabled   = configuration.get[Boolean](s"webchat.$indexService.$indexPage.isEnabled")
-        Webchat(pattern, skinElement, isEnabled)
-      }.toList
-      service -> webchatUrls
+    configList.map { serviceConf =>
+      val service                    = serviceConf.getString("service")
+      val webChatList: List[Webchat] = serviceConf.getConfigList("entries").asScala.toList.map { entryConf =>
+        Webchat(
+          pattern = entryConf.getString("pattern"),
+          skinElement = entryConf.getString("skinElement"),
+          isEnabled = entryConf.getBoolean("isEnabled")
+        )
+      }
+      service -> webChatList
     }.toMap
   }
 }
