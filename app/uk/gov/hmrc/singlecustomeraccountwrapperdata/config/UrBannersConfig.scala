@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2025 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,8 @@ import com.google.inject.{Inject, Singleton}
 import play.api.libs.json.{Json, OFormat}
 import play.api.{Configuration, Logging}
 
+import scala.jdk.CollectionConverters._
+
 case class UrBanner(page: String, link: String, isEnabled: Boolean)
 
 object UrBanner {
@@ -38,21 +40,17 @@ Map(
 class UrBannersConfig @Inject() (configuration: Configuration) extends Logging {
 
   def getUrBannersByService: Map[String, List[UrBanner]] = {
-    val config = configuration.underlying
-
-    val maxItems: Int    = configuration.get[Int]("ur-banners.max-items")
-    val numberOfServices = (0 until maxItems).takeWhile(i => config.hasPathOrNull(s"ur-banners.$i")).size
-    (0 until numberOfServices).map { indexService =>
-      val service                   = configuration.get[String](s"ur-banners.$indexService.service")
-      val numberOfPages             = (0 until maxItems).takeWhile(j => config.hasPathOrNull(s"ur-banners.$indexService.$j")).size
-      val urBanners: List[UrBanner] = (0 until numberOfPages).map { indexPage =>
-        val page      = configuration.get[String](s"ur-banners.$indexService.$indexPage.page")
-        val link      = configuration.get[String](s"ur-banners.$indexService.$indexPage.link")
-        val isEnabled = configuration.get[Boolean](s"ur-banners.$indexService.$indexPage.isEnabled")
-        UrBanner(page, link, isEnabled)
-      }.toList
-
-      service -> urBanners
+    val configList = configuration.underlying.getConfigList("ur-banners.items").asScala.toList
+    configList.map { serviceConf =>
+      val service                      = serviceConf.getString("service")
+      val urBannerList: List[UrBanner] = serviceConf.getConfigList("entries").asScala.toList.map { entryConf =>
+        UrBanner(
+          page = entryConf.getString("page"),
+          link = entryConf.getString("link"),
+          isEnabled = entryConf.getBoolean("isEnabled")
+        )
+      }
+      service -> urBannerList
     }.toMap
   }
 }

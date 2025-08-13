@@ -23,24 +23,24 @@ import uk.gov.hmrc.singlecustomeraccountwrapperdata.fixtures.BaseSpec
 
 class WebchatConfigSpec extends BaseSpec {
 
-  lazy val testWebchat1: Webchat = Webchat("/home", "skin", true)
-  lazy val testWebchat2: Webchat = Webchat("/another-page", "Alternate", false)
-  lazy val testWebchat3: Webchat = Webchat("/second-service", "skin", true)
+  lazy val testWebchat1: Webchat = Webchat("^/pattern1", "skin", true)
+  lazy val testWebchat2: Webchat = Webchat("^/pattern2/sub.*", "Alternate", false)
+  lazy val testWebchat3: Webchat = Webchat("^/pattern3.*", "skin", true)
 
   override implicit lazy val app: Application =
     GuiceApplicationBuilder()
       .configure(
-        "webchat.0.service"       -> "test-frontend",
-        "webchat.0.0.pattern"     -> testWebchat1.pattern,
-        "webchat.0.0.skinElement" -> testWebchat1.skinElement,
-        "webchat.0.0.isEnabled"   -> testWebchat1.isEnabled,
-        "webchat.0.1.pattern"     -> testWebchat2.pattern,
-        "webchat.0.1.skinElement" -> testWebchat2.skinElement,
-        "webchat.0.1.isEnabled"   -> testWebchat2.isEnabled,
-        "webchat.1.service"       -> "second-frontend",
-        "webchat.1.0.pattern"     -> testWebchat3.pattern,
-        "webchat.1.0.skinElement" -> testWebchat3.skinElement,
-        "webchat.1.0.isEnabled"   -> testWebchat3.isEnabled
+        "webchat.items.0.service"               -> "test-frontend-1",
+        "webchat.items.0.entries.0.pattern"     -> testWebchat1.pattern,
+        "webchat.items.0.entries.0.skinElement" -> testWebchat1.skinElement,
+        "webchat.items.0.entries.0.isEnabled"   -> testWebchat1.isEnabled,
+        "webchat.items.0.entries.1.pattern"     -> testWebchat2.pattern,
+        "webchat.items.0.entries.1.skinElement" -> testWebchat2.skinElement,
+        "webchat.items.0.entries.1.isEnabled"   -> testWebchat2.isEnabled,
+        "webchat.items.1.service"               -> "test-frontend-2",
+        "webchat.items.1.entries.0.pattern"     -> testWebchat3.pattern,
+        "webchat.items.1.entries.0.skinElement" -> testWebchat3.skinElement,
+        "webchat.items.1.entries.0.isEnabled"   -> testWebchat3.isEnabled
       )
       .build()
 
@@ -48,11 +48,20 @@ class WebchatConfigSpec extends BaseSpec {
 
   "WebchatConfig" must {
     "return a list of webchat pages for all services" in {
-      webchatConfig.getWebchatUrlsByService must be
-      Map(
-        "test-frontend"                       -> List(testWebchat1, testWebchat2),
-        "second-frontend"                     -> List(testWebchat3)
-      )
+      webchatConfig.getWebchatUrlsByService mustBe
+        Map(
+          "test-frontend-1" -> List(testWebchat1, testWebchat2),
+          "test-frontend-2" -> List(testWebchat3)
+        )
+    }
+
+    "return empty map when no items are present" in {
+      val appWithEmptyConfig = GuiceApplicationBuilder()
+        .configure("webchat.items" -> List.empty)
+        .build()
+
+      val emptyConfig = appWithEmptyConfig.injector.instanceOf[WebchatConfig]
+      emptyConfig.getWebchatUrlsByService mustBe Map.empty
     }
   }
 
