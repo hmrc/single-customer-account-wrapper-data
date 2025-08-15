@@ -23,9 +23,9 @@ import uk.gov.hmrc.singlecustomeraccountwrapperdata.fixtures.BaseSpec
 
 class WebchatConfigSpec extends BaseSpec {
 
-  lazy val testWebchat1: Webchat = Webchat("^/pattern1", "skin", true)
-  lazy val testWebchat2: Webchat = Webchat("^/pattern2/sub.*", "Alternate", false)
-  lazy val testWebchat3: Webchat = Webchat("^/pattern3.*", "skin", true)
+  lazy val testWebchat1: Webchat = Webchat("^/pattern1", "skin", true, "loadWebChatContainer")
+  lazy val testWebchat2: Webchat = Webchat("^/pattern2/sub.*", "Alternate", false, "loadHMRCChatSkinElement")
+  lazy val testWebchat3: Webchat = Webchat("^/pattern3.*", "skin", true, "loadWebChatContainer")
 
   override implicit lazy val app: Application =
     GuiceApplicationBuilder()
@@ -34,13 +34,16 @@ class WebchatConfigSpec extends BaseSpec {
         "webchat.items.0.entries.0.pattern"     -> testWebchat1.pattern,
         "webchat.items.0.entries.0.skinElement" -> testWebchat1.skinElement,
         "webchat.items.0.entries.0.isEnabled"   -> testWebchat1.isEnabled,
+        "webchat.items.0.entries.0.chatType"    -> "loadWebChatContainer",
         "webchat.items.0.entries.1.pattern"     -> testWebchat2.pattern,
         "webchat.items.0.entries.1.skinElement" -> testWebchat2.skinElement,
         "webchat.items.0.entries.1.isEnabled"   -> testWebchat2.isEnabled,
+        "webchat.items.0.entries.1.chatType"    -> "loadHMRCChatSkinElement",
         "webchat.items.1.service"               -> "test-frontend-2",
         "webchat.items.1.entries.0.pattern"     -> testWebchat3.pattern,
         "webchat.items.1.entries.0.skinElement" -> testWebchat3.skinElement,
-        "webchat.items.1.entries.0.isEnabled"   -> testWebchat3.isEnabled
+        "webchat.items.1.entries.0.isEnabled"   -> testWebchat3.isEnabled,
+        "webchat.items.1.entries.0.chatType"    -> "loadWebChatContainer"
       )
       .build()
 
@@ -67,7 +70,7 @@ class WebchatConfigSpec extends BaseSpec {
 
   "Webchat" must {
     "serialize and deserialize correctly" in {
-      val original = Webchat("/example-uri/.*", "popup", isEnabled = true)
+      val original = Webchat("/example-uri/.*", "popup", isEnabled = true, "loadWebChatContainer")
 
       val json         = Json.toJson(original)
       val deserialized = json.as[Webchat]
