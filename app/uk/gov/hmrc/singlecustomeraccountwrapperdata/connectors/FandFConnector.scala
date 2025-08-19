@@ -50,7 +50,7 @@ class FandFConnector @Inject() (
                 None
             }
           case status    =>
-            val ex = UpstreamErrorResponse("Invalid response status", status)
+            val ex = UpstreamErrorResponse(s"Invalid response status $status", status)
             logger.error(ex.message, ex)
             None
         }
