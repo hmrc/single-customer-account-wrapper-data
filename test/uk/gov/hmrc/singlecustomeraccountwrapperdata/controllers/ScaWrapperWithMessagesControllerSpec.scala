@@ -25,6 +25,7 @@ import play.api.i18n.MessagesApi
 import play.api.libs.json.Json
 import play.api.test.Helpers.*
 import uk.gov.hmrc.auth.core.AffinityGroup.Individual
+import uk.gov.hmrc.auth.core.retrieve.v2.TrustedHelper
 import uk.gov.hmrc.auth.core.retrieve.{Credentials, Name}
 import uk.gov.hmrc.auth.core.{AuthConnector, ConfidenceLevel, CredentialStrength, Enrolments}
 import uk.gov.hmrc.http.{Authorization, HeaderCarrier, UpstreamErrorResponse}
@@ -33,6 +34,7 @@ import uk.gov.hmrc.singlecustomeraccountwrapperdata.connectors.{FandFConnector, 
 import uk.gov.hmrc.singlecustomeraccountwrapperdata.controllers.actions.AuthActionImpl
 import uk.gov.hmrc.singlecustomeraccountwrapperdata.fixtures.BaseSpec
 import uk.gov.hmrc.singlecustomeraccountwrapperdata.fixtures.RetrievalOps.Ops
+import uk.gov.hmrc.singlecustomeraccountwrapperdata.models.WrapperDataResponse
 
 import scala.concurrent.Future
 
@@ -89,6 +91,20 @@ class ScaWrapperWithMessagesControllerSpec extends BaseSpec with Matchers with B
       status(result) mustBe OK
       val json   = Json.parse(contentAsString(result))
       (json \ "unreadMessageCount").as[Int] mustBe 3
+    }
+    "return wrapper data with trusted helper when available" in {
+      val th = TrustedHelper("chaz", "dingle", "link", Some(nino))
+      when(mockMessageConnector.getUnreadMessageCount(any(), any())).thenReturn(Future.successful(Some(3)))
+      when(mockFandFConnector.getTrustedHelper()(any()))
+        .thenReturn(Future.successful(Some(th)))
+
+      val result = controller.wrapperDataWithMessages("en", appConfig.versionNum)(fakeRequest)
+      status(result) mustBe OK
+      val json   = Json.parse(contentAsString(result))
+
+      val wdr = json.as[WrapperDataResponse]
+      wdr.unreadMessageCount mustBe Some(3)
+      wdr.trustedHelper mustBe Some(th)
     }
 
     "return wrapper data with no unreadMessageCount when no messages are unread" in {

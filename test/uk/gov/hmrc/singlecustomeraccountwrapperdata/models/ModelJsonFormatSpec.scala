@@ -19,6 +19,7 @@ package uk.gov.hmrc.singlecustomeraccountwrapperdata.models
 import org.scalatest.matchers.must.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 import play.api.libs.json.Json
+import uk.gov.hmrc.auth.core.retrieve.v2.TrustedHelper
 import uk.gov.hmrc.singlecustomeraccountwrapperdata.config.{UrBanner, Webchat}
 
 class ModelJsonFormatSpec extends AnyWordSpec with Matchers {
@@ -77,11 +78,28 @@ class ModelJsonFormatSpec extends AnyWordSpec with Matchers {
         ptaMinMenuConfig = ptaMinMenuConfig,
         urBanners = List(UrBanner("/example", "https://link1.example.com", isEnabled = true)),
         webchatPages = List(Webchat("/example-uri/.*", "popup", isEnabled = true)),
-        unreadMessageCount = None
+        unreadMessageCount = None,
+        trustedHelper = None
       )
       val json         = Json.toJson(original)
       val deserialized = json.as[WrapperDataResponse]
       deserialized mustBe original
+    }
+
+    "serialize and deserialize correctly with unreadMessageCount None and trusted helper" in {
+      val th           = TrustedHelper("principal", "attorney", "url", Some("test"))
+      val original     = WrapperDataResponse(
+        menuItemConfig = Seq(menuItemConfig),
+        ptaMinMenuConfig = ptaMinMenuConfig,
+        urBanners = List(UrBanner("/example", "https://link1.example.com", isEnabled = true)),
+        webchatPages = List(Webchat("/example-uri/.*", "popup", isEnabled = true)),
+        unreadMessageCount = None,
+        trustedHelper = Some(th)
+      )
+      val json         = Json.toJson(original)
+      val deserialized = json.as[WrapperDataResponse]
+      deserialized mustBe original
+      deserialized.trustedHelper mustBe Some(th)
     }
 
     "serialize and deserialize correctly with unreadMessageCount Some" in {
@@ -90,7 +108,8 @@ class ModelJsonFormatSpec extends AnyWordSpec with Matchers {
         ptaMinMenuConfig = ptaMinMenuConfig,
         urBanners = List(UrBanner("/example", "https://link1.example.com", isEnabled = true)),
         webchatPages = List(Webchat("/example-uri/.*", "popup", isEnabled = true)),
-        unreadMessageCount = Some(5)
+        unreadMessageCount = Some(5),
+        trustedHelper = None
       )
       val json         = Json.toJson(original)
       val deserialized = json.as[WrapperDataResponse]
