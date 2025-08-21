@@ -25,6 +25,7 @@ import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 import uk.gov.hmrc.singlecustomeraccountwrapperdata.config.*
 import uk.gov.hmrc.singlecustomeraccountwrapperdata.connectors.MessageConnector
 import uk.gov.hmrc.singlecustomeraccountwrapperdata.controllers.actions.AuthAction
+import uk.gov.hmrc.singlecustomeraccountwrapperdata.models.WrapperDataResponse
 
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.ExecutionContext
@@ -47,8 +48,8 @@ class ScaWrapperWithMessagesController @Inject() (
 
   def wrapperDataWithMessages(lang: String, version: String): Action[AnyContent] = authenticate.async {
     implicit request =>
-      implicit val playLang: Lang = Lang(lang)
-      val wrapperData             = buildWrapperData(playLang, version)
+      implicit val playLang: Lang          = Lang(lang)
+      val wrapperData: WrapperDataResponse = buildWrapperData(playLang, version)
 
       logger.info(s"[ScaWrapperWithMessagesController][wrapperDataWithMessages] Requesting unread message count")
 

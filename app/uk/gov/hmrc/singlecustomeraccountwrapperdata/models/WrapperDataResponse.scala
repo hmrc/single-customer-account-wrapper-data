@@ -16,7 +16,8 @@
 
 package uk.gov.hmrc.singlecustomeraccountwrapperdata.models
 
-import play.api.libs.json.{Json, OFormat}
+import play.api.libs.json.*
+import uk.gov.hmrc.auth.core.retrieve.v2.TrustedHelper
 import uk.gov.hmrc.singlecustomeraccountwrapperdata.config.{UrBanner, Webchat}
 
 case class WrapperDataResponse(
@@ -24,9 +25,13 @@ case class WrapperDataResponse(
   ptaMinMenuConfig: PtaMinMenuConfig,
   urBanners: List[UrBanner],
   webchatPages: List[Webchat],
-  unreadMessageCount: Option[Int]
+  unreadMessageCount: Option[Int],
+  trustedHelper: Option[TrustedHelper]
 )
 
 object WrapperDataResponse {
-  implicit val format: OFormat[WrapperDataResponse] = Json.format[WrapperDataResponse]
+  implicit val format: OFormat[WrapperDataResponse] = {
+    implicit val format: Format[TrustedHelper] = Json.format[TrustedHelper]
+    Json.format[WrapperDataResponse]
+  }
 }
