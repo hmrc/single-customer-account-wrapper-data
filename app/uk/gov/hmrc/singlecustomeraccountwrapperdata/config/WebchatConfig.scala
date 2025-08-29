@@ -22,7 +22,7 @@ import play.api.{Configuration, Logging}
 
 import scala.jdk.CollectionConverters._
 
-case class Webchat(pattern: String, skinElement: String, isEnabled: Boolean)
+case class Webchat(pattern: String, skinElement: String, isEnabled: Boolean, chatType: String)
 
 object Webchat {
   implicit val format: OFormat[Webchat] = Json.format[Webchat]
@@ -40,7 +40,8 @@ class WebchatConfig @Inject() (configuration: Configuration) extends Logging {
         Webchat(
           pattern = entryConf.getString("pattern"),
           skinElement = entryConf.getString("skinElement"),
-          isEnabled = entryConf.getBoolean("isEnabled")
+          isEnabled = entryConf.getBoolean("isEnabled"),
+          chatType = entryConf.getString("chatType")
         )
       }
       service -> webChatList

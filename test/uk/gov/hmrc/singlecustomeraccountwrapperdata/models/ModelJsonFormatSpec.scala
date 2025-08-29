@@ -77,7 +77,7 @@ class ModelJsonFormatSpec extends AnyWordSpec with Matchers {
         menuItemConfig = Seq(menuItemConfig),
         ptaMinMenuConfig = ptaMinMenuConfig,
         urBanners = List(UrBanner("/example", "https://link1.example.com", isEnabled = true)),
-        webchatPages = List(Webchat("/example-uri/.*", "popup", isEnabled = true)),
+        webchatPages = List(Webchat("/example-uri/.*", "popup", isEnabled = true, chatType = "chatType1")),
         unreadMessageCount = None,
         trustedHelper = None
       )
@@ -92,7 +92,7 @@ class ModelJsonFormatSpec extends AnyWordSpec with Matchers {
         menuItemConfig = Seq(menuItemConfig),
         ptaMinMenuConfig = ptaMinMenuConfig,
         urBanners = List(UrBanner("/example", "https://link1.example.com", isEnabled = true)),
-        webchatPages = List(Webchat("/example-uri/.*", "popup", isEnabled = true)),
+        webchatPages = List(Webchat("/example-uri/.*", "popup", isEnabled = true, "chatType1")),
         unreadMessageCount = None,
         trustedHelper = Some(th)
       )
@@ -107,7 +107,7 @@ class ModelJsonFormatSpec extends AnyWordSpec with Matchers {
         menuItemConfig = Seq(menuItemConfig),
         ptaMinMenuConfig = ptaMinMenuConfig,
         urBanners = List(UrBanner("/example", "https://link1.example.com", isEnabled = true)),
-        webchatPages = List(Webchat("/example-uri/.*", "popup", isEnabled = true)),
+        webchatPages = List(Webchat("/example-uri/.*", "popup", isEnabled = true, chatType = "chatType1")),
         unreadMessageCount = Some(5),
         trustedHelper = None
       )
