@@ -48,7 +48,8 @@ trait WrapperDataBuilder extends Logging {
         ptaMinMenuConfig = wrapperConfig.ptaMinMenuConfig(lang),
         urBanners = urBannerList,
         webchatPages = webChatPages,
-        unreadMessageCount = None
+        unreadMessageCount = None,
+        trustedHelper = request.trustedHelper
       )
     } else {
       logger.warn(
@@ -59,7 +60,8 @@ trait WrapperDataBuilder extends Logging {
         ptaMinMenuConfig = wrapperConfig.ptaMinMenuConfig(lang),
         urBanners = List.empty,
         webchatPages = List.empty,
-        unreadMessageCount = None
+        unreadMessageCount = None,
+        trustedHelper = request.trustedHelper
       )
     }
   }
