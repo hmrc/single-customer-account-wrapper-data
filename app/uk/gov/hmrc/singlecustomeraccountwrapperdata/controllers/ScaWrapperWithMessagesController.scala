@@ -38,6 +38,7 @@ class ScaWrapperWithMessagesController @Inject() (
   val wrapperConfig: WrapperConfig,
   val urBannersConfig: UrBannersConfig,
   val webchatConfig: WebchatConfig,
+  val bespokeUserResearchBannerConfig: BespokeUserResearchBannerConfig,
   messageConnector: MessageConnector,
   authenticate: AuthAction
 )(implicit ec: ExecutionContext)

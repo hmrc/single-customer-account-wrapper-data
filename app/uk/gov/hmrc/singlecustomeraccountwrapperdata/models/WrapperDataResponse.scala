@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2025 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,13 +18,14 @@ package uk.gov.hmrc.singlecustomeraccountwrapperdata.models
 
 import play.api.libs.json.*
 import uk.gov.hmrc.auth.core.retrieve.v2.TrustedHelper
-import uk.gov.hmrc.singlecustomeraccountwrapperdata.config.{UrBanner, Webchat}
+import uk.gov.hmrc.singlecustomeraccountwrapperdata.config.{BespokeUserResearchBanner, UrBanner, Webchat}
 
 case class WrapperDataResponse(
   menuItemConfig: scala.collection.Seq[MenuItemConfig],
   ptaMinMenuConfig: PtaMinMenuConfig,
   urBanners: List[UrBanner],
   webchatPages: List[Webchat],
+  bespokeUserResearchBanner: Option[BespokeUserResearchBanner],
   unreadMessageCount: Option[Int],
   trustedHelper: Option[TrustedHelper]
 )

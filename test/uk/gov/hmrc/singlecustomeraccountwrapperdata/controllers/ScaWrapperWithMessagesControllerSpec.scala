@@ -29,7 +29,7 @@ import uk.gov.hmrc.auth.core.retrieve.v2.TrustedHelper
 import uk.gov.hmrc.auth.core.retrieve.{Credentials, Name}
 import uk.gov.hmrc.auth.core.{AuthConnector, ConfidenceLevel, CredentialStrength, Enrolments}
 import uk.gov.hmrc.http.{Authorization, HeaderCarrier, UpstreamErrorResponse}
-import uk.gov.hmrc.singlecustomeraccountwrapperdata.config.{AppConfig, UrBannersConfig, WebchatConfig, WrapperConfig}
+import uk.gov.hmrc.singlecustomeraccountwrapperdata.config.{AppConfig, BespokeUserResearchBanner, BespokeUserResearchBannerConfig, UrBannersConfig, WebchatConfig, WrapperConfig}
 import uk.gov.hmrc.singlecustomeraccountwrapperdata.connectors.{FandFConnector, MessageConnector}
 import uk.gov.hmrc.singlecustomeraccountwrapperdata.controllers.actions.AuthActionImpl
 import uk.gov.hmrc.singlecustomeraccountwrapperdata.fixtures.BaseSpec
@@ -40,15 +40,16 @@ import scala.concurrent.Future
 
 class ScaWrapperWithMessagesControllerSpec extends BaseSpec with Matchers with BeforeAndAfterEach {
 
-  lazy val messagesApi: MessagesApi          = injector.instanceOf[MessagesApi]
-  lazy val appConfig: AppConfig              = injector.instanceOf[AppConfig]
-  lazy val wrapperConfig: WrapperConfig      = new WrapperConfig(appConfig)(messagesApi)
-  val mockAuthConnector: AuthConnector       = mock[AuthConnector]
-  val mockFandFConnector: FandFConnector     = mock[FandFConnector]
-  val mockBannerConfig: UrBannersConfig      = mock[UrBannersConfig]
-  val mockWebchatConfig: WebchatConfig       = mock[WebchatConfig]
-  val mockMessageConnector: MessageConnector = mock[MessageConnector]
-  override implicit val hc: HeaderCarrier    = HeaderCarrier(authorization = Some(Authorization("Bearer 123")))
+  lazy val messagesApi: MessagesApi                            = injector.instanceOf[MessagesApi]
+  lazy val appConfig: AppConfig                                = injector.instanceOf[AppConfig]
+  lazy val wrapperConfig: WrapperConfig                        = new WrapperConfig(appConfig)(messagesApi)
+  val mockAuthConnector: AuthConnector                         = mock[AuthConnector]
+  val mockFandFConnector: FandFConnector                       = mock[FandFConnector]
+  val mockBannerConfig: UrBannersConfig                        = mock[UrBannersConfig]
+  val mockWebchatConfig: WebchatConfig                         = mock[WebchatConfig]
+  val mockBespokeBannerConfig: BespokeUserResearchBannerConfig = mock[BespokeUserResearchBannerConfig]
+  val mockMessageConnector: MessageConnector                   = mock[MessageConnector]
+  override implicit val hc: HeaderCarrier                      = HeaderCarrier(authorization = Some(Authorization("Bearer 123")))
 
   lazy val authAction = new AuthActionImpl(mockAuthConnector, messagesControllerComponents, mockFandFConnector)
 
@@ -58,6 +59,7 @@ class ScaWrapperWithMessagesControllerSpec extends BaseSpec with Matchers with B
     wrapperConfig,
     mockBannerConfig,
     mockWebchatConfig,
+    mockBespokeBannerConfig,
     mockMessageConnector,
     authAction
   )
@@ -66,20 +68,32 @@ class ScaWrapperWithMessagesControllerSpec extends BaseSpec with Matchers with B
 
   override def beforeEach(): Unit = {
     super.beforeEach()
-    reset(mockBannerConfig, mockWebchatConfig, mockMessageConnector, mockAuthConnector, mockFandFConnector)
+    reset(
+      mockBannerConfig,
+      mockWebchatConfig,
+      mockBespokeBannerConfig,
+      mockMessageConnector,
+      mockAuthConnector,
+      mockFandFConnector
+    )
+
     when(mockBannerConfig.getUrBannersByService).thenReturn(Map.empty)
     when(mockWebchatConfig.getWebchatUrlsByService).thenReturn(Map.empty)
-    when(mockFandFConnector.getTrustedHelper()(any())).thenReturn(Future.successful(None))
-    when(mockAuthConnector.authorise[AuthRetrievals](any(), any())(any(), any())) thenReturn Future.successful(
-      Some(nino) ~
-        Some(Individual) ~
-        Enrolments(Set.empty) ~
-        Some(Credentials("id", "type")) ~
-        Some(CredentialStrength.strong) ~
-        ConfidenceLevel.L200 ~
-        Some(Name(Some("chaz"), Some("dingle"))) ~
-        Some("profileUrl")
+    when(mockBespokeBannerConfig.getBespokeUserResearchBannersByService).thenReturn(
+      Map.empty[String, Option[BespokeUserResearchBanner]]
     )
+    when(mockFandFConnector.getTrustedHelper()(any())).thenReturn(Future.successful(None))
+    when(mockAuthConnector.authorise[AuthRetrievals](any(), any())(any(), any())) thenReturn
+      Future.successful(
+        Some(nino) ~
+          Some(Individual) ~
+          Enrolments(Set.empty) ~
+          Some(Credentials("id", "type")) ~
+          Some(CredentialStrength.strong) ~
+          ConfidenceLevel.L200 ~
+          Some(Name(Some("chaz"), Some("dingle"))) ~
+          Some("profileUrl")
+      )
   }
 
   "The Wrapper data with messages API" must {
@@ -92,6 +106,7 @@ class ScaWrapperWithMessagesControllerSpec extends BaseSpec with Matchers with B
       val json   = Json.parse(contentAsString(result))
       (json \ "unreadMessageCount").as[Int] mustBe 3
     }
+
     "return wrapper data with trusted helper when available" in {
       val th = TrustedHelper("chaz", "dingle", "link", Some(nino))
       when(mockMessageConnector.getUnreadMessageCount(any(), any())).thenReturn(Future.successful(Some(3)))
@@ -125,27 +140,27 @@ class ScaWrapperWithMessagesControllerSpec extends BaseSpec with Matchers with B
       val json   = Json.parse(contentAsString(result))
       (json \ "unreadMessageCount").isEmpty mustBe true
     }
-  }
 
-  "return wrapper data gracefully when UpstreamErrorResponse has client error (400–497)" in {
-    val ex = UpstreamErrorResponse("Client Error", 404, 404)
-    when(mockMessageConnector.getUnreadMessageCount(any(), any()))
-      .thenReturn(Future.failed(ex))
+    "return wrapper data gracefully when UpstreamErrorResponse has client error (400–497)" in {
+      val ex = UpstreamErrorResponse("Client Error", 404, 404)
+      when(mockMessageConnector.getUnreadMessageCount(any(), any()))
+        .thenReturn(Future.failed(ex))
 
-    val result = controller.wrapperDataWithMessages("en", appConfig.versionNum)(fakeRequest)
-    status(result) mustBe OK
-    val json   = Json.parse(contentAsString(result))
-    (json \ "unreadMessageCount").isEmpty mustBe true
-  }
+      val result = controller.wrapperDataWithMessages("en", appConfig.versionNum)(fakeRequest)
+      status(result) mustBe OK
+      val json   = Json.parse(contentAsString(result))
+      (json \ "unreadMessageCount").isEmpty mustBe true
+    }
 
-  "return wrapper data gracefully when UpstreamErrorResponse has server error (≥ 499)" in {
-    val ex = UpstreamErrorResponse("Server Error", 503, 503)
-    when(mockMessageConnector.getUnreadMessageCount(any(), any()))
-      .thenReturn(Future.failed(ex))
+    "return wrapper data gracefully when UpstreamErrorResponse has server error (≥ 499)" in {
+      val ex = UpstreamErrorResponse("Server Error", 503, 503)
+      when(mockMessageConnector.getUnreadMessageCount(any(), any()))
+        .thenReturn(Future.failed(ex))
 
-    val result = controller.wrapperDataWithMessages("en", appConfig.versionNum)(fakeRequest)
-    status(result) mustBe OK
-    val json   = Json.parse(contentAsString(result))
-    (json \ "unreadMessageCount").isEmpty mustBe true
+      val result = controller.wrapperDataWithMessages("en", appConfig.versionNum)(fakeRequest)
+      status(result) mustBe OK
+      val json   = Json.parse(contentAsString(result))
+      (json \ "unreadMessageCount").isEmpty mustBe true
+    }
   }
 }

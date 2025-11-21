@@ -1,5 +1,4 @@
-
-# single-customer-account-wrapper-data
+single-customer-account-wrapper-data
 
 Wrapper Data is the microservice that gives instant updates to the library concerning the Menu bar and service links. This pattern allows SCA to update the menu/urls/names, add new items, remove items, change ordering etc.
 
@@ -18,7 +17,7 @@ In order to update the menu options or add an additional menu option one needs t
 
 **Fallback:**
 
-In the event that Wrapper Data is offline, the library has a fallback menu config and fallback service links. This ensures the wrapper does not cause technical problems on consuming services. It is recommended to keep the library version up to date, so that the fallback menu and links are up to date
+In the event that Wrapper Data is offline, the library has a fallback menu config and fallback service links. This ensures the wrapper does not cause technical problems on consuming services. It is recommended to keep the library version up to date, so that the fallback menu and links are up to date.
 
 **Adding in UR banners to config:**
 
@@ -42,6 +41,36 @@ ur-banners {
 }
 ```
 
+
+The wrapper data service also supports bespoke user research banners, allowing services to present custom headings, link text, and optional close-button behaviour.
+To use this feature your service must be using the sca-wrapper library version 5.0.0 or higher, then you need to add entries to the app-config-base single-customer-account-wrapper-data file in the format:
+```scala
+bespoke-ur-banners {
+  items = [
+    {
+      service = "example-frontend"
+      entries = [
+        {
+          page = "/example-uri"
+          url = "https://survey.example.com/form?id=123"
+          titleEn = "Help improve this service"
+          titleCy = "Helpu i wella’r gwasanaeth hwn"
+          linkTextEn = "Take part in research (opens in new tab)"
+          linkTextCy = "Cymryd rhan mewn ymchwil (yn agor mewn tab newydd)"
+          hideCloseButton = false
+          isEnabled = true
+        }
+      ]
+    }
+  ]
+}
+```
+
+
+As with standard UR banners, please ensure array indexing and structure are kept consistent.
+The path must match the request path exactly (no query parameters).
+Once the configuration has been updated and merged, the single-customer-account-wrapper-data service can be redeployed to activate the bespoke banners.
+
 **Adding Webchat to pages via config:**
 
 Similarly to the UR banners, the wrapper data service can now be used to enable webchat on certain URL within a service. In order to do so your service will need the sca-wrapper library version 2.7.0 or higher and for scala 2.x only, then you need to add your service and selected pages to the app-config-base single-customer-account-wrapper-data file in the format:
@@ -63,7 +92,7 @@ webchat {
        }
 }
 ```
-Where skinElement can be set as either pop or embedded in line with https://github.com/hmrc/digital-engagement-platform-chat and pattern is a regex expression matching desired URLs in the service
+Where skinElement can be set as either pop or embedded in line with https://github.com/hmrc/digital-engagement-platform-chat and pattern is a regex expression matching desired URLs in the service.
 
 Please ensure array indexing is kept in sequential order. Once the app-config-base file is updated and merged, the single-customer-account-wrapper-data service can be redeployed, bringing in the new banners.
 

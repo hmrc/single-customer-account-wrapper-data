@@ -20,7 +20,7 @@ import org.scalatest.matchers.must.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 import play.api.libs.json.Json
 import uk.gov.hmrc.auth.core.retrieve.v2.TrustedHelper
-import uk.gov.hmrc.singlecustomeraccountwrapperdata.config.{UrBanner, Webchat}
+import uk.gov.hmrc.singlecustomeraccountwrapperdata.config.{BespokeUserResearchBanner, UrBanner, Webchat}
 
 class ModelJsonFormatSpec extends AnyWordSpec with Matchers {
 
@@ -35,6 +35,14 @@ class ModelJsonFormatSpec extends AnyWordSpec with Matchers {
   )
 
   private val ptaMinMenuConfig = PtaMinMenuConfig(menuName = "Account menu", backName = "Back")
+
+  private val bespokeBanner = BespokeUserResearchBanner(
+    url = "https://service.example.com/survey",
+    titleEn = "Help us improve this service",
+    titleCy = "Helpwch ni i wella'r gwasanaeth hwn",
+    linkTextEn = "Take survey",
+    linkTextCy = "Cymerwch yr arolwg"
+  )
 
   "MenuItemConfig" must {
     "serialize and deserialize correctly" in {
@@ -72,12 +80,13 @@ class ModelJsonFormatSpec extends AnyWordSpec with Matchers {
   }
 
   "WrapperDataResponse" must {
-    "serialize and deserialize correctly with unreadMessageCount None" in {
+    "serialize and deserialize correctly with unreadMessageCount None and no bespoke banner" in {
       val original     = WrapperDataResponse(
         menuItemConfig = Seq(menuItemConfig),
         ptaMinMenuConfig = ptaMinMenuConfig,
         urBanners = List(UrBanner("/example", "https://link1.example.com", isEnabled = true)),
         webchatPages = List(Webchat("/example-uri/.*", "popup", isEnabled = true, chatType = "chatType1")),
+        bespokeUserResearchBanner = None,
         unreadMessageCount = None,
         trustedHelper = None
       )
@@ -86,28 +95,33 @@ class ModelJsonFormatSpec extends AnyWordSpec with Matchers {
       deserialized mustBe original
     }
 
-    "serialize and deserialize correctly with unreadMessageCount None and trusted helper" in {
-      val th           = TrustedHelper("principal", "attorney", "url", Some("test"))
-      val original     = WrapperDataResponse(
+    "serialize and deserialize correctly with unreadMessageCount None, trusted helper and bespoke banner" in {
+      val th = TrustedHelper("principal", "attorney", "url", Some("test"))
+
+      val original = WrapperDataResponse(
         menuItemConfig = Seq(menuItemConfig),
         ptaMinMenuConfig = ptaMinMenuConfig,
         urBanners = List(UrBanner("/example", "https://link1.example.com", isEnabled = true)),
         webchatPages = List(Webchat("/example-uri/.*", "popup", isEnabled = true, "chatType1")),
+        bespokeUserResearchBanner = Some(bespokeBanner),
         unreadMessageCount = None,
         trustedHelper = Some(th)
       )
+
       val json         = Json.toJson(original)
       val deserialized = json.as[WrapperDataResponse]
       deserialized mustBe original
       deserialized.trustedHelper mustBe Some(th)
+      deserialized.bespokeUserResearchBanner mustBe Some(bespokeBanner)
     }
 
-    "serialize and deserialize correctly with unreadMessageCount Some" in {
+    "serialize and deserialize correctly with unreadMessageCount Some and bespoke banner" in {
       val original     = WrapperDataResponse(
         menuItemConfig = Seq(menuItemConfig),
         ptaMinMenuConfig = ptaMinMenuConfig,
         urBanners = List(UrBanner("/example", "https://link1.example.com", isEnabled = true)),
         webchatPages = List(Webchat("/example-uri/.*", "popup", isEnabled = true, chatType = "chatType1")),
+        bespokeUserResearchBanner = Some(bespokeBanner),
         unreadMessageCount = Some(5),
         trustedHelper = None
       )

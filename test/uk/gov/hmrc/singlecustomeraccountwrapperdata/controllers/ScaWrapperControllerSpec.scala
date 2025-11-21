@@ -25,13 +25,13 @@ import play.api.libs.json.Json
 import play.api.libs.ws.WSClient
 import play.api.mvc.{AnyContent, AnyContentAsEmpty}
 import play.api.test.CSRFTokenHelper.CSRFFRequestHeader
-import play.api.test.{FakeRequest, Helpers}
 import play.api.test.Helpers.{contentAsString, defaultAwaitTimeout, status}
+import play.api.test.{FakeRequest, Helpers}
 import uk.gov.hmrc.auth.core.AffinityGroup.Individual
 import uk.gov.hmrc.auth.core.retrieve.{Credentials, Name}
 import uk.gov.hmrc.auth.core.{AuthConnector, ConfidenceLevel, CredentialStrength, Enrolments}
 import uk.gov.hmrc.http.{Authorization, HeaderCarrier, SessionKeys}
-import uk.gov.hmrc.singlecustomeraccountwrapperdata.config.{AppConfig, UrBanner, UrBannersConfig, Webchat, WebchatConfig, WrapperConfig}
+import uk.gov.hmrc.singlecustomeraccountwrapperdata.config.{AppConfig, BespokeUserResearchBanner, BespokeUserResearchBannerConfig, UrBanner, UrBannersConfig, Webchat, WebchatConfig, WrapperConfig}
 import uk.gov.hmrc.singlecustomeraccountwrapperdata.connectors.FandFConnector
 import uk.gov.hmrc.singlecustomeraccountwrapperdata.controllers.actions.AuthActionImpl
 import uk.gov.hmrc.singlecustomeraccountwrapperdata.fixtures.BaseSpec
@@ -100,12 +100,13 @@ class ScaWrapperControllerSpec extends BaseSpec {
       )
   }
 
-  override implicit val hc: HeaderCarrier    = HeaderCarrier(authorization = Some(Authorization("Bearer 123")))
-  val mockAuthConnector: AuthConnector       = mock[AuthConnector]
-  val mockFandFConnector: FandFConnector     = mock[FandFConnector]
-  lazy val authAction                        = new AuthActionImpl(mockAuthConnector, messagesControllerComponents, mockFandFConnector)
-  lazy val mockBannerConfig: UrBannersConfig = mock[UrBannersConfig]
-  lazy val mockWebchatConfig: WebchatConfig  = mock[WebchatConfig]
+  override implicit val hc: HeaderCarrier                           = HeaderCarrier(authorization = Some(Authorization("Bearer 123")))
+  val mockAuthConnector: AuthConnector                              = mock[AuthConnector]
+  val mockFandFConnector: FandFConnector                            = mock[FandFConnector]
+  lazy val authAction                                               = new AuthActionImpl(mockAuthConnector, messagesControllerComponents, mockFandFConnector)
+  lazy val mockBannerConfig: UrBannersConfig                        = mock[UrBannersConfig]
+  lazy val mockWebchatConfig: WebchatConfig                         = mock[WebchatConfig]
+  lazy val mockBespokeBannerConfig: BespokeUserResearchBannerConfig = mock[BespokeUserResearchBannerConfig]
 
   private val controller =
     new ScaWrapperController(
@@ -114,6 +115,7 @@ class ScaWrapperControllerSpec extends BaseSpec {
       wrapperConfig,
       mockBannerConfig,
       mockWebchatConfig,
+      mockBespokeBannerConfig,
       authAction
     )
   private val wsClient   = app.injector.instanceOf[WSClient]
@@ -135,8 +137,15 @@ class ScaWrapperControllerSpec extends BaseSpec {
   override def beforeEach(): Unit = {
     super.beforeEach()
     reset(mockBannerConfig)
+    reset(mockWebchatConfig)
+    reset(mockBespokeBannerConfig)
+    reset(mockFandFConnector)
+
     when(mockBannerConfig.getUrBannersByService).thenReturn(Map.empty)
     when(mockWebchatConfig.getWebchatUrlsByService).thenReturn(Map.empty)
+    when(mockBespokeBannerConfig.getBespokeUserResearchBannersByService).thenReturn(
+      Map.empty[String, Option[BespokeUserResearchBanner]]
+    )
     when(mockFandFConnector.getTrustedHelper()(any())).thenReturn(Future.successful(None))
   }
 
