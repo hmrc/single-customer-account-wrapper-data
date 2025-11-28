@@ -31,7 +31,7 @@ import uk.gov.hmrc.auth.core.AffinityGroup.Individual
 import uk.gov.hmrc.auth.core.retrieve.{Credentials, Name}
 import uk.gov.hmrc.auth.core.{AuthConnector, ConfidenceLevel, CredentialStrength, Enrolments}
 import uk.gov.hmrc.http.{Authorization, HeaderCarrier, SessionKeys}
-import uk.gov.hmrc.singlecustomeraccountwrapperdata.config.{AppConfig, BespokeUserResearchBanner, BespokeUserResearchBannerConfig, UrBanner, UrBannersConfig, Webchat, WebchatConfig, WrapperConfig}
+import uk.gov.hmrc.singlecustomeraccountwrapperdata.config.{AppConfig, UrBanner, UrBannersConfig, Webchat, WebchatConfig, WrapperConfig}
 import uk.gov.hmrc.singlecustomeraccountwrapperdata.connectors.FandFConnector
 import uk.gov.hmrc.singlecustomeraccountwrapperdata.controllers.actions.AuthActionImpl
 import uk.gov.hmrc.singlecustomeraccountwrapperdata.fixtures.BaseSpec
@@ -100,13 +100,12 @@ class ScaWrapperControllerSpec extends BaseSpec {
       )
   }
 
-  override implicit val hc: HeaderCarrier                           = HeaderCarrier(authorization = Some(Authorization("Bearer 123")))
-  val mockAuthConnector: AuthConnector                              = mock[AuthConnector]
-  val mockFandFConnector: FandFConnector                            = mock[FandFConnector]
-  lazy val authAction                                               = new AuthActionImpl(mockAuthConnector, messagesControllerComponents, mockFandFConnector)
-  lazy val mockBannerConfig: UrBannersConfig                        = mock[UrBannersConfig]
-  lazy val mockWebchatConfig: WebchatConfig                         = mock[WebchatConfig]
-  lazy val mockBespokeBannerConfig: BespokeUserResearchBannerConfig = mock[BespokeUserResearchBannerConfig]
+  override implicit val hc: HeaderCarrier    = HeaderCarrier(authorization = Some(Authorization("Bearer 123")))
+  val mockAuthConnector: AuthConnector       = mock[AuthConnector]
+  val mockFandFConnector: FandFConnector     = mock[FandFConnector]
+  lazy val authAction                        = new AuthActionImpl(mockAuthConnector, messagesControllerComponents, mockFandFConnector)
+  lazy val mockBannerConfig: UrBannersConfig = mock[UrBannersConfig]
+  lazy val mockWebchatConfig: WebchatConfig  = mock[WebchatConfig]
 
   private val controller =
     new ScaWrapperController(
@@ -115,14 +114,15 @@ class ScaWrapperControllerSpec extends BaseSpec {
       wrapperConfig,
       mockBannerConfig,
       mockWebchatConfig,
-      mockBespokeBannerConfig,
       authAction
     )
-  private val wsClient   = app.injector.instanceOf[WSClient]
-  private val baseUrl    = "http://localhost:8422/single-customer-account-wrapper-data/wrapper-data/:version"
-  val nino               = "AA999999A"
+
+  private val wsClient = app.injector.instanceOf[WSClient]
+  private val baseUrl  = "http://localhost:8422/single-customer-account-wrapper-data/wrapper-data/:version"
+  val nino             = "AA999999A"
 
   wsClient.url(baseUrl).withHttpHeaders("Authorization" -> "Bearer123").get()
+
   when(mockAuthConnector.authorise[AuthRetrievals](any(), any())(any(), any())) thenReturn Future.successful(
     Some(nino) ~
       Some(Individual) ~
@@ -138,18 +138,15 @@ class ScaWrapperControllerSpec extends BaseSpec {
     super.beforeEach()
     reset(mockBannerConfig)
     reset(mockWebchatConfig)
-    reset(mockBespokeBannerConfig)
     reset(mockFandFConnector)
 
     when(mockBannerConfig.getUrBannersByService).thenReturn(Map.empty)
     when(mockWebchatConfig.getWebchatUrlsByService).thenReturn(Map.empty)
-    when(mockBespokeBannerConfig.getBespokeUserResearchBannersByService).thenReturn(
-      Map.empty[String, Option[BespokeUserResearchBanner]]
-    )
     when(mockFandFConnector.getTrustedHelper()(any())).thenReturn(Future.successful(None))
   }
 
   "The Wrapper data API" must {
+
     "return the normal menu without BTA config when wrapper-data and sca-wrapper are the same versions" in {
       when(mockAuthConnector.authorise[AuthRetrievals](any(), any())(any(), any())) thenReturn Future.successful(
         Some(nino) ~
@@ -165,6 +162,7 @@ class ScaWrapperControllerSpec extends BaseSpec {
       val version: String = appConfig.versionNum
       val lang: String    = "en"
       val result          = controller.wrapperData(lang, version)(fakeRequest)
+
       status(result) shouldBe 200
       contentAsString(result).contains("Profile and settings") mustBe true
       contentAsString(result).contains("Business tax account") mustBe false
@@ -183,24 +181,26 @@ class ScaWrapperControllerSpec extends BaseSpec {
           Some(Name(Some("chaz"), Some("dingle"))) ~
           Some("profileUrl")
       )
+
       val version: String = appConfig.versionNum
       val lang: String    = "en"
       val result          = controller.wrapperData(lang, version)(fakeRequest)
+
       status(result) shouldBe 200
       contentAsString(result).contains("Business tax account") mustBe true
     }
 
     "return the fallback menu config when wrapper-data and sca-wrapper are not the same versions" in {
-
       val version: String = "0.0.1"
       val lang: String    = "en"
       val result          = controller.wrapperData(lang, version)(fakeRequest)
+
       status(result) shouldBe 200
       contentAsString(result).contains("Fallback1") mustBe true
     }
 
     "return a list of UR banners for calling service when there are matching banners" in {
-      val returnedBanner = UrBanner("Banner Page", "Banner Link", true)
+      val returnedBanner = UrBanner("Banner Page", "Banner Link", isEnabled = true)
 
       lazy val fakeRequest: FakeRequest[AnyContentAsEmpty.type] = FakeRequest("", "")
         .withHeaders(HeaderNames.USER_AGENT -> "test-frontend")
@@ -211,6 +211,7 @@ class ScaWrapperControllerSpec extends BaseSpec {
       when(mockBannerConfig.getUrBannersByService).thenReturn(
         Map("test-frontend" -> List(returnedBanner))
       )
+
       val version: String = appConfig.versionNum
       val lang: String    = "en"
       val result          = controller.wrapperData(lang, version)(fakeRequest)
@@ -218,8 +219,8 @@ class ScaWrapperControllerSpec extends BaseSpec {
       contentAsString(result).contains(Json.toJson(returnedBanner).toString) mustBe true
     }
 
-    "return an empty list of UR banners there are no matching banners for calling service" in {
-      val returnedBanner = UrBanner("Banner Page", "Banner Link", true)
+    "return an empty list of UR banners when there are no matching banners for calling service" in {
+      val returnedBanner = UrBanner("Banner Page", "Banner Link", isEnabled = true)
 
       val fakeRequest: FakeRequest[AnyContentAsEmpty.type] = FakeRequest("", "")
         .withHeaders(HeaderNames.USER_AGENT -> "different-frontend")
@@ -238,9 +239,12 @@ class ScaWrapperControllerSpec extends BaseSpec {
       contentAsString(result).contains("\"urBanners\":[]") mustBe true
     }
 
-    "return an list of webchat enabled pages when there are matching banners for calling service" in {
+    "return a list of webchat enabled pages when there are matching pages for calling service" in {
       val returnedPages =
-        List(Webchat("Banner Page", "skin", true, "chatType"), Webchat("Second Page", "skin", false, "chatType"))
+        List(
+          Webchat("Banner Page", "skin", isEnabled = true, "chatType"),
+          Webchat("Second Page", "skin", isEnabled = false, "chatType")
+        )
 
       val fakeRequest: FakeRequest[AnyContentAsEmpty.type] = FakeRequest("", "")
         .withHeaders(HeaderNames.USER_AGENT -> "test-frontend")
@@ -260,9 +264,11 @@ class ScaWrapperControllerSpec extends BaseSpec {
     }
 
     "return an empty list of Webchat pages when there are no matching pages for calling service" in {
-
       val returnedPages =
-        List(Webchat("Banner Page", "skin", true, "chatType"), Webchat("Second Page", "skin", false, "chatType"))
+        List(
+          Webchat("Banner Page", "skin", isEnabled = true, "chatType"),
+          Webchat("Second Page", "skin", isEnabled = false, "chatType")
+        )
 
       val fakeRequest: FakeRequest[AnyContentAsEmpty.type] = FakeRequest("", "")
         .withHeaders(HeaderNames.USER_AGENT -> "different-frontend")

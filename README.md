@@ -21,44 +21,28 @@ In the event that Wrapper Data is offline, the library has a fallback menu confi
 
 **Adding in UR banners to config:**
 
-The wrapper data service can now be used to add a UR banner to a certain URL within a service. In order to do so your service will need the sca-wrapper library version 1.11.0 or higher, then you need to add your service and selected pages to the app-config-base single-customer-account-wrapper-data file in the format:
+The wrapper data service can now be used to add a UR banner to a certain URL within a service.  
+Consuming services must be on sca-wrapper **1.11.0 or higher**.
+
+All UR banner configuration is now done inside a **single** `ur-banners` block.  
+Standard and bespoke banners are both defined here. Bespoke fields are optional.
 ```scala
 ur-banners {
-       max-items = X
-       0 {
-         service = "example-frontend"
-         0 {
-           link = "https://link1.example.com"
-           page = "/example-uri"
-           isEnabled = true
-         }
-         1 {
-           link = "https://link1.example.com"
-           page = "/secondary-example-uri"
-           isEnabled = true
-         }
-       }
-}
-```
-
-
-The wrapper data service also supports bespoke user research banners, allowing services to present custom headings, link text, and optional close-button behaviour.
-To use this feature your service must be using the sca-wrapper library version 5.0.0 or higher, then you need to add entries to the app-config-base single-customer-account-wrapper-data file in the format:
-```scala
-bespoke-ur-banners {
   items = [
     {
       service = "example-frontend"
       entries = [
         {
           page = "/example-uri"
-          url = "https://survey.example.com/form?id=123"
+          link = "https://link1.example.com"
+          isEnabled = true
+
+          # Optional bespoke fields:
           titleEn = "Help improve this service"
           titleCy = "Helpu i wella’r gwasanaeth hwn"
           linkTextEn = "Take part in research (opens in new tab)"
           linkTextCy = "Cymryd rhan mewn ymchwil (yn agor mewn tab newydd)"
           hideCloseButton = false
-          isEnabled = true
         }
       ]
     }
@@ -66,10 +50,8 @@ bespoke-ur-banners {
 }
 ```
 
-
-As with standard UR banners, please ensure array indexing and structure are kept consistent.
 The path must match the request path exactly (no query parameters).
-Once the configuration has been updated and merged, the single-customer-account-wrapper-data service can be redeployed to activate the bespoke banners.
+Index ordering for items and entries must remain consistent.
 
 **Adding Webchat to pages via config:**
 
@@ -92,11 +74,11 @@ webchat {
        }
 }
 ```
-Where skinElement can be set as either pop or embedded in line with https://github.com/hmrc/digital-engagement-platform-chat and pattern is a regex expression matching desired URLs in the service.
 
-Please ensure array indexing is kept in sequential order. Once the app-config-base file is updated and merged, the single-customer-account-wrapper-data service can be redeployed, bringing in the new banners.
+Where skinElement can be set as either pop or embedded in line with https://github.com/hmrc/digital-engagement-platform-chat
 
-The pattern needs to match the path of the request. i.e. the url without the query string and without the host. For example the path for https://tax.service.gov.uk/personal-account?q=1 is /personal-account. "/personal-account" will match the exact path and "/personal-account.*" will match anything prefixed with "/personal-account".
+pattern is a regex matching page paths.
+The pattern applies to the request path without host or query parameters.
 
 **Versioning:**
 

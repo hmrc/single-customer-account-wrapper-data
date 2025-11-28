@@ -34,7 +34,6 @@ class ScaWrapperController @Inject() (
   protected val wrapperConfig: WrapperConfig,
   protected val urBannersConfig: UrBannersConfig,
   protected val webchatConfig: WebchatConfig,
-  protected val bespokeUserResearchBannerConfig: BespokeUserResearchBannerConfig,
   authenticate: AuthAction
 ) extends BackendController(cc)
     with I18nSupport

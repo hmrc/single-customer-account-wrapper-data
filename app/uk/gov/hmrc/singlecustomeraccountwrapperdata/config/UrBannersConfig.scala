@@ -20,37 +20,69 @@ import com.google.inject.{Inject, Singleton}
 import play.api.libs.json.{Json, OFormat}
 import play.api.{Configuration, Logging}
 
-import scala.jdk.CollectionConverters._
+import scala.jdk.CollectionConverters.*
 
-case class UrBanner(page: String, link: String, isEnabled: Boolean)
+case class UrBanner(
+  page: String,
+  link: String,
+  isEnabled: Boolean,
+  titleEn: Option[String] = None,
+  titleCy: Option[String] = None,
+  linkTextEn: Option[String] = None,
+  linkTextCy: Option[String] = None,
+  hideCloseButton: Option[Boolean] = None
+) {
+  lazy val isBespoke: Boolean =
+    titleEn.isDefined ||
+      titleCy.isDefined ||
+      linkTextEn.isDefined ||
+      linkTextCy.isDefined ||
+      hideCloseButton.isDefined
+}
 
 object UrBanner {
   implicit val format: OFormat[UrBanner] = Json.format[UrBanner]
 }
 
-/*
-
-Map(
-  service -> List[UrBanner]
-)
-
- */
-
 @Singleton
 class UrBannersConfig @Inject() (configuration: Configuration) extends Logging {
 
-  def getUrBannersByService: Map[String, List[UrBanner]] = {
-    val configList = configuration.underlying.getConfigList("ur-banners.items").asScala.toList
-    configList.map { serviceConf =>
-      val service                      = serviceConf.getString("service")
-      val urBannerList: List[UrBanner] = serviceConf.getConfigList("entries").asScala.toList.map { entryConf =>
-        UrBanner(
-          page = entryConf.getString("page"),
-          link = entryConf.getString("link"),
-          isEnabled = entryConf.getBoolean("isEnabled")
-        )
-      }
-      service -> urBannerList
-    }.toMap
-  }
+  private val RootPath = "ur-banners.items"
+
+  def getUrBannersByService: Map[String, List[UrBanner]] =
+    if (!configuration.underlying.hasPath(RootPath)) {
+      Map.empty
+    } else {
+      val configList = configuration.underlying.getConfigList(RootPath).asScala.toList
+
+      configList.map { serviceConf =>
+        val service = serviceConf.getString("service")
+
+        val urBannerList: List[UrBanner] =
+          serviceConf
+            .getConfigList("entries")
+            .asScala
+            .toList
+            .map { entryConf =>
+              def optString(path: String): Option[String] =
+                if (entryConf.hasPath(path)) Some(entryConf.getString(path)) else None
+
+              def optBoolean(path: String): Option[Boolean] =
+                if (entryConf.hasPath(path)) Some(entryConf.getBoolean(path)) else None
+
+              UrBanner(
+                page = entryConf.getString("page"),
+                link = entryConf.getString("link"),
+                isEnabled = entryConf.getBoolean("isEnabled"),
+                titleEn = optString("titleEn"),
+                titleCy = optString("titleCy"),
+                linkTextEn = optString("linkTextEn"),
+                linkTextCy = optString("linkTextCy"),
+                hideCloseButton = optBoolean("hideCloseButton")
+              )
+            }
+
+        service -> urBannerList
+      }.toMap
+    }
 }

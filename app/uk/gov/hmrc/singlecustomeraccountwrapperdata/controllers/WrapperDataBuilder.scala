@@ -20,7 +20,7 @@ import play.api.Logging
 import play.api.http.HeaderNames
 import play.api.i18n.Lang
 import play.api.mvc.AnyContent
-import uk.gov.hmrc.singlecustomeraccountwrapperdata.config.{AppConfig, BespokeUserResearchBanner, BespokeUserResearchBannerConfig, UrBanner, UrBannersConfig, WebchatConfig, WrapperConfig}
+import uk.gov.hmrc.singlecustomeraccountwrapperdata.config.{AppConfig, UrBanner, UrBannersConfig, WebchatConfig, WrapperConfig}
 import uk.gov.hmrc.singlecustomeraccountwrapperdata.models.WrapperDataResponse
 import uk.gov.hmrc.singlecustomeraccountwrapperdata.models.auth.AuthenticatedRequest
 
@@ -30,7 +30,6 @@ trait WrapperDataBuilder extends Logging {
   protected val wrapperConfig: WrapperConfig
   protected val urBannersConfig: UrBannersConfig
   protected val webchatConfig: WebchatConfig
-  protected val bespokeUserResearchBannerConfig: BespokeUserResearchBannerConfig
 
   def buildWrapperData(lang: Lang, version: String)(implicit
     request: AuthenticatedRequest[AnyContent]
@@ -48,13 +47,6 @@ trait WrapperDataBuilder extends Logging {
     val webChatPages =
       listIfCompatible(isCompatible, userAgent, webchatConfig.getWebchatUrlsByService)
 
-    val bespokeUserResearchBanner: Option[BespokeUserResearchBanner] =
-      optionIfCompatible(
-        compatible = isCompatible,
-        userAgent = userAgent,
-        serviceMap = bespokeUserResearchBannerConfig.getBespokeUserResearchBannersByService
-      )
-
     if (isCompatible) {
       logger.info(s"[WrapperDataBuilder][buildWrapperData] Success - version: $wrapperDataVersion, lang: $lang")
       WrapperDataResponse(
@@ -62,7 +54,6 @@ trait WrapperDataBuilder extends Logging {
         ptaMinMenuConfig = wrapperConfig.ptaMinMenuConfig(lang),
         urBanners = urBannerList,
         webchatPages = webChatPages,
-        bespokeUserResearchBanner = bespokeUserResearchBanner,
         unreadMessageCount = None,
         trustedHelper = request.trustedHelper
       )
@@ -75,7 +66,6 @@ trait WrapperDataBuilder extends Logging {
         ptaMinMenuConfig = wrapperConfig.ptaMinMenuConfig(lang),
         urBanners = List.empty,
         webchatPages = List.empty,
-        bespokeUserResearchBanner = None,
         unreadMessageCount = None,
         trustedHelper = request.trustedHelper
       )
@@ -94,17 +84,4 @@ trait WrapperDataBuilder extends Logging {
     serviceMap: Map[String, List[T]]
   ): List[T] =
     if (compatible) listForService(userAgent, serviceMap) else Nil
-
-  private def optionForService[T](
-    userAgent: Option[String],
-    serviceMap: Map[String, Option[T]]
-  ): Option[T] =
-    userAgent.flatMap(serviceMap.get).flatten
-
-  private def optionIfCompatible[T](
-    compatible: Boolean,
-    userAgent: Option[String],
-    serviceMap: Map[String, Option[T]]
-  ): Option[T] =
-    if (compatible) optionForService(userAgent, serviceMap) else None
 }

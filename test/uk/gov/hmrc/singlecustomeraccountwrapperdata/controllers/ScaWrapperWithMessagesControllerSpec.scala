@@ -29,7 +29,7 @@ import uk.gov.hmrc.auth.core.retrieve.v2.TrustedHelper
 import uk.gov.hmrc.auth.core.retrieve.{Credentials, Name}
 import uk.gov.hmrc.auth.core.{AuthConnector, ConfidenceLevel, CredentialStrength, Enrolments}
 import uk.gov.hmrc.http.{Authorization, HeaderCarrier, UpstreamErrorResponse}
-import uk.gov.hmrc.singlecustomeraccountwrapperdata.config.{AppConfig, BespokeUserResearchBanner, BespokeUserResearchBannerConfig, UrBannersConfig, WebchatConfig, WrapperConfig}
+import uk.gov.hmrc.singlecustomeraccountwrapperdata.config.{AppConfig, UrBannersConfig, WebchatConfig, WrapperConfig}
 import uk.gov.hmrc.singlecustomeraccountwrapperdata.connectors.{FandFConnector, MessageConnector}
 import uk.gov.hmrc.singlecustomeraccountwrapperdata.controllers.actions.AuthActionImpl
 import uk.gov.hmrc.singlecustomeraccountwrapperdata.fixtures.BaseSpec
@@ -40,16 +40,15 @@ import scala.concurrent.Future
 
 class ScaWrapperWithMessagesControllerSpec extends BaseSpec with Matchers with BeforeAndAfterEach {
 
-  lazy val messagesApi: MessagesApi                            = injector.instanceOf[MessagesApi]
-  lazy val appConfig: AppConfig                                = injector.instanceOf[AppConfig]
-  lazy val wrapperConfig: WrapperConfig                        = new WrapperConfig(appConfig)(messagesApi)
-  val mockAuthConnector: AuthConnector                         = mock[AuthConnector]
-  val mockFandFConnector: FandFConnector                       = mock[FandFConnector]
-  val mockBannerConfig: UrBannersConfig                        = mock[UrBannersConfig]
-  val mockWebchatConfig: WebchatConfig                         = mock[WebchatConfig]
-  val mockBespokeBannerConfig: BespokeUserResearchBannerConfig = mock[BespokeUserResearchBannerConfig]
-  val mockMessageConnector: MessageConnector                   = mock[MessageConnector]
-  override implicit val hc: HeaderCarrier                      = HeaderCarrier(authorization = Some(Authorization("Bearer 123")))
+  lazy val messagesApi: MessagesApi          = injector.instanceOf[MessagesApi]
+  lazy val appConfig: AppConfig              = injector.instanceOf[AppConfig]
+  lazy val wrapperConfig: WrapperConfig      = new WrapperConfig(appConfig)(messagesApi)
+  val mockAuthConnector: AuthConnector       = mock[AuthConnector]
+  val mockFandFConnector: FandFConnector     = mock[FandFConnector]
+  val mockBannerConfig: UrBannersConfig      = mock[UrBannersConfig]
+  val mockWebchatConfig: WebchatConfig       = mock[WebchatConfig]
+  val mockMessageConnector: MessageConnector = mock[MessageConnector]
+  override implicit val hc: HeaderCarrier    = HeaderCarrier(authorization = Some(Authorization("Bearer 123")))
 
   lazy val authAction = new AuthActionImpl(mockAuthConnector, messagesControllerComponents, mockFandFConnector)
 
@@ -59,7 +58,6 @@ class ScaWrapperWithMessagesControllerSpec extends BaseSpec with Matchers with B
     wrapperConfig,
     mockBannerConfig,
     mockWebchatConfig,
-    mockBespokeBannerConfig,
     mockMessageConnector,
     authAction
   )
@@ -71,7 +69,6 @@ class ScaWrapperWithMessagesControllerSpec extends BaseSpec with Matchers with B
     reset(
       mockBannerConfig,
       mockWebchatConfig,
-      mockBespokeBannerConfig,
       mockMessageConnector,
       mockAuthConnector,
       mockFandFConnector
@@ -79,9 +76,6 @@ class ScaWrapperWithMessagesControllerSpec extends BaseSpec with Matchers with B
 
     when(mockBannerConfig.getUrBannersByService).thenReturn(Map.empty)
     when(mockWebchatConfig.getWebchatUrlsByService).thenReturn(Map.empty)
-    when(mockBespokeBannerConfig.getBespokeUserResearchBannersByService).thenReturn(
-      Map.empty[String, Option[BespokeUserResearchBanner]]
-    )
     when(mockFandFConnector.getTrustedHelper()(any())).thenReturn(Future.successful(None))
     when(mockAuthConnector.authorise[AuthRetrievals](any(), any())(any(), any())) thenReturn
       Future.successful(

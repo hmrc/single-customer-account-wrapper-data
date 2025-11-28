@@ -23,12 +23,12 @@ import uk.gov.hmrc.singlecustomeraccountwrapperdata.fixtures.BaseSpec
 
 class UrBannersConfigSpec extends BaseSpec {
 
-  lazy val testBanner1: UrBanner = UrBanner("/home", "TestLink1", true)
-  lazy val testBanner2: UrBanner = UrBanner("/first-page", "TestLink2", false)
-  lazy val testBanner3: UrBanner = UrBanner("/second-page", "TestLink3", true)
+  lazy val testBanner1: UrBanner = UrBanner("/home", "TestLink1", isEnabled = true)
+  lazy val testBanner2: UrBanner = UrBanner("/first-page", "TestLink2", isEnabled = false)
+  lazy val testBanner3: UrBanner = UrBanner("/second-page", "TestLink3", isEnabled = true)
 
   override implicit lazy val app: Application =
-    GuiceApplicationBuilder()
+    new GuiceApplicationBuilder()
       .configure(
         "ur-banners.items.0.service"             -> "test-frontend-1",
         "ur-banners.items.0.entries.0.page"      -> testBanner1.page,
@@ -47,6 +47,7 @@ class UrBannersConfigSpec extends BaseSpec {
   lazy val bannersConfig: UrBannersConfig = app.injector.instanceOf[UrBannersConfig]
 
   "UrBannersConfig" must {
+
     "return a list of banners for all services" in {
       bannersConfig.getUrBannersByService mustBe
         Map(
@@ -56,22 +57,56 @@ class UrBannersConfigSpec extends BaseSpec {
     }
 
     "return empty map when no items are present" in {
-      val appWithEmptyConfig = GuiceApplicationBuilder()
+      val appWithEmptyConfig = new GuiceApplicationBuilder()
         .configure("ur-banners.items" -> List.empty)
         .build()
 
       val emptyConfig = appWithEmptyConfig.injector.instanceOf[UrBannersConfig]
       emptyConfig.getUrBannersByService mustBe Map.empty
     }
+
+    "return empty map when root path is missing" in {
+      val appWithNoConfig = new GuiceApplicationBuilder()
+        .build()
+
+      val configWithoutRoot = appWithNoConfig.injector.instanceOf[UrBannersConfig]
+      configWithoutRoot.getUrBannersByService mustBe Map.empty
+    }
   }
 
   "UrBanner" must {
-    "serialize and deserialize correctly" in {
-      val original = UrBanner("/example", "https://link1.example.com", isEnabled = true)
+
+    "serialize and deserialize correctly including optional fields" in {
+      val original = UrBanner(
+        page = "/example",
+        link = "https://link1.example.com",
+        isEnabled = true,
+        titleEn = Some("Example title EN"),
+        titleCy = Some("Example title CY"),
+        linkTextEn = Some("Find out more"),
+        linkTextCy = Some("Dysgu mwy"),
+        hideCloseButton = Some(true)
+      )
 
       val json         = Json.toJson(original)
       val deserialized = json.as[UrBanner]
       deserialized mustBe original
+    }
+
+    "have isBespoke as false when no bespoke fields are provided" in {
+      val banner = UrBanner("/example", "https://link1.example.com", isEnabled = true)
+      banner.isBespoke mustBe false
+    }
+
+    "have isBespoke as true when any bespoke field is provided" in {
+      val banner = UrBanner(
+        page = "/example",
+        link = "https://link1.example.com",
+        isEnabled = true,
+        titleEn = Some("Custom title")
+      )
+
+      banner.isBespoke mustBe true
     }
   }
 }
