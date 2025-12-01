@@ -76,16 +76,20 @@ class UrBannersConfigSpec extends BaseSpec {
 
   "UrBanner" must {
 
-    "serialize and deserialize correctly including optional fields" in {
+    "serialize and deserialize correctly including bannerDetails" in {
+      val details = UrBannerDetails(
+        titleEn = "Example title EN",
+        titleCy = "Example title CY",
+        linkTextEn = "Find out more",
+        linkTextCy = "Dysgu mwy",
+        hideCloseButton = true
+      )
+
       val original = UrBanner(
         page = "/example",
         link = "https://link1.example.com",
         isEnabled = true,
-        titleEn = Some("Example title EN"),
-        titleCy = Some("Example title CY"),
-        linkTextEn = Some("Find out more"),
-        linkTextCy = Some("Dysgu mwy"),
-        hideCloseButton = Some(true)
+        bannerDetails = Some(details)
       )
 
       val json         = Json.toJson(original)
@@ -93,20 +97,14 @@ class UrBannersConfigSpec extends BaseSpec {
       deserialized mustBe original
     }
 
-    "have isBespoke as false when no bespoke fields are provided" in {
-      val banner = UrBanner("/example", "https://link1.example.com", isEnabled = true)
-      banner.isBespoke mustBe false
-    }
-
-    "have isBespoke as true when any bespoke field is provided" in {
+    "have bannerDetails as None when no bespoke fields are provided" in {
       val banner = UrBanner(
         page = "/example",
         link = "https://link1.example.com",
-        isEnabled = true,
-        titleEn = Some("Custom title")
+        isEnabled = true
       )
 
-      banner.isBespoke mustBe true
+      banner.bannerDetails mustBe None
     }
   }
 }

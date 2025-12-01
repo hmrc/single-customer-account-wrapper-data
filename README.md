@@ -25,7 +25,7 @@ The wrapper data service can now be used to add a UR banner to a certain URL wit
 Consuming services must be on sca-wrapper **1.11.0 or higher**.
 
 All UR banner configuration is now done inside a **single** `ur-banners` block.  
-Standard and bespoke banners are both defined here. Bespoke fields are optional.
+Standard and bespoke banners are both defined here. Bespoke fields are optional and are mapped into a `UrBannerDetails` structure internally.
 ```scala
 ur-banners {
   items = [
@@ -37,7 +37,7 @@ ur-banners {
           link = "https://link1.example.com"
           isEnabled = true
 
-          # Optional bespoke fields:
+          # Optional bespoke fields (become UrBannerDetails):
           titleEn = "Help improve this service"
           titleCy = "Helpu i wella’r gwasanaeth hwn"
           linkTextEn = "Take part in research (opens in new tab)"
@@ -82,8 +82,7 @@ The pattern applies to the request path without host or query parameters.
 
 **Versioning:**
 
-The Wrapper Data microservice will be backwards compatible with earlier versions of the Library, so if a consuming service does not update their library due to time constraints, the previous version of the latest menu config will still be returned. However it is recommended to keep the library up to date. Using sbt dependencyUpdates or a similar version checker is also recommended. If a breaking change occurs and the fallback version will not be sufficient, for example in the event of a security update, drastic rework, etc. SCA may enforce Bobby Rules to ensure that consuming services update their library versions ASAP, which will break build pipelines until the consuming service updates their SCA library version.
-
+The Wrapper Data microservice is designed to be backwards compatible with earlier versions of the Library, so if a consuming service does not update their library due to time constraints, the previous version of the latest menu config will still be returned. However it is recommended to keep the library up to date. Using sbt dependencyUpdates or a similar version checker is also recommended. If a breaking change occurs and the fallback version will not be sufficient, for example in the event of a security update, drastic rework, etc. SCA may enforce Bobby Rules to ensure that consuming services update their library versions ASAP, which will break build pipelines until the consuming service updates their SCA library version.
 
 ### License
 

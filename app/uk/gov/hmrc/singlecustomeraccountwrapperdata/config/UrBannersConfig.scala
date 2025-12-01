@@ -22,23 +22,24 @@ import play.api.{Configuration, Logging}
 
 import scala.jdk.CollectionConverters.*
 
+case class UrBannerDetails(
+  titleEn: String,
+  titleCy: String,
+  linkTextEn: String,
+  linkTextCy: String,
+  hideCloseButton: Boolean
+)
+
+object UrBannerDetails {
+  implicit val format: OFormat[UrBannerDetails] = Json.format[UrBannerDetails]
+}
+
 case class UrBanner(
   page: String,
   link: String,
   isEnabled: Boolean,
-  titleEn: Option[String] = None,
-  titleCy: Option[String] = None,
-  linkTextEn: Option[String] = None,
-  linkTextCy: Option[String] = None,
-  hideCloseButton: Option[Boolean] = None
-) {
-  lazy val isBespoke: Boolean =
-    titleEn.isDefined ||
-      titleCy.isDefined ||
-      linkTextEn.isDefined ||
-      linkTextCy.isDefined ||
-      hideCloseButton.isDefined
-}
+  bannerDetails: Option[UrBannerDetails] = None
+)
 
 object UrBanner {
   implicit val format: OFormat[UrBanner] = Json.format[UrBanner]
@@ -64,21 +65,32 @@ class UrBannersConfig @Inject() (configuration: Configuration) extends Logging {
             .asScala
             .toList
             .map { entryConf =>
-              def optString(path: String): Option[String] =
-                if (entryConf.hasPath(path)) Some(entryConf.getString(path)) else None
 
-              def optBoolean(path: String): Option[Boolean] =
-                if (entryConf.hasPath(path)) Some(entryConf.getBoolean(path)) else None
+              val hasAny =
+                entryConf.hasPath("titleEn") ||
+                  entryConf.hasPath("titleCy") ||
+                  entryConf.hasPath("linkTextEn") ||
+                  entryConf.hasPath("linkTextCy") ||
+                  entryConf.hasPath("hideCloseButton")
+
+              val bannerDetails =
+                if (hasAny)
+                  Some(
+                    UrBannerDetails(
+                      titleEn = entryConf.getString("titleEn"),
+                      titleCy = entryConf.getString("titleCy"),
+                      linkTextEn = entryConf.getString("linkTextEn"),
+                      linkTextCy = entryConf.getString("linkTextCy"),
+                      hideCloseButton = entryConf.getBoolean("hideCloseButton")
+                    )
+                  )
+                else None
 
               UrBanner(
                 page = entryConf.getString("page"),
                 link = entryConf.getString("link"),
                 isEnabled = entryConf.getBoolean("isEnabled"),
-                titleEn = optString("titleEn"),
-                titleCy = optString("titleCy"),
-                linkTextEn = optString("linkTextEn"),
-                linkTextCy = optString("linkTextCy"),
-                hideCloseButton = optBoolean("hideCloseButton")
+                bannerDetails = bannerDetails
               )
             }
 
