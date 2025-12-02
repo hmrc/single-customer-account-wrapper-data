@@ -20,10 +20,10 @@ import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.{reset, when}
 import org.scalatest.matchers.should.Matchers.shouldBe
 import play.api.http.HeaderNames
-import play.api.i18n.{Lang, MessagesApi}
+import play.api.i18n.MessagesApi
 import play.api.libs.json.Json
 import play.api.libs.ws.WSClient
-import play.api.mvc.{AnyContent, AnyContentAsEmpty}
+import play.api.mvc.AnyContentAsEmpty
 import play.api.test.CSRFTokenHelper.CSRFFRequestHeader
 import play.api.test.Helpers.{contentAsString, defaultAwaitTimeout, status}
 import play.api.test.{FakeRequest, Helpers}
@@ -36,8 +36,6 @@ import uk.gov.hmrc.singlecustomeraccountwrapperdata.connectors.FandFConnector
 import uk.gov.hmrc.singlecustomeraccountwrapperdata.controllers.actions.AuthActionImpl
 import uk.gov.hmrc.singlecustomeraccountwrapperdata.fixtures.BaseSpec
 import uk.gov.hmrc.singlecustomeraccountwrapperdata.fixtures.RetrievalOps.Ops
-import uk.gov.hmrc.singlecustomeraccountwrapperdata.models.MenuItemConfig
-import uk.gov.hmrc.singlecustomeraccountwrapperdata.models.auth.AuthenticatedRequest
 
 import scala.concurrent.Future
 
@@ -46,59 +44,7 @@ class ScaWrapperControllerSpec extends BaseSpec {
   lazy val messagesApi: MessagesApi = injector.instanceOf[MessagesApi]
   lazy val appConfig: AppConfig     = injector.instanceOf[AppConfig]
 
-  lazy val wrapperConfig: WrapperConfig = new WrapperConfig(appConfig)(messagesApi) {
-    override def fallbackMenuConfig()(implicit
-      request: AuthenticatedRequest[AnyContent],
-      lang: Lang
-    ): Seq[MenuItemConfig] =
-      Seq(
-        MenuItemConfig(
-          "Fallback1",
-          "Fallback1",
-          s"${appConfig.pertaxUrl}",
-          leftAligned = true,
-          position = 0,
-          Some("hmrc-account-icon hmrc-account-icon--home"),
-          None
-        ),
-        MenuItemConfig(
-          "Fallback2",
-          "Fallback2",
-          s"${appConfig.pertaxUrl}/messages",
-          leftAligned = false,
-          position = 0,
-          None,
-          None
-        ),
-        MenuItemConfig(
-          "Fallback3",
-          "Fallback3",
-          s"${appConfig.pertaxUrl}/track",
-          leftAligned = false,
-          position = 1,
-          None,
-          None
-        ),
-        MenuItemConfig(
-          "Fallback4",
-          "Fallback4",
-          s"${appConfig.pertaxUrl}/profile-and-settings",
-          leftAligned = false,
-          position = 2,
-          None,
-          None
-        ),
-        MenuItemConfig(
-          "Fallback5",
-          "Fallback5",
-          s"${appConfig.defaultSignoutUrl}",
-          leftAligned = false,
-          position = 4,
-          None,
-          None
-        )
-      )
-  }
+  lazy val wrapperConfig: WrapperConfig = new WrapperConfig(appConfig)(messagesApi)
 
   override implicit val hc: HeaderCarrier    = HeaderCarrier(authorization = Some(Authorization("Bearer 123")))
   val mockAuthConnector: AuthConnector       = mock[AuthConnector]
