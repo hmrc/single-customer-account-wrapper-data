@@ -28,7 +28,7 @@ import uk.gov.hmrc.auth.core.AffinityGroup.Individual
 import uk.gov.hmrc.auth.core._
 import uk.gov.hmrc.auth.core.retrieve.Credentials
 import uk.gov.hmrc.auth.core.retrieve.v2.TrustedHelper
-import uk.gov.hmrc.domain.{Generator, Nino, SaUtrGenerator}
+import uk.gov.hmrc.domain.{Nino, NinoGenerator, SaUtrGenerator}
 import uk.gov.hmrc.singlecustomeraccountwrapperdata.connectors.FandFConnector
 import uk.gov.hmrc.singlecustomeraccountwrapperdata.controllers.actions.{AuthAction, AuthActionImpl}
 import uk.gov.hmrc.singlecustomeraccountwrapperdata.fixtures.BaseSpec
@@ -55,7 +55,7 @@ class AuthActionSpec extends BaseSpec with BeforeAndAfterEach {
       )
     }
   }
-  val fakeNino: Nino                       = Nino(new Generator(new Random()).nextNino.nino)
+  val fakeNino: Nino                       = Nino(new NinoGenerator(new Random()).nextNino.nino)
   val nino: String                         = fakeNino.nino
   val fakeCredentials: Credentials         = Credentials("foo", "bar")
   val fakeCredentialStrength: String       = CredentialStrength.strong

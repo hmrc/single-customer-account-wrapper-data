@@ -24,7 +24,7 @@ import org.scalatest.matchers.must.Matchers
 import org.scalatest.wordspec.AsyncWordSpec
 import org.scalatestplus.mockito.MockitoSugar
 import uk.gov.hmrc.auth.core.retrieve.v2.TrustedHelper
-import uk.gov.hmrc.domain.Generator
+import uk.gov.hmrc.domain.NinoGenerator
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.http.test.HttpClientV2Support
 import utils.WireMockHelper
@@ -42,7 +42,7 @@ class FandFConnectorSpec
 
   override protected def portConfigKeys: String = "microservice.services.fandf.port"
 
-  private val trustedHelperNino = new Generator().nextNino
+  private val trustedHelperNino = new NinoGenerator().nextNino
 
   val trustedHelper: TrustedHelper =
     TrustedHelper("principal Name", "attorneyName", "returnLink", Some(trustedHelperNino.nino))
