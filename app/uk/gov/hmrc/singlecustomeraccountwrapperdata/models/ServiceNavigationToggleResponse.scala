@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2025 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,12 +14,13 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.singlecustomeraccountwrapperdata.config
+package uk.gov.hmrc.singlecustomeraccountwrapperdata.models
 
-import com.google.inject.AbstractModule
+import play.api.libs.json.{Json, OFormat}
 
-class Module extends AbstractModule {
+final case class ServiceNavigationToggleResponse(useNewServiceNavigation: Boolean)
 
-  override def configure(): Unit =
-    bind(classOf[ApplicationStartUp]).asEagerSingleton()
+object ServiceNavigationToggleResponse {
+  implicit val format: OFormat[ServiceNavigationToggleResponse] =
+    Json.format[ServiceNavigationToggleResponse]
 }
