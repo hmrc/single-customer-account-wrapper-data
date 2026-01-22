@@ -4,4 +4,3 @@ GET        /wrapper-data                     uk.gov.hmrc.singlecustomeraccountwr
 GET        /message-data                     uk.gov.hmrc.singlecustomeraccountwrapperdata.controllers.ScaMessageController.getUnreadMessageCount
 GET        /wrapper-data-with-messages       uk.gov.hmrc.singlecustomeraccountwrapperdata.controllers.ScaWrapperWithMessagesController.wrapperDataWithMessages(lang: String, version: String)
 GET        /service-navigation/toggle        uk.gov.hmrc.singlecustomeraccountwrapperdata.controllers.ServiceNavigationController.toggle()
-->         /admin                            admin.Routes
