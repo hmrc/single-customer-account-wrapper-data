@@ -21,6 +21,7 @@ import play.api.libs.json.{Json, OFormat}
 import play.api.{Configuration, Logging}
 
 import scala.jdk.CollectionConverters.*
+import scala.util.{Failure, Success, Try}
 
 case class UrBannerDetails(
   titleEn: String,
@@ -66,25 +67,47 @@ class UrBannersConfig @Inject() (configuration: Configuration) extends Logging {
             .toList
             .map { entryConf =>
 
-              val hasAny =
-                entryConf.hasPath("titleEn") ||
-                  entryConf.hasPath("titleCy") ||
-                  entryConf.hasPath("linkTextEn") ||
-                  entryConf.hasPath("linkTextCy") ||
-                  entryConf.hasPath("hideCloseButton")
+              val detailKeys  = List("titleEn", "titleCy", "linkTextEn", "linkTextCy", "hideCloseButton")
+              val presentKeys = detailKeys.filter(entryConf.hasPath)
 
-              val bannerDetails =
-                if (hasAny)
-                  Some(
-                    UrBannerDetails(
-                      titleEn = entryConf.getString("titleEn"),
-                      titleCy = entryConf.getString("titleCy"),
-                      linkTextEn = entryConf.getString("linkTextEn"),
-                      linkTextCy = entryConf.getString("linkTextCy"),
-                      hideCloseButton = entryConf.getBoolean("hideCloseButton")
+              val bannerDetails: Option[UrBannerDetails] =
+                presentKeys match {
+                  case Nil =>
+                    None
+
+                  case keys if keys.size == detailKeys.size =>
+                    Try {
+                      UrBannerDetails(
+                        titleEn = entryConf.getString("titleEn"),
+                        titleCy = entryConf.getString("titleCy"),
+                        linkTextEn = entryConf.getString("linkTextEn"),
+                        linkTextCy = entryConf.getString("linkTextCy"),
+                        hideCloseButton = entryConf.getBoolean("hideCloseButton")
+                      )
+                    } match {
+                      case Success(details) =>
+                        Some(details)
+
+                      case Failure(e) =>
+                        logger.warn(
+                          s"[UrBannersConfig] Invalid ur-banners entry for service='$service', page='${entryConf
+                              .getString("page")}'. " +
+                            "All bespoke fields were present but could not be parsed; defaulting bannerDetails=None.",
+                          e
+                        )
+                        None
+                    }
+
+                  case keys =>
+                    val missing = detailKeys.diff(keys)
+                    logger.warn(
+                      s"[UrBannersConfig] Invalid ur-banners entry for service='$service', page='${entryConf.getString("page")}'. " +
+                        s"Bespoke fields must be all-or-nothing. Present: ${keys.mkString(", ")}. Missing: ${missing
+                            .mkString(", ")}. " +
+                        "Defaulting bannerDetails=None."
                     )
-                  )
-                else None
+                    None
+                }
 
               UrBanner(
                 page = entryConf.getString("page"),

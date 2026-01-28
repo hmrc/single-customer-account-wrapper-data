@@ -48,6 +48,14 @@ ur-banners {
     }
   ]
 }
+
+# Optional bespoke fields:
+# - Provide ALL 5 fields or omit ALL 5 (partial config is invalid)
+titleEn = "Help improve this service"
+titleCy = "Helpu i wella’r gwasanaeth hwn"
+linkTextEn = "Take part in research (opens in new tab)"
+linkTextCy = "Cymryd rhan mewn ymchwil (yn agor mewn tab newydd)"
+hideCloseButton = false
 ```
 
 The path must match the request path exactly (no query parameters).
