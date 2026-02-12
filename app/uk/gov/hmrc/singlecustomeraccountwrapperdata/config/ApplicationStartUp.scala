@@ -14,12 +14,11 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.singlecustomeraccountwrapperdata.config
+package uk.gov.hmrc.singlecustomeraccountwrapperdata.config;
 
-import com.google.inject.AbstractModule
+import uk.gov.hmrc.mongoFeatureToggles.model.FeatureFlagNamesLibrary
+import uk.gov.hmrc.singlecustomeraccountwrapperdata.models.AllFeatureFlags
 
-class Module extends AbstractModule {
-
-  override def configure(): Unit =
-    bind(classOf[ApplicationStartUp]).asEagerSingleton()
+class ApplicationStartUp {
+  FeatureFlagNamesLibrary.addFlags(AllFeatureFlags.list)
 }

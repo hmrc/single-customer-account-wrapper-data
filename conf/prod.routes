@@ -1,3 +1,4 @@
 # Add all the application routes to the app.routes file
 ->         /single-customer-account-wrapper-data                app.Routes
+->         /admin                                               admin.Routes
 ->         /                                                    health.Routes

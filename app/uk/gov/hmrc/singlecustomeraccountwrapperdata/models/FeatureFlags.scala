@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2025 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,12 +14,18 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.singlecustomeraccountwrapperdata.config
+package uk.gov.hmrc.singlecustomeraccountwrapperdata.models
 
-import com.google.inject.AbstractModule
+import uk.gov.hmrc.mongoFeatureToggles.model.FeatureFlagName
 
-class Module extends AbstractModule {
+object AllFeatureFlags {
+  val list: List[FeatureFlagName] = List(
+    ScaServiceNavigationToggle
+  )
+}
 
-  override def configure(): Unit =
-    bind(classOf[ApplicationStartUp]).asEagerSingleton()
+case object ScaServiceNavigationToggle extends FeatureFlagName {
+  override val name: String                = "sca-service-navigation-toggle"
+  override val description: Option[String] = Some("Enable the new GOV.UK Service Navigation component")
+  override val defaultState: Boolean       = false
 }

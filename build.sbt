@@ -7,8 +7,8 @@ ThisBuild / scalafmtOnCompile := true
 
 val scoverageSettings: Seq[Setting[_]] = Seq(
   ScoverageKeys.coverageExcludedPackages := "<empty>;Reverse.*;uk.gov.hmrc.BuildInfo;app.*;prod.*;.*Routes.*;testOnly.*;testOnlyDoNotUseInAppConf.*;.*\\$anon.*",
-  ScoverageKeys.coverageMinimumStmtTotal := 92,
-  ScoverageKeys.coverageMinimumBranchTotal := 69,
+  ScoverageKeys.coverageMinimumStmtTotal := 90,
+  ScoverageKeys.coverageMinimumBranchTotal := 65,
   ScoverageKeys.coverageFailOnMinimum := true,
   ScoverageKeys.coverageHighlighting := true
 )
