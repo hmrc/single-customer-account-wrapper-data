@@ -47,9 +47,23 @@ object UrBanner {
 }
 
 @Singleton
-class UrBannersConfig @Inject() (configuration: Configuration) extends Logging {
+class UrBannersConfig @Inject()(configuration: Configuration) extends Logging {
 
   private val RootPath = "ur-banners.items"
+
+  private val TitleEnKey = "titleEn"
+  private val TitleCyKey = "titleCy"
+  private val LinkTextEnKey = "linkTextEn"
+  private val LinkTextCyKey = "linkTextCy"
+  private val HideCloseButtonKey = "hideCloseButton"
+
+  private val DetailKeys = List(
+    TitleEnKey,
+    TitleCyKey,
+    LinkTextEnKey,
+    LinkTextCyKey,
+    HideCloseButtonKey
+  )
 
   def getUrBannersByService: Map[String, List[UrBanner]] =
     if (!configuration.underlying.hasPath(RootPath)) {
@@ -67,22 +81,21 @@ class UrBannersConfig @Inject() (configuration: Configuration) extends Logging {
             .toList
             .map { entryConf =>
 
-              val detailKeys  = List("titleEn", "titleCy", "linkTextEn", "linkTextCy", "hideCloseButton")
-              val presentKeys = detailKeys.filter(entryConf.hasPath)
+              val presentKeys = DetailKeys.filter(entryConf.hasPath)
 
               val bannerDetails: Option[UrBannerDetails] =
                 presentKeys match {
                   case Nil =>
                     None
 
-                  case keys if keys.size == detailKeys.size =>
+                  case keys if keys.size == DetailKeys.size =>
                     Try {
                       UrBannerDetails(
-                        titleEn = entryConf.getString("titleEn"),
-                        titleCy = entryConf.getString("titleCy"),
-                        linkTextEn = entryConf.getString("linkTextEn"),
-                        linkTextCy = entryConf.getString("linkTextCy"),
-                        hideCloseButton = entryConf.getBoolean("hideCloseButton")
+                        titleEn = entryConf.getString(TitleEnKey),
+                        titleCy = entryConf.getString(TitleCyKey),
+                        linkTextEn = entryConf.getString(LinkTextEnKey),
+                        linkTextCy = entryConf.getString(LinkTextCyKey),
+                        hideCloseButton = entryConf.getBoolean(HideCloseButtonKey)
                       )
                     } match {
                       case Success(details) =>
@@ -90,8 +103,7 @@ class UrBannersConfig @Inject() (configuration: Configuration) extends Logging {
 
                       case Failure(e) =>
                         logger.warn(
-                          s"[UrBannersConfig] Invalid ur-banners entry for service='$service', page='${entryConf
-                              .getString("page")}'. " +
+                          s"[UrBannersConfig] Invalid ur-banners entry for service='$service', page='${entryConf.getString("page")}'. " +
                             "All bespoke fields were present but could not be parsed; defaulting bannerDetails=None.",
                           e
                         )
@@ -99,11 +111,10 @@ class UrBannersConfig @Inject() (configuration: Configuration) extends Logging {
                     }
 
                   case keys =>
-                    val missing = detailKeys.diff(keys)
+                    val missing = DetailKeys.diff(keys)
                     logger.warn(
                       s"[UrBannersConfig] Invalid ur-banners entry for service='$service', page='${entryConf.getString("page")}'. " +
-                        s"Bespoke fields must be all-or-nothing. Present: ${keys.mkString(", ")}. Missing: ${missing
-                            .mkString(", ")}. " +
+                        s"Bespoke fields must be all-or-nothing. Present: ${keys.mkString(", ")}. Missing: ${missing.mkString(", ")}. " +
                         "Defaulting bannerDetails=None."
                     )
                     None
