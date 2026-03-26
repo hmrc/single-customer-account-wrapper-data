@@ -47,14 +47,14 @@ object UrBanner {
 }
 
 @Singleton
-class UrBannersConfig @Inject()(configuration: Configuration) extends Logging {
+class UrBannersConfig @Inject() (configuration: Configuration) extends Logging {
 
   private val RootPath = "ur-banners.items"
 
-  private val TitleEnKey = "titleEn"
-  private val TitleCyKey = "titleCy"
-  private val LinkTextEnKey = "linkTextEn"
-  private val LinkTextCyKey = "linkTextCy"
+  private val TitleEnKey         = "titleEn"
+  private val TitleCyKey         = "titleCy"
+  private val LinkTextEnKey      = "linkTextEn"
+  private val LinkTextCyKey      = "linkTextCy"
   private val HideCloseButtonKey = "hideCloseButton"
 
   private val DetailKeys = List(
@@ -103,7 +103,8 @@ class UrBannersConfig @Inject()(configuration: Configuration) extends Logging {
 
                       case Failure(e) =>
                         logger.warn(
-                          s"[UrBannersConfig] Invalid ur-banners entry for service='$service', page='${entryConf.getString("page")}'. " +
+                          s"[UrBannersConfig] Invalid ur-banners entry for service='$service', page='${entryConf
+                              .getString("page")}'. " +
                             "All bespoke fields were present but could not be parsed; defaulting bannerDetails=None.",
                           e
                         )
@@ -114,7 +115,8 @@ class UrBannersConfig @Inject()(configuration: Configuration) extends Logging {
                     val missing = DetailKeys.diff(keys)
                     logger.warn(
                       s"[UrBannersConfig] Invalid ur-banners entry for service='$service', page='${entryConf.getString("page")}'. " +
-                        s"Bespoke fields must be all-or-nothing. Present: ${keys.mkString(", ")}. Missing: ${missing.mkString(", ")}. " +
+                        s"Bespoke fields must be all-or-nothing. Present: ${keys.mkString(", ")}. Missing: ${missing
+                            .mkString(", ")}. " +
                         "Defaulting bannerDetails=None."
                     )
                     None
