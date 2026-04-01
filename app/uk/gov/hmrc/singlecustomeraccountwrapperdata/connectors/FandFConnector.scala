@@ -19,11 +19,11 @@ package uk.gov.hmrc.singlecustomeraccountwrapperdata.connectors
 import com.google.inject.Inject
 import play.api.Logging
 import play.api.http.Status.{NOT_FOUND, OK}
-import uk.gov.hmrc.auth.core.retrieve.v2.TrustedHelper
-import uk.gov.hmrc.http.HttpReads.Implicits._
+import uk.gov.hmrc.http.HttpReads.Implicits.*
 import uk.gov.hmrc.http.client.HttpClientV2
 import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse, StringContextOps, UpstreamErrorResponse}
 import uk.gov.hmrc.singlecustomeraccountwrapperdata.config.AppConfig
+import uk.gov.hmrc.singlecustomeraccountwrapperdata.models.TrustedHelper
 
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.control.NonFatal
@@ -43,7 +43,7 @@ class FandFConnector @Inject() (
         httpResponse.status match {
           case NOT_FOUND => None
           case OK        =>
-            Try(httpResponse.json.as[TrustedHelper](uk.gov.hmrc.auth.core.retrieve.v2.TrustedHelper.reads)) match {
+            Try(httpResponse.json.as[TrustedHelper](TrustedHelper.reads)) match {
               case Success(trustedHelper) => Some(trustedHelper)
               case Failure(ex)            =>
                 logger.error(s"Failed to parse TrustedHelper", ex)

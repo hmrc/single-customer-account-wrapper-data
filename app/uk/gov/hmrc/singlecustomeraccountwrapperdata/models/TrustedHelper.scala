@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2026 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,15 +16,15 @@
 
 package uk.gov.hmrc.singlecustomeraccountwrapperdata.models
 
-import uk.gov.hmrc.auth.core.retrieve.{Credentials, Name}
-import uk.gov.hmrc.auth.core.{ConfidenceLevel, Enrolment}
+import play.api.libs.json.{Json, Reads}
 
-case class AuthResponse(
-  nino: Option[String],
-  enrolments: Set[Enrolment],
-  confidenceLevel: ConfidenceLevel,
-  name: Option[Name],
-  trustedHelper: Option[TrustedHelper],
-  credentials: Credentials,
-  credentialStrength: String
+case class TrustedHelper(
+  principalName: String,
+  attorneyName: String,
+  returnLinkUrl: String,
+  principalNino: Option[String]
 )
+
+object TrustedHelper {
+  val reads: Reads[TrustedHelper] = Json.reads[TrustedHelper]
+}
