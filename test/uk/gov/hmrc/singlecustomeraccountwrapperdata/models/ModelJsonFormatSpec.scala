@@ -19,7 +19,6 @@ package uk.gov.hmrc.singlecustomeraccountwrapperdata.models
 import org.scalatest.matchers.must.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 import play.api.libs.json.Json
-import uk.gov.hmrc.auth.core.retrieve.v2.TrustedHelper
 import uk.gov.hmrc.singlecustomeraccountwrapperdata.config.{UrBanner, Webchat}
 
 class ModelJsonFormatSpec extends AnyWordSpec with Matchers {

@@ -17,7 +17,6 @@
 package uk.gov.hmrc.singlecustomeraccountwrapperdata.models
 
 import play.api.libs.json.*
-import uk.gov.hmrc.auth.core.retrieve.v2.TrustedHelper
 import uk.gov.hmrc.singlecustomeraccountwrapperdata.config.{UrBanner, Webchat}
 
 case class WrapperDataResponse(

@@ -17,10 +17,10 @@
 package uk.gov.hmrc.singlecustomeraccountwrapperdata.models.auth
 
 import play.api.mvc.{Request, WrappedRequest}
-import uk.gov.hmrc.auth.core.retrieve.v2.TrustedHelper
 import uk.gov.hmrc.auth.core.retrieve.{Credentials, Name}
 import uk.gov.hmrc.auth.core.{ConfidenceLevel, Enrolment}
 import uk.gov.hmrc.domain.Nino
+import uk.gov.hmrc.singlecustomeraccountwrapperdata.models.TrustedHelper
 
 case class AuthenticatedRequest[A](
   nino: Option[Nino],
