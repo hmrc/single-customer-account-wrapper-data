@@ -31,38 +31,33 @@ trait WrapperDataBuilder extends Logging {
   protected val urBannersConfig: UrBannersConfig
   protected val webchatConfig: WebchatConfig
 
-  def buildWrapperData(lang: Lang, version: String)(implicit
+  def buildWrapperData(lang: Lang, _version: String)(implicit
     request: AuthenticatedRequest[AnyContent]
   ): WrapperDataResponse = {
-    val wrapperDataVersion: String   = appConfig.versionNum.take(1)
-    val libraryVersion               = version.take(1)
-    val httpUserAgent                = request.headers.get(HeaderNames.USER_AGENT)
-    val urBannerList: List[UrBanner] =
-      httpUserAgent.flatMap(urBannersConfig.getUrBannersByService.get).getOrElse(List.empty)
-    val webChatPages                 = httpUserAgent.flatMap(webchatConfig.getWebchatUrlsByService.get).getOrElse(List.empty)
 
-    if (wrapperDataVersion == libraryVersion) {
-      logger.info(s"[WrapperDataBuilder][buildWrapperData] Success - version: $wrapperDataVersion, lang: $lang")
-      WrapperDataResponse(
-        menuItemConfig = wrapperConfig.menuConfig()(request, lang),
-        ptaMinMenuConfig = wrapperConfig.ptaMinMenuConfig(lang),
-        urBanners = urBannerList,
-        webchatPages = webChatPages,
-        unreadMessageCount = None,
-        trustedHelper = request.trustedHelper
-      )
-    } else {
-      logger.warn(
-        s"[WrapperDataBuilder][buildWrapperData] Fallback - wrapper version: $wrapperDataVersion, library version: $libraryVersion, lang: $lang"
-      )
-      WrapperDataResponse(
-        menuItemConfig = wrapperConfig.fallbackMenuConfig()(request, lang),
-        ptaMinMenuConfig = wrapperConfig.ptaMinMenuConfig(lang),
-        urBanners = List.empty,
-        webchatPages = List.empty,
-        unreadMessageCount = None,
-        trustedHelper = request.trustedHelper
-      )
-    }
+    val userAgent = request.headers.get(HeaderNames.USER_AGENT)
+
+    val urBannerList: List[UrBanner] =
+      listForService(userAgent, urBannersConfig.getUrBannersByService)
+
+    val webChatPages =
+      listForService(userAgent, webchatConfig.getWebchatUrlsByService)
+
+    logger.info(s"[WrapperDataBuilder][buildWrapperData] Building wrapper data - lang: $lang")
+
+    WrapperDataResponse(
+      menuItemConfig = wrapperConfig.menuConfig()(request, lang),
+      ptaMinMenuConfig = wrapperConfig.ptaMinMenuConfig(lang),
+      urBanners = urBannerList,
+      webchatPages = webChatPages,
+      unreadMessageCount = None,
+      trustedHelper = request.trustedHelper
+    )
   }
+
+  private def listForService[T](
+    userAgent: Option[String],
+    serviceMap: Map[String, List[T]]
+  ): List[T] =
+    userAgent.flatMap(serviceMap.get).getOrElse(Nil)
 }

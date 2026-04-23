@@ -23,12 +23,12 @@ import uk.gov.hmrc.singlecustomeraccountwrapperdata.fixtures.BaseSpec
 
 class UrBannersConfigSpec extends BaseSpec {
 
-  lazy val testBanner1: UrBanner = UrBanner("/home", "TestLink1", true)
-  lazy val testBanner2: UrBanner = UrBanner("/first-page", "TestLink2", false)
-  lazy val testBanner3: UrBanner = UrBanner("/second-page", "TestLink3", true)
+  lazy val testBanner1: UrBanner = UrBanner("/home", "TestLink1", isEnabled = true)
+  lazy val testBanner2: UrBanner = UrBanner("/first-page", "TestLink2", isEnabled = false)
+  lazy val testBanner3: UrBanner = UrBanner("/second-page", "TestLink3", isEnabled = true)
 
   override implicit lazy val app: Application =
-    GuiceApplicationBuilder()
+    new GuiceApplicationBuilder()
       .configure(
         "ur-banners.items.0.service"             -> "test-frontend-1",
         "ur-banners.items.0.entries.0.page"      -> testBanner1.page,
@@ -47,6 +47,7 @@ class UrBannersConfigSpec extends BaseSpec {
   lazy val bannersConfig: UrBannersConfig = app.injector.instanceOf[UrBannersConfig]
 
   "UrBannersConfig" must {
+
     "return a list of banners for all services" in {
       bannersConfig.getUrBannersByService mustBe
         Map(
@@ -56,22 +57,128 @@ class UrBannersConfigSpec extends BaseSpec {
     }
 
     "return empty map when no items are present" in {
-      val appWithEmptyConfig = GuiceApplicationBuilder()
+      val appWithEmptyConfig = new GuiceApplicationBuilder()
         .configure("ur-banners.items" -> List.empty)
         .build()
 
       val emptyConfig = appWithEmptyConfig.injector.instanceOf[UrBannersConfig]
       emptyConfig.getUrBannersByService mustBe Map.empty
     }
+
+    "return empty map when root path is missing" in {
+      val appWithNoConfig = new GuiceApplicationBuilder()
+        .build()
+
+      val configWithoutRoot = appWithNoConfig.injector.instanceOf[UrBannersConfig]
+      configWithoutRoot.getUrBannersByService mustBe Map.empty
+    }
+
+    "populate bannerDetails when bespoke fields are provided in config" in {
+      val details = UrBannerDetails(
+        titleEn = "Example title EN",
+        titleCy = "Example title CY",
+        linkTextEn = "Find out more",
+        linkTextCy = "Dysgu mwy",
+        hideCloseButton = true
+      )
+
+      val appWithDetails = new GuiceApplicationBuilder()
+        .configure(
+          "ur-banners.items.0.service"                   -> "test-service",
+          "ur-banners.items.0.entries.0.page"            -> "/example",
+          "ur-banners.items.0.entries.0.link"            -> "https://link1.example.com",
+          "ur-banners.items.0.entries.0.isEnabled"       -> true,
+          "ur-banners.items.0.entries.0.titleEn"         -> details.titleEn,
+          "ur-banners.items.0.entries.0.titleCy"         -> details.titleCy,
+          "ur-banners.items.0.entries.0.linkTextEn"      -> details.linkTextEn,
+          "ur-banners.items.0.entries.0.linkTextCy"      -> details.linkTextCy,
+          "ur-banners.items.0.entries.0.hideCloseButton" -> details.hideCloseButton
+        )
+        .build()
+
+      val configWithDetails = appWithDetails.injector.instanceOf[UrBannersConfig]
+
+      configWithDetails.getUrBannersByService mustBe Map(
+        "test-service" -> List(
+          UrBanner(
+            page = "/example",
+            link = "https://link1.example.com",
+            isEnabled = true,
+            bannerDetails = Some(details)
+          )
+        )
+      )
+    }
+
+    "set bannerDetails to None when bespoke fields are not provided in config" in {
+      val appWithoutDetails = new GuiceApplicationBuilder()
+        .configure(
+          "ur-banners.items.0.service"             -> "test-service",
+          "ur-banners.items.0.entries.0.page"      -> "/example",
+          "ur-banners.items.0.entries.0.link"      -> "https://link1.example.com",
+          "ur-banners.items.0.entries.0.isEnabled" -> true
+        )
+        .build()
+
+      val configWithoutDetails = appWithoutDetails.injector.instanceOf[UrBannersConfig]
+
+      configWithoutDetails.getUrBannersByService mustBe Map(
+        "test-service" -> List(
+          UrBanner(
+            page = "/example",
+            link = "https://link1.example.com",
+            isEnabled = true,
+            bannerDetails = None
+          )
+        )
+      )
+    }
   }
 
   "UrBanner" must {
-    "serialize and deserialize correctly" in {
-      val original = UrBanner("/example", "https://link1.example.com", isEnabled = true)
+
+    "serialize and deserialize correctly including bannerDetails" in {
+      val details = UrBannerDetails(
+        titleEn = "Example title EN",
+        titleCy = "Example title CY",
+        linkTextEn = "Find out more",
+        linkTextCy = "Dysgu mwy",
+        hideCloseButton = true
+      )
+
+      val original = UrBanner(
+        page = "/example",
+        link = "https://link1.example.com",
+        isEnabled = true,
+        bannerDetails = Some(details)
+      )
 
       val json         = Json.toJson(original)
       val deserialized = json.as[UrBanner]
       deserialized mustBe original
+    }
+
+    "serialize and deserialize correctly when bannerDetails is None" in {
+      val original = UrBanner(
+        page = "/example",
+        link = "https://link1.example.com",
+        isEnabled = true,
+        bannerDetails = None
+      )
+
+      val json         = Json.toJson(original)
+      val deserialized = json.as[UrBanner]
+      deserialized mustBe original
+    }
+
+    "have bannerDetails as None when no bespoke fields are provided" in {
+      val banner = UrBanner(
+        page = "/example",
+        link = "https://link1.example.com",
+        isEnabled = true
+      )
+
+      banner.bannerDetails mustBe None
     }
   }
 }

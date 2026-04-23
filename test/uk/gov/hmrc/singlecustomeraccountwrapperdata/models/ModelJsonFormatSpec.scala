@@ -86,8 +86,9 @@ class ModelJsonFormatSpec extends AnyWordSpec with Matchers {
     }
 
     "serialize and deserialize correctly with unreadMessageCount None and trusted helper" in {
-      val th           = TrustedHelper("principal", "attorney", "url", Some("test"))
-      val original     = WrapperDataResponse(
+      val th = TrustedHelper("principal", "attorney", "url", Some("test"))
+
+      val original = WrapperDataResponse(
         menuItemConfig = Seq(menuItemConfig),
         ptaMinMenuConfig = ptaMinMenuConfig,
         urBanners = List(UrBanner("/example", "https://link1.example.com", isEnabled = true)),
@@ -95,6 +96,7 @@ class ModelJsonFormatSpec extends AnyWordSpec with Matchers {
         unreadMessageCount = None,
         trustedHelper = Some(th)
       )
+
       val json         = Json.toJson(original)
       val deserialized = json.as[WrapperDataResponse]
       deserialized mustBe original

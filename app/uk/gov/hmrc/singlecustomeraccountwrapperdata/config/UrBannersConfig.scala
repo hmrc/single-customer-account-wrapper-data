@@ -20,37 +20,117 @@ import com.google.inject.{Inject, Singleton}
 import play.api.libs.json.{Json, OFormat}
 import play.api.{Configuration, Logging}
 
-import scala.jdk.CollectionConverters._
+import scala.jdk.CollectionConverters.*
+import scala.util.{Failure, Success, Try}
 
-case class UrBanner(page: String, link: String, isEnabled: Boolean)
+case class UrBannerDetails(
+  titleEn: String,
+  titleCy: String,
+  linkTextEn: String,
+  linkTextCy: String,
+  hideCloseButton: Boolean
+)
+
+object UrBannerDetails {
+  implicit val format: OFormat[UrBannerDetails] = Json.format[UrBannerDetails]
+}
+
+case class UrBanner(
+  page: String,
+  link: String,
+  isEnabled: Boolean,
+  bannerDetails: Option[UrBannerDetails] = None
+)
 
 object UrBanner {
   implicit val format: OFormat[UrBanner] = Json.format[UrBanner]
 }
 
-/*
-
-Map(
-  service -> List[UrBanner]
-)
-
- */
-
 @Singleton
 class UrBannersConfig @Inject() (configuration: Configuration) extends Logging {
 
-  def getUrBannersByService: Map[String, List[UrBanner]] = {
-    val configList = configuration.underlying.getConfigList("ur-banners.items").asScala.toList
-    configList.map { serviceConf =>
-      val service                      = serviceConf.getString("service")
-      val urBannerList: List[UrBanner] = serviceConf.getConfigList("entries").asScala.toList.map { entryConf =>
-        UrBanner(
-          page = entryConf.getString("page"),
-          link = entryConf.getString("link"),
-          isEnabled = entryConf.getBoolean("isEnabled")
-        )
-      }
-      service -> urBannerList
-    }.toMap
-  }
+  private val RootPath = "ur-banners.items"
+
+  private val TitleEnKey         = "titleEn"
+  private val TitleCyKey         = "titleCy"
+  private val LinkTextEnKey      = "linkTextEn"
+  private val LinkTextCyKey      = "linkTextCy"
+  private val HideCloseButtonKey = "hideCloseButton"
+
+  private val DetailKeys = List(
+    TitleEnKey,
+    TitleCyKey,
+    LinkTextEnKey,
+    LinkTextCyKey,
+    HideCloseButtonKey
+  )
+
+  def getUrBannersByService: Map[String, List[UrBanner]] =
+    if (!configuration.underlying.hasPath(RootPath)) {
+      Map.empty
+    } else {
+      val configList = configuration.underlying.getConfigList(RootPath).asScala.toList
+
+      configList.map { serviceConf =>
+        val service = serviceConf.getString("service")
+
+        val urBannerList: List[UrBanner] =
+          serviceConf
+            .getConfigList("entries")
+            .asScala
+            .toList
+            .map { entryConf =>
+
+              val presentKeys = DetailKeys.filter(entryConf.hasPath)
+
+              val bannerDetails: Option[UrBannerDetails] =
+                presentKeys match {
+                  case Nil =>
+                    None
+
+                  case keys if keys.size == DetailKeys.size =>
+                    Try {
+                      UrBannerDetails(
+                        titleEn = entryConf.getString(TitleEnKey),
+                        titleCy = entryConf.getString(TitleCyKey),
+                        linkTextEn = entryConf.getString(LinkTextEnKey),
+                        linkTextCy = entryConf.getString(LinkTextCyKey),
+                        hideCloseButton = entryConf.getBoolean(HideCloseButtonKey)
+                      )
+                    } match {
+                      case Success(details) =>
+                        Some(details)
+
+                      case Failure(e) =>
+                        logger.warn(
+                          s"[UrBannersConfig] Invalid ur-banners entry for service='$service', page='${entryConf
+                              .getString("page")}'. " +
+                            "All bespoke fields were present but could not be parsed; defaulting bannerDetails=None.",
+                          e
+                        )
+                        None
+                    }
+
+                  case keys =>
+                    val missing = DetailKeys.diff(keys)
+                    logger.warn(
+                      s"[UrBannersConfig] Invalid ur-banners entry for service='$service', page='${entryConf.getString("page")}'. " +
+                        s"Bespoke fields must be all-or-nothing. Present: ${keys.mkString(", ")}. Missing: ${missing
+                            .mkString(", ")}. " +
+                        "Defaulting bannerDetails=None."
+                    )
+                    None
+                }
+
+              UrBanner(
+                page = entryConf.getString("page"),
+                link = entryConf.getString("link"),
+                isEnabled = entryConf.getBoolean("isEnabled"),
+                bannerDetails = bannerDetails
+              )
+            }
+
+        service -> urBannerList
+      }.toMap
+    }
 }

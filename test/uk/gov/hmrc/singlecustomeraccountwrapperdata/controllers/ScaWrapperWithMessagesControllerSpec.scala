@@ -66,20 +66,28 @@ class ScaWrapperWithMessagesControllerSpec extends BaseSpec with Matchers with B
 
   override def beforeEach(): Unit = {
     super.beforeEach()
-    reset(mockBannerConfig, mockWebchatConfig, mockMessageConnector, mockAuthConnector, mockFandFConnector)
+    reset(
+      mockBannerConfig,
+      mockWebchatConfig,
+      mockMessageConnector,
+      mockAuthConnector,
+      mockFandFConnector
+    )
+
     when(mockBannerConfig.getUrBannersByService).thenReturn(Map.empty)
     when(mockWebchatConfig.getWebchatUrlsByService).thenReturn(Map.empty)
     when(mockFandFConnector.getTrustedHelper()(any())).thenReturn(Future.successful(None))
-    when(mockAuthConnector.authorise[AuthRetrievals](any(), any())(any(), any())) thenReturn Future.successful(
-      Some(nino) ~
-        Some(Individual) ~
-        Enrolments(Set.empty) ~
-        Some(Credentials("id", "type")) ~
-        Some(CredentialStrength.strong) ~
-        ConfidenceLevel.L200 ~
-        Some(Name(Some("chaz"), Some("dingle"))) ~
-        Some("profileUrl")
-    )
+    when(mockAuthConnector.authorise[AuthRetrievals](any(), any())(any(), any())) thenReturn
+      Future.successful(
+        Some(nino) ~
+          Some(Individual) ~
+          Enrolments(Set.empty) ~
+          Some(Credentials("id", "type")) ~
+          Some(CredentialStrength.strong) ~
+          ConfidenceLevel.L200 ~
+          Some(Name(Some("chaz"), Some("dingle"))) ~
+          Some("profileUrl")
+      )
   }
 
   "The Wrapper data with messages API" must {
@@ -92,6 +100,7 @@ class ScaWrapperWithMessagesControllerSpec extends BaseSpec with Matchers with B
       val json   = Json.parse(contentAsString(result))
       (json \ "unreadMessageCount").as[Int] mustBe 3
     }
+
     "return wrapper data with trusted helper when available" in {
       val th = TrustedHelper("chaz", "dingle", "link", Some(nino))
       when(mockMessageConnector.getUnreadMessageCount(any(), any())).thenReturn(Future.successful(Some(3)))
@@ -125,27 +134,27 @@ class ScaWrapperWithMessagesControllerSpec extends BaseSpec with Matchers with B
       val json   = Json.parse(contentAsString(result))
       (json \ "unreadMessageCount").isEmpty mustBe true
     }
-  }
 
-  "return wrapper data gracefully when UpstreamErrorResponse has client error (400–497)" in {
-    val ex = UpstreamErrorResponse("Client Error", 404, 404)
-    when(mockMessageConnector.getUnreadMessageCount(any(), any()))
-      .thenReturn(Future.failed(ex))
+    "return wrapper data gracefully when UpstreamErrorResponse has client error (400–497)" in {
+      val ex = UpstreamErrorResponse("Client Error", 404, 404)
+      when(mockMessageConnector.getUnreadMessageCount(any(), any()))
+        .thenReturn(Future.failed(ex))
 
-    val result = controller.wrapperDataWithMessages("en", appConfig.versionNum)(fakeRequest)
-    status(result) mustBe OK
-    val json   = Json.parse(contentAsString(result))
-    (json \ "unreadMessageCount").isEmpty mustBe true
-  }
+      val result = controller.wrapperDataWithMessages("en", appConfig.versionNum)(fakeRequest)
+      status(result) mustBe OK
+      val json   = Json.parse(contentAsString(result))
+      (json \ "unreadMessageCount").isEmpty mustBe true
+    }
 
-  "return wrapper data gracefully when UpstreamErrorResponse has server error (≥ 499)" in {
-    val ex = UpstreamErrorResponse("Server Error", 503, 503)
-    when(mockMessageConnector.getUnreadMessageCount(any(), any()))
-      .thenReturn(Future.failed(ex))
+    "return wrapper data gracefully when UpstreamErrorResponse has server error (≥ 499)" in {
+      val ex = UpstreamErrorResponse("Server Error", 503, 503)
+      when(mockMessageConnector.getUnreadMessageCount(any(), any()))
+        .thenReturn(Future.failed(ex))
 
-    val result = controller.wrapperDataWithMessages("en", appConfig.versionNum)(fakeRequest)
-    status(result) mustBe OK
-    val json   = Json.parse(contentAsString(result))
-    (json \ "unreadMessageCount").isEmpty mustBe true
+      val result = controller.wrapperDataWithMessages("en", appConfig.versionNum)(fakeRequest)
+      status(result) mustBe OK
+      val json   = Json.parse(contentAsString(result))
+      (json \ "unreadMessageCount").isEmpty mustBe true
+    }
   }
 }
