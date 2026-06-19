@@ -87,7 +87,7 @@ class AuthActionImpl @Inject() (
         Retrievals.name and
         Retrievals.profile
     ) {
-      case nino ~ _ ~ Enrolments(enrolments) ~ Some(credentials) ~ Some(CredentialStrength.strong) ~
+      case Some(nino) ~ _ ~ Enrolments(enrolments) ~ Some(credentials) ~ Some(CredentialStrength.strong) ~
           GTOE200(confidenceLevel) ~ name ~ _ =>
         logger.info(s"[AuthActionImpl][invokeBlock] Successful confidence level 200+ request")
         fandFConnector
@@ -95,7 +95,7 @@ class AuthActionImpl @Inject() (
           .flatMap { trustedHelper =>
             val authenticatedRequest = authRequestBuilder(
               request,
-              nino,
+              Some(nino),
               trustedHelper,
               credentials,
               confidenceLevel,
@@ -104,6 +104,20 @@ class AuthActionImpl @Inject() (
             )
             block(authenticatedRequest)
           }
+      case _ ~ _ ~ Enrolments(enrolments) ~ Some(credentials) ~ Some(CredentialStrength.strong) ~
+          GTOE200(confidenceLevel) ~ name ~ _ =>
+        logger.info(s"[AuthActionImpl][invokeBlock] Successful confidence level 200+ request")
+        val authenticatedRequest = authRequestBuilder(
+          request,
+          None,
+          None,
+          credentials,
+          confidenceLevel,
+          enrolments,
+          name
+        )
+        block(authenticatedRequest)
+
       case nino ~ _ ~ _ ~ Some(credentials) ~ _ ~ LT200(confidenceLevel) ~ name ~ _ =>
         logger.warn(s"[AuthActionImpl][invokeBlock] Confidence level 50 request")
         val authenticatedRequest = authRequestBuilder(
