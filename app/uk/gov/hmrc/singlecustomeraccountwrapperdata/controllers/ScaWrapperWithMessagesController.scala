@@ -46,36 +46,35 @@ class ScaWrapperWithMessagesController @Inject() (
     with Logging
     with WrapperDataBuilder {
 
-  def wrapperDataWithMessages(lang: String, version: String): Action[AnyContent] = authenticate.async {
-    implicit request =>
-      implicit val playLang: Lang          = Lang(lang)
-      val wrapperData: WrapperDataResponse = buildWrapperData(playLang, version)
+  def wrapperDataWithMessages(lang: String): Action[AnyContent] = authenticate.async { implicit request =>
+    implicit val playLang: Lang          = Lang(lang)
+    val wrapperData: WrapperDataResponse = buildWrapperData(playLang)
 
-      logger.info(s"[ScaWrapperWithMessagesController][wrapperDataWithMessages] Requesting unread message count")
+    logger.info(s"[ScaWrapperWithMessagesController][wrapperDataWithMessages] Requesting unread message count")
 
-      messageConnector.getUnreadMessageCount
-        .map { maybeCount =>
-          Ok(Json.toJson(wrapperData.copy(unreadMessageCount = maybeCount)))
-        }
-        .recover {
-          case e: UpstreamErrorResponse if e.statusCode >= 400 && e.statusCode < 498 =>
-            logger.error(
-              s"[ScaWrapperWithMessagesController][wrapperDataWithMessages] Client error from upstream with status ${e.statusCode}",
-              e
-            )
-            Ok(Json.toJson(wrapperData))
+    messageConnector.getUnreadMessageCount
+      .map { maybeCount =>
+        Ok(Json.toJson(wrapperData.copy(unreadMessageCount = maybeCount)))
+      }
+      .recover {
+        case e: UpstreamErrorResponse if e.statusCode >= 400 && e.statusCode < 498 =>
+          logger.error(
+            s"[ScaWrapperWithMessagesController][wrapperDataWithMessages] Client error from upstream with status ${e.statusCode}",
+            e
+          )
+          Ok(Json.toJson(wrapperData))
 
-          case e: UpstreamErrorResponse if e.statusCode >= 499 =>
-            logger.warn(
-              s"[ScaWrapperWithMessagesController][wrapperDataWithMessages] Upstream server error with status ${e.statusCode}: ${e.message}"
-            )
-            Ok(Json.toJson(wrapperData))
-          case NonFatal(ex)                                    =>
-            logger.error(
-              "[ScaWrapperWithMessagesController][wrapperDataWithMessages] Unexpected error when fetching unread message count",
-              ex
-            )
-            Ok(Json.toJson(wrapperData))
-        }
+        case e: UpstreamErrorResponse if e.statusCode >= 499 =>
+          logger.warn(
+            s"[ScaWrapperWithMessagesController][wrapperDataWithMessages] Upstream server error with status ${e.statusCode}: ${e.message}"
+          )
+          Ok(Json.toJson(wrapperData))
+        case NonFatal(ex)                                    =>
+          logger.error(
+            "[ScaWrapperWithMessagesController][wrapperDataWithMessages] Unexpected error when fetching unread message count",
+            ex
+          )
+          Ok(Json.toJson(wrapperData))
+      }
   }
 }

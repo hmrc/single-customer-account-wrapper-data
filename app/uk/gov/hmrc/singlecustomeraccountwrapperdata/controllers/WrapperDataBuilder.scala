@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 HM Revenue & Customs
+ * Copyright 2026 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,17 +31,10 @@ trait WrapperDataBuilder extends Logging {
   protected val urBannersConfig: UrBannersConfig
   protected val webchatConfig: WebchatConfig
 
-  def buildWrapperData(lang: Lang, _version: String)(implicit
-    request: AuthenticatedRequest[AnyContent]
-  ): WrapperDataResponse = {
-
-    val userAgent = request.headers.get(HeaderNames.USER_AGENT)
-
-    val urBannerList: List[UrBanner] =
-      listForService(userAgent, urBannersConfig.getUrBannersByService)
-
-    val webChatPages =
-      listForService(userAgent, webchatConfig.getWebchatUrlsByService)
+  def buildWrapperData(lang: Lang)(implicit request: AuthenticatedRequest[AnyContent]): WrapperDataResponse = {
+    val userAgent                    = request.headers.get(HeaderNames.USER_AGENT)
+    val urBannerList: List[UrBanner] = listForService(userAgent, urBannersConfig.getUrBannersByService)
+    val webChatPages                 = listForService(userAgent, webchatConfig.getWebchatUrlsByService)
 
     logger.info(s"[WrapperDataBuilder][buildWrapperData] Building wrapper data - lang: $lang")
 
