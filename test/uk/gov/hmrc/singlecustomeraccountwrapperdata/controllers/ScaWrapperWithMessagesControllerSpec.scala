@@ -26,7 +26,7 @@ import play.api.libs.json.Json
 import play.api.test.Helpers.*
 import uk.gov.hmrc.auth.core.AffinityGroup.Individual
 import uk.gov.hmrc.singlecustomeraccountwrapperdata.models.TrustedHelper
-import uk.gov.hmrc.auth.core.retrieve.{Credentials, Name}
+import uk.gov.hmrc.auth.core.retrieve.Credentials
 import uk.gov.hmrc.auth.core.{AuthConnector, ConfidenceLevel, CredentialStrength, Enrolments}
 import uk.gov.hmrc.http.{Authorization, HeaderCarrier, UpstreamErrorResponse}
 import uk.gov.hmrc.singlecustomeraccountwrapperdata.config.{AppConfig, UrBannersConfig, WebchatConfig, WrapperConfig}
@@ -85,7 +85,6 @@ class ScaWrapperWithMessagesControllerSpec extends BaseSpec with Matchers with B
           Some(Credentials("id", "type")) ~
           Some(CredentialStrength.strong) ~
           ConfidenceLevel.L200 ~
-          Some(Name(Some("chaz"), Some("dingle"))) ~
           Some("profileUrl")
       )
   }

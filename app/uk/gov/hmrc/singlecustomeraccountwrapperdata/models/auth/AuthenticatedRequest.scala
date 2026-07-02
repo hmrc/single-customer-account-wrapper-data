@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2026 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,7 @@
 package uk.gov.hmrc.singlecustomeraccountwrapperdata.models.auth
 
 import play.api.mvc.{Request, WrappedRequest}
-import uk.gov.hmrc.auth.core.retrieve.{Credentials, Name}
+import uk.gov.hmrc.auth.core.retrieve.Credentials
 import uk.gov.hmrc.auth.core.{ConfidenceLevel, Enrolment}
 import uk.gov.hmrc.domain.Nino
 import uk.gov.hmrc.singlecustomeraccountwrapperdata.models.TrustedHelper
@@ -26,7 +26,6 @@ case class AuthenticatedRequest[A](
   nino: Option[Nino],
   credentials: Credentials,
   confidenceLevel: ConfidenceLevel,
-  name: Option[Name],
   trustedHelper: Option[TrustedHelper],
   profile: Option[String],
   enrolments: Set[Enrolment],

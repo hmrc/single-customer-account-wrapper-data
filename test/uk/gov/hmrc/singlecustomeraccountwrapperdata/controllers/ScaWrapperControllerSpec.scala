@@ -27,7 +27,7 @@ import play.api.test.CSRFTokenHelper.CSRFFRequestHeader
 import play.api.test.Helpers.{contentAsString, defaultAwaitTimeout, status}
 import play.api.test.{FakeRequest, Helpers}
 import uk.gov.hmrc.auth.core.AffinityGroup.Individual
-import uk.gov.hmrc.auth.core.retrieve.{Credentials, Name}
+import uk.gov.hmrc.auth.core.retrieve.Credentials
 import uk.gov.hmrc.auth.core.{AuthConnector, ConfidenceLevel, CredentialStrength, Enrolments}
 import uk.gov.hmrc.http.{Authorization, HeaderCarrier, SessionKeys}
 import uk.gov.hmrc.singlecustomeraccountwrapperdata.config.{AppConfig, UrBanner, UrBannersConfig, Webchat, WebchatConfig, WrapperConfig}
@@ -78,7 +78,6 @@ class ScaWrapperControllerSpec extends BaseSpec {
         Some(Credentials("id", "type")) ~
         Some(CredentialStrength.strong) ~
         ConfidenceLevel.L200 ~
-        Some(Name(Some("chaz"), Some("dingle"))) ~
         Some("profileUrl")
     )
   }
@@ -93,7 +92,6 @@ class ScaWrapperControllerSpec extends BaseSpec {
           Some(Credentials("id", "type")) ~
           Some(CredentialStrength.strong) ~
           ConfidenceLevel.L200 ~
-          Some(Name(Some("chaz"), Some("dingle"))) ~
           Some("profileUrl")
       )
 
@@ -114,7 +112,6 @@ class ScaWrapperControllerSpec extends BaseSpec {
           Some(Credentials("id", "type")) ~
           Some(CredentialStrength.strong) ~
           ConfidenceLevel.L200 ~
-          Some(Name(Some("chaz"), Some("dingle"))) ~
           Some("profileUrl")
       )
 
