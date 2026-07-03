@@ -25,7 +25,8 @@ import play.api.inject.guice.GuiceApplicationBuilder
 
 trait IntegrationSpec extends AnyWordSpec with GuiceOneAppPerSuite with WireMockHelper with ScalaFutures with Matchers {
 
-  implicit override val patienceConfig = PatienceConfig(scaled(Span(15, Seconds)), scaled(Span(100, Millis)))
+  implicit override val patienceConfig: PatienceConfig =
+    PatienceConfig(scaled(Span(15, Seconds)), scaled(Span(100, Millis)))
 
   protected def localGuiceApplicationBuilder(): GuiceApplicationBuilder =
     GuiceApplicationBuilder()
@@ -34,6 +35,6 @@ trait IntegrationSpec extends AnyWordSpec with GuiceOneAppPerSuite with WireMock
         "microservice.services.secure-message.port" -> server.port()
       )
 
-  override def beforeEach() =
+  override def beforeEach(): Unit =
     super.beforeEach()
 }

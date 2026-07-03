@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 HM Revenue & Customs
+ * Copyright 2026 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,7 +26,7 @@ import play.api.libs.json.Json
 import play.api.test.Helpers.*
 import uk.gov.hmrc.auth.core.AffinityGroup.Individual
 import uk.gov.hmrc.singlecustomeraccountwrapperdata.models.TrustedHelper
-import uk.gov.hmrc.auth.core.retrieve.{Credentials, Name}
+import uk.gov.hmrc.auth.core.retrieve.Credentials
 import uk.gov.hmrc.auth.core.{AuthConnector, ConfidenceLevel, CredentialStrength, Enrolments}
 import uk.gov.hmrc.http.{Authorization, HeaderCarrier, UpstreamErrorResponse}
 import uk.gov.hmrc.singlecustomeraccountwrapperdata.config.{AppConfig, UrBannersConfig, WebchatConfig, WrapperConfig}
@@ -85,7 +85,6 @@ class ScaWrapperWithMessagesControllerSpec extends BaseSpec with Matchers with B
           Some(Credentials("id", "type")) ~
           Some(CredentialStrength.strong) ~
           ConfidenceLevel.L200 ~
-          Some(Name(Some("chaz"), Some("dingle"))) ~
           Some("profileUrl")
       )
   }
@@ -95,7 +94,7 @@ class ScaWrapperWithMessagesControllerSpec extends BaseSpec with Matchers with B
     "return wrapper data with unreadMessageCount when available" in {
       when(mockMessageConnector.getUnreadMessageCount(any(), any())).thenReturn(Future.successful(Some(3)))
 
-      val result = controller.wrapperDataWithMessages("en", appConfig.versionNum)(fakeRequest)
+      val result = controller.wrapperDataWithMessages("en")(fakeRequest)
       status(result) mustBe OK
       val json   = Json.parse(contentAsString(result))
       (json \ "unreadMessageCount").as[Int] mustBe 3
@@ -107,7 +106,7 @@ class ScaWrapperWithMessagesControllerSpec extends BaseSpec with Matchers with B
       when(mockFandFConnector.getTrustedHelper()(any()))
         .thenReturn(Future.successful(Some(th)))
 
-      val result = controller.wrapperDataWithMessages("en", appConfig.versionNum)(fakeRequest)
+      val result = controller.wrapperDataWithMessages("en")(fakeRequest)
       status(result) mustBe OK
       val json   = Json.parse(contentAsString(result))
 
@@ -119,7 +118,7 @@ class ScaWrapperWithMessagesControllerSpec extends BaseSpec with Matchers with B
     "return wrapper data with no unreadMessageCount when no messages are unread" in {
       when(mockMessageConnector.getUnreadMessageCount(any(), any())).thenReturn(Future.successful(None))
 
-      val result = controller.wrapperDataWithMessages("en", appConfig.versionNum)(fakeRequest)
+      val result = controller.wrapperDataWithMessages("en")(fakeRequest)
       status(result) mustBe OK
       val json   = Json.parse(contentAsString(result))
       (json \ "unreadMessageCount").isEmpty mustBe true
@@ -129,7 +128,7 @@ class ScaWrapperWithMessagesControllerSpec extends BaseSpec with Matchers with B
       when(mockMessageConnector.getUnreadMessageCount(any(), any()))
         .thenReturn(Future.failed(new RuntimeException("error")))
 
-      val result = controller.wrapperDataWithMessages("en", appConfig.versionNum)(fakeRequest)
+      val result = controller.wrapperDataWithMessages("en")(fakeRequest)
       status(result) mustBe OK
       val json   = Json.parse(contentAsString(result))
       (json \ "unreadMessageCount").isEmpty mustBe true
@@ -140,7 +139,7 @@ class ScaWrapperWithMessagesControllerSpec extends BaseSpec with Matchers with B
       when(mockMessageConnector.getUnreadMessageCount(any(), any()))
         .thenReturn(Future.failed(ex))
 
-      val result = controller.wrapperDataWithMessages("en", appConfig.versionNum)(fakeRequest)
+      val result = controller.wrapperDataWithMessages("en")(fakeRequest)
       status(result) mustBe OK
       val json   = Json.parse(contentAsString(result))
       (json \ "unreadMessageCount").isEmpty mustBe true
@@ -151,7 +150,7 @@ class ScaWrapperWithMessagesControllerSpec extends BaseSpec with Matchers with B
       when(mockMessageConnector.getUnreadMessageCount(any(), any()))
         .thenReturn(Future.failed(ex))
 
-      val result = controller.wrapperDataWithMessages("en", appConfig.versionNum)(fakeRequest)
+      val result = controller.wrapperDataWithMessages("en")(fakeRequest)
       status(result) mustBe OK
       val json   = Json.parse(contentAsString(result))
       (json \ "unreadMessageCount").isEmpty mustBe true

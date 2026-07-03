@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 HM Revenue & Customs
+ * Copyright 2026 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -40,9 +40,9 @@ class ScaWrapperController @Inject() (
     with Logging
     with WrapperDataBuilder {
 
-  def wrapperData(lang: String, version: String): Action[AnyContent] = authenticate { implicit request =>
+  def wrapperData(lang: String): Action[AnyContent] = authenticate { implicit request =>
     implicit val playLang: Lang = Lang(lang)
-    val wrapperData             = buildWrapperData(playLang, version)
+    val wrapperData             = buildWrapperData(playLang)
     Ok(Json.toJson(wrapperData))
   }
 }

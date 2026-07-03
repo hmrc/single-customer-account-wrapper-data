@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2026 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,8 +23,6 @@ import javax.inject.{Inject, Singleton}
 
 @Singleton
 class AppConfig @Inject() (servicesConfig: ServicesConfig, configuration: Configuration) {
-
-  val versionNum: String = "1.0.3"
 
   // ms-url for backend call
   val messageServiceUrl: String = servicesConfig.baseUrl(serviceName = "secure-message")

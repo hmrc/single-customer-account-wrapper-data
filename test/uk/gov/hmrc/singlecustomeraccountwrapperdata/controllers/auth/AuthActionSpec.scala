@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 HM Revenue & Customs
+ * Copyright 2026 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -82,12 +82,11 @@ class AuthActionSpec extends BaseSpec with BeforeAndAfterEach {
       when(mockAuthConnector.authorise[AuthRetrievals](any(), any())(any(), any())) thenReturn Future.successful(
         nino ~ Some(affinityGroup) ~ saEnrolments ~ Some(fakeCredentials) ~ Some(
           credentialStrength
-        ) ~ confidenceLevel ~ None ~ profileUrl
+        ) ~ confidenceLevel ~ profileUrl
       )
     }
 
-    val authAction =
-      new AuthActionImpl(mockAuthConnector, controllerComponents, mockFandFConnector)
+    val authAction = new AuthActionImpl(mockAuthConnector, controllerComponents, mockFandFConnector)
 
     new Harness(authAction)
   }

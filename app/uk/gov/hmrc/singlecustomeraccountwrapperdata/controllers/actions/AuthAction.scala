@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 HM Revenue & Customs
+ * Copyright 2026 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,7 +21,7 @@ import play.api.Logging
 import play.api.mvc.*
 import uk.gov.hmrc.auth.core.*
 import uk.gov.hmrc.auth.core.retrieve.v2.Retrievals
-import uk.gov.hmrc.auth.core.retrieve.{Credentials, Name, ~}
+import uk.gov.hmrc.auth.core.retrieve.{Credentials, ~}
 import uk.gov.hmrc.domain
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.http.HeaderCarrierConverter
@@ -57,16 +57,12 @@ class AuthActionImpl @Inject() (
     trustedHelper: Option[TrustedHelper],
     credentials: Credentials,
     confidenceLevel: ConfidenceLevel,
-    enrolments: Set[Enrolment],
-    name: Option[Name]
+    enrolments: Set[Enrolment]
   ): AuthenticatedRequest[A] =
     AuthenticatedRequest[A](
       trustedHelper.fold(nino.map(domain.Nino))(helper => Some(domain.Nino(helper.principalNino.get))),
       credentials,
       confidenceLevel,
-      Some(
-        trustedHelper.fold(name.getOrElse(Name(None, None)))(helper => Name(Some(helper.principalName), None))
-      ),
       trustedHelper,
       None,
       enrolments,
@@ -84,11 +80,10 @@ class AuthActionImpl @Inject() (
         Retrievals.credentials and
         Retrievals.credentialStrength and
         Retrievals.confidenceLevel and
-        Retrievals.name and
         Retrievals.profile
     ) {
       case nino ~ _ ~ Enrolments(enrolments) ~ Some(credentials) ~ Some(CredentialStrength.strong) ~
-          GTOE200(confidenceLevel) ~ name ~ _ =>
+          GTOE200(confidenceLevel) ~ _ =>
         logger.info(s"[AuthActionImpl][invokeBlock] Successful confidence level 200+ request")
         fandFConnector
           .getTrustedHelper()
@@ -99,12 +94,11 @@ class AuthActionImpl @Inject() (
               trustedHelper,
               credentials,
               confidenceLevel,
-              enrolments,
-              name
+              enrolments
             )
             block(authenticatedRequest)
           }
-      case nino ~ _ ~ _ ~ Some(credentials) ~ _ ~ LT200(confidenceLevel) ~ name ~ _ =>
+      case nino ~ _ ~ _ ~ Some(credentials) ~ _ ~ LT200(confidenceLevel) ~ _ =>
         logger.warn(s"[AuthActionImpl][invokeBlock] Confidence level 50 request")
         val authenticatedRequest = authRequestBuilder(
           request,
@@ -112,8 +106,7 @@ class AuthActionImpl @Inject() (
           None,
           credentials,
           confidenceLevel,
-          Set.empty[Enrolment],
-          name
+          Set.empty[Enrolment]
         )
         block(authenticatedRequest)
 
@@ -125,7 +118,6 @@ class AuthActionImpl @Inject() (
       None,
       Credentials("invalid", "invalid"),
       ConfidenceLevel.L50,
-      None,
       None,
       None,
       Set.empty,

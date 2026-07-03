@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 HM Revenue & Customs
+ * Copyright 2026 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,13 +22,12 @@ import org.scalatest.matchers.should.Matchers.shouldBe
 import play.api.http.HeaderNames
 import play.api.i18n.MessagesApi
 import play.api.libs.json.Json
-import play.api.libs.ws.WSClient
 import play.api.mvc.AnyContentAsEmpty
 import play.api.test.CSRFTokenHelper.CSRFFRequestHeader
 import play.api.test.Helpers.{contentAsString, defaultAwaitTimeout, status}
 import play.api.test.{FakeRequest, Helpers}
 import uk.gov.hmrc.auth.core.AffinityGroup.Individual
-import uk.gov.hmrc.auth.core.retrieve.{Credentials, Name}
+import uk.gov.hmrc.auth.core.retrieve.Credentials
 import uk.gov.hmrc.auth.core.{AuthConnector, ConfidenceLevel, CredentialStrength, Enrolments}
 import uk.gov.hmrc.http.{Authorization, HeaderCarrier, SessionKeys}
 import uk.gov.hmrc.singlecustomeraccountwrapperdata.config.{AppConfig, UrBanner, UrBannersConfig, Webchat, WebchatConfig, WrapperConfig}
@@ -63,32 +62,24 @@ class ScaWrapperControllerSpec extends BaseSpec {
       authAction
     )
 
-  private val wsClient = app.injector.instanceOf[WSClient]
-  private val baseUrl  = "http://localhost:8422/single-customer-account-wrapper-data/wrapper-data/:version"
-  val nino             = "AA999999A"
-
-  wsClient.url(baseUrl).withHttpHeaders("Authorization" -> "Bearer123").get()
-
-  when(mockAuthConnector.authorise[AuthRetrievals](any(), any())(any(), any())) thenReturn Future.successful(
-    Some(nino) ~
-      Some(Individual) ~
-      Enrolments(fakeSaEnrolments("11111111", "Activated")) ~
-      Some(Credentials("id", "type")) ~
-      Some(CredentialStrength.strong) ~
-      ConfidenceLevel.L200 ~
-      Some(Name(Some("chaz"), Some("dingle"))) ~
-      Some("profileUrl")
-  )
+  val nino = "AA999999A"
 
   override def beforeEach(): Unit = {
     super.beforeEach()
-    reset(mockBannerConfig)
-    reset(mockWebchatConfig)
-    reset(mockFandFConnector)
+    reset(mockBannerConfig, mockWebchatConfig, mockFandFConnector)
 
     when(mockBannerConfig.getUrBannersByService).thenReturn(Map.empty)
     when(mockWebchatConfig.getWebchatUrlsByService).thenReturn(Map.empty)
     when(mockFandFConnector.getTrustedHelper()(any())).thenReturn(Future.successful(None))
+    when(mockAuthConnector.authorise[AuthRetrievals](any(), any())(any(), any())) thenReturn Future.successful(
+      Some(nino) ~
+        Some(Individual) ~
+        Enrolments(fakeSaEnrolments("11111111", "Activated")) ~
+        Some(Credentials("id", "type")) ~
+        Some(CredentialStrength.strong) ~
+        ConfidenceLevel.L200 ~
+        Some("profileUrl")
+    )
   }
 
   "The Wrapper data API" must {
@@ -101,13 +92,11 @@ class ScaWrapperControllerSpec extends BaseSpec {
           Some(Credentials("id", "type")) ~
           Some(CredentialStrength.strong) ~
           ConfidenceLevel.L200 ~
-          Some(Name(Some("chaz"), Some("dingle"))) ~
           Some("profileUrl")
       )
 
-      val version: String = appConfig.versionNum
-      val lang: String    = "en"
-      val result          = controller.wrapperData(lang, version)(fakeRequest)
+      val lang: String = "en"
+      val result       = controller.wrapperData(lang)(fakeRequest)
 
       status(result) shouldBe 200
       contentAsString(result).contains("Profile and settings") mustBe true
@@ -115,7 +104,6 @@ class ScaWrapperControllerSpec extends BaseSpec {
     }
 
     "return the normal menu config with BTA" in {
-      wsClient.url(baseUrl).withHttpHeaders("Authorization" -> "Bearer123").get()
 
       when(mockAuthConnector.authorise[AuthRetrievals](any(), any())(any(), any())) thenReturn Future.successful(
         Some(nino) ~
@@ -124,13 +112,11 @@ class ScaWrapperControllerSpec extends BaseSpec {
           Some(Credentials("id", "type")) ~
           Some(CredentialStrength.strong) ~
           ConfidenceLevel.L200 ~
-          Some(Name(Some("chaz"), Some("dingle"))) ~
           Some("profileUrl")
       )
 
-      val version: String = appConfig.versionNum
-      val lang: String    = "en"
-      val result          = controller.wrapperData(lang, version)(fakeRequest)
+      val lang: String = "en"
+      val result       = controller.wrapperData(lang)(fakeRequest)
 
       status(result) shouldBe 200
       contentAsString(result).contains("Business tax account") mustBe true
@@ -149,9 +135,8 @@ class ScaWrapperControllerSpec extends BaseSpec {
         Map("test-frontend" -> List(returnedBanner))
       )
 
-      val version: String = appConfig.versionNum
-      val lang: String    = "en"
-      val result          = controller.wrapperData(lang, version)(fakeRequest)
+      val lang: String = "en"
+      val result       = controller.wrapperData(lang)(fakeRequest)
 
       contentAsString(result).contains(Json.toJson(returnedBanner).toString) mustBe true
     }
@@ -169,9 +154,8 @@ class ScaWrapperControllerSpec extends BaseSpec {
         Map("test-frontend" -> List(returnedBanner))
       )
 
-      val version: String = appConfig.versionNum
-      val lang: String    = "en"
-      val result          = controller.wrapperData(lang, version)(fakeRequest)
+      val lang: String = "en"
+      val result       = controller.wrapperData(lang)(fakeRequest)
 
       contentAsString(result).contains("\"urBanners\":[]") mustBe true
     }
@@ -193,9 +177,8 @@ class ScaWrapperControllerSpec extends BaseSpec {
         Map("test-frontend" -> returnedPages)
       )
 
-      val version: String = appConfig.versionNum
-      val lang: String    = "en"
-      val result          = controller.wrapperData(lang, version)(fakeRequest)
+      val lang: String = "en"
+      val result       = controller.wrapperData(lang)(fakeRequest)
 
       contentAsString(result).contains(Json.toJson(returnedPages).toString) mustBe true
     }
@@ -217,9 +200,8 @@ class ScaWrapperControllerSpec extends BaseSpec {
         Map("test-frontend" -> returnedPages)
       )
 
-      val version: String = appConfig.versionNum
-      val lang: String    = "en"
-      val result          = controller.wrapperData(lang, version)(fakeRequest)
+      val lang: String = "en"
+      val result       = controller.wrapperData(lang)(fakeRequest)
 
       contentAsString(result).contains("\"webchatPages\":[]") mustBe true
     }
