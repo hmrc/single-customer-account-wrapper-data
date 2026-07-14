@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 HM Revenue & Customs
+ * Copyright 2026 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -41,15 +41,19 @@ class FandFConnector @Inject() (
       .execute[HttpResponse]
       .map { httpResponse =>
         httpResponse.status match {
-          case NOT_FOUND => None
-          case OK        =>
+          case NOT_FOUND              => None
+          case OK                     =>
             Try(httpResponse.json.as[TrustedHelper](TrustedHelper.reads)) match {
               case Success(trustedHelper) => Some(trustedHelper)
               case Failure(ex)            =>
                 logger.error(s"Failed to parse TrustedHelper", ex)
                 None
             }
-          case status    =>
+          case status if status > 499 =>
+            logger.error(s"Received $status response from FandF /delegation/get")
+            None
+
+          case status =>
             val ex = UpstreamErrorResponse(s"Invalid response status $status", status)
             logger.error(ex.message, ex)
             None
