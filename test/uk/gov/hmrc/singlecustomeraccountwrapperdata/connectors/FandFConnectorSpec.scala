@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 HM Revenue & Customs
+ * Copyright 2026 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -93,16 +93,17 @@ class FandFConnectorSpec
       result mustBe None
     }
 
-    "return None when error status returned" in {
+    "return None when 5xx status is returned" in {
       server.stubFor(
         WireMock.get(urlEqualTo("/delegation/get")).willReturn(serverError())
       )
+
       val result = Await.result(connector.getTrustedHelper(), Duration.Inf)
 
       result mustBe None
     }
 
-    "return None when unexpected status returned" in {
+    "return None when non-5xx unexpected status is returned" in {
       server.stubFor(
         WireMock.get(urlEqualTo("/delegation/get")).willReturn(noContent())
       )
