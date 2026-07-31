@@ -19,31 +19,19 @@ package uk.gov.hmrc.singlecustomeraccountwrapperdata.controllers
 import play.api.Logging
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
-import uk.gov.hmrc.mongoFeatureToggles.services.FeatureFlagService
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
-import uk.gov.hmrc.singlecustomeraccountwrapperdata.models.{ScaServiceNavigationToggle, ServiceNavigationToggleResponse}
+import uk.gov.hmrc.singlecustomeraccountwrapperdata.models.ServiceNavigationToggleResponse
 
 import javax.inject.{Inject, Singleton}
-import scala.concurrent.ExecutionContext
-import scala.util.control.NonFatal
+import scala.concurrent.Future
 
 @Singleton
 class ServiceNavigationController @Inject() (
-  cc: ControllerComponents,
-  featureFlagService: FeatureFlagService
-)(implicit ec: ExecutionContext)
-    extends BackendController(cc)
+  cc: ControllerComponents
+) extends BackendController(cc)
     with Logging {
 
   def toggle(): Action[AnyContent] = Action.async { implicit request =>
-    featureFlagService
-      .get(ScaServiceNavigationToggle)
-      .map { toggle =>
-        Ok(Json.toJson(ServiceNavigationToggleResponse(useNewServiceNavigation = toggle.isEnabled)))
-      }
-      .recover { case NonFatal(e) =>
-        logger.error("[ServiceNavigationController][toggle] failed to read feature flag", e)
-        Ok(Json.toJson(ServiceNavigationToggleResponse(useNewServiceNavigation = false)))
-      }
+    Future.successful(Ok(Json.toJson(ServiceNavigationToggleResponse(useNewServiceNavigation = true))))
   }
 }
