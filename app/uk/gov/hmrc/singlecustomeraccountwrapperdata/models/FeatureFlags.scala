@@ -19,13 +19,5 @@ package uk.gov.hmrc.singlecustomeraccountwrapperdata.models
 import uk.gov.hmrc.mongoFeatureToggles.model.FeatureFlagName
 
 object AllFeatureFlags {
-  val list: List[FeatureFlagName] = List(
-    ScaServiceNavigationToggle
-  )
-}
-
-case object ScaServiceNavigationToggle extends FeatureFlagName {
-  override val name: String                = "sca-service-navigation-toggle"
-  override val description: Option[String] = Some("Enable the new GOV.UK Service Navigation component")
-  override val defaultState: Boolean       = false
+  val list: List[FeatureFlagName] = List.empty
 }

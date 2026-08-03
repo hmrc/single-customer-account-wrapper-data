@@ -16,74 +16,29 @@
 
 package uk.gov.hmrc.singlecustomeraccountwrapperdata.controllers
 
-import org.mockito.ArgumentMatchers.any
-import org.mockito.Mockito.{reset, when}
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.matchers.must.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 import play.api.libs.json.Json
 import play.api.test.FakeRequest
 import play.api.test.Helpers.*
-import uk.gov.hmrc.mongoFeatureToggles.model.FeatureFlag
-import uk.gov.hmrc.mongoFeatureToggles.services.FeatureFlagService
 import uk.gov.hmrc.singlecustomeraccountwrapperdata.fixtures.BaseSpec
-import uk.gov.hmrc.singlecustomeraccountwrapperdata.models.{ScaServiceNavigationToggle, ServiceNavigationToggleResponse}
-
-import scala.concurrent.Future
+import uk.gov.hmrc.singlecustomeraccountwrapperdata.models.ServiceNavigationToggleResponse
 
 class ServiceNavigationControllerSpec extends AnyWordSpec with Matchers with BeforeAndAfterEach with BaseSpec {
 
-  private val mockFeatureFlagService: FeatureFlagService = mock[FeatureFlagService]
-
   private val controller = new ServiceNavigationController(
-    cc = stubControllerComponents(),
-    featureFlagService = mockFeatureFlagService
+    cc = stubControllerComponents()
   )
-
-  override def beforeEach(): Unit = {
-    super.beforeEach()
-    reset(mockFeatureFlagService)
-  }
 
   "ServiceNavigationController.toggle" must {
 
-    "return useNewServiceNavigation = true when the feature flag is enabled" in {
-      val enabledFlag = FeatureFlag(ScaServiceNavigationToggle, isEnabled = true)
-
-      when(mockFeatureFlagService.get(any()))
-        .thenReturn(Future.successful(enabledFlag))
-
+    "return useNewServiceNavigation = true" in {
       val result = controller.toggle()(FakeRequest())
 
       status(result) mustBe OK
       contentAsJson(result) mustBe Json.toJson(
         ServiceNavigationToggleResponse(useNewServiceNavigation = true)
-      )
-    }
-
-    "return useNewServiceNavigation = false when the feature flag is disabled" in {
-      val disabledFlag = FeatureFlag(ScaServiceNavigationToggle, isEnabled = false)
-
-      when(mockFeatureFlagService.get(any()))
-        .thenReturn(Future.successful(disabledFlag))
-
-      val result = controller.toggle()(FakeRequest())
-
-      status(result) mustBe OK
-      contentAsJson(result) mustBe Json.toJson(
-        ServiceNavigationToggleResponse(useNewServiceNavigation = false)
-      )
-    }
-
-    "return useNewServiceNavigation = false when the feature flag service fails" in {
-      when(mockFeatureFlagService.get(any()))
-        .thenReturn(Future.failed(new RuntimeException("boom")))
-
-      val result = controller.toggle()(FakeRequest())
-
-      status(result) mustBe OK
-      contentAsJson(result) mustBe Json.toJson(
-        ServiceNavigationToggleResponse(useNewServiceNavigation = false)
       )
     }
   }
